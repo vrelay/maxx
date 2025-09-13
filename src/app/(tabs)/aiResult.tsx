@@ -1,6 +1,7 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import img from "@/src/constants/img";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
     Dimensions,
@@ -16,13 +17,17 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get("window");
 
-// --- Individual Page Content Components ---
 const PreviewMultiplePoses = () => (
   <View style={styles.pageContent}>
     <View style={styles.gridContainer}>
-      {[img.faceimg_greyscaled, img.faceimg, img.faceimg_greyscaled, img.faceimg].map((imgSrc, idx) => (
+      {[
+        img.faceimg_greyscaled,
+        img.faceimg,
+        img.faceimg_greyscaled,
+        img.faceimg,
+      ].map((imgSrc, idx) => (
         <View key={idx} style={styles.gridItem}>
           <Image source={imgSrc} style={styles.gridImage} />
           {idx !== 0 && (
@@ -36,36 +41,46 @@ const PreviewMultiplePoses = () => (
   </View>
 );
 
-const PreviewYourRatings = () => {
-  const ratings = [78, 78, 78, 78];
-  return (
-    <View style={styles.pageContent}>
-      <View style={styles.ratingsContainer}>
-        {ratings.map((r, idx) => (
-          <View key={idx} style={styles.ratingBox}>
-            <View style={styles.ratingCircle}>
-              <Text style={styles.ratingText}>{r}</Text>
-            </View>
-            <Text style={styles.ratingLabel}>Jaw & Face</Text>
+const PreviewYourRatings = () => (
+  <View style={styles.pageContent}>
+    <View style={styles.ratingsRow}>
+      {[78, 78].map((r, idx) => (
+        <View key={idx} style={styles.ratingBox}>
+          <View style={styles.ratingCircle}>
+            <Text style={styles.ratingText}>{r}</Text>
           </View>
-        ))}
-      </View>
+          <Text style={styles.ratingLabel}>Jaw & Face</Text>
+        </View>
+      ))}
     </View>
-  );
-};
+    <View style={styles.ratingsRow}>
+      {[78, 78].map((r, idx) => (
+        <View key={idx} style={styles.ratingBox}>
+          <View style={styles.ratingCircle}>
+            <Text style={styles.ratingText}>{r}</Text>
+          </View>
+          <Text style={styles.ratingLabel}>Jaw & Face</Text>
+        </View>
+      ))}
+    </View>
+  </View>
+);
 
 const StartTransformationToday = () => {
   const tasks = [
-    { label: "Jaw & Face", desc: "Mewing and chewing exercises daily", level: 2 },
+    {
+      label: "Jaw & Face",
+      desc: "Mewing and chewing exercises daily",
+      level: 2,
+    },
     { label: "Skin", desc: "Tretinoin + Ceramide routine", level: 5 },
     { label: "Eyes", desc: "Fade cut + Sea salt spray styling", level: 6 },
   ];
   return (
     <View style={styles.pageContent}>
       {tasks.map((t, i) => (
-        <View key={i} style={styles.taskItem}>
-          <View style={styles.checkbox} />
-          <View style={styles.taskTextContainer}>
+        <View key={i} style={styles.taskCard}>
+          <View style={styles.taskLeft}>
             <Text style={styles.taskLabel}>{t.label}</Text>
             <Text style={styles.taskDesc}>{t.desc}</Text>
           </View>
@@ -78,7 +93,6 @@ const StartTransformationToday = () => {
   );
 };
 
-// --- Main Component ---
 const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
@@ -96,7 +110,6 @@ const DummySliderScreen: React.FC = () => {
     setPageIndex(newIndex);
   };
 
-  // Moves to next page programmatically
   const scrollToIndex = (idx: number) => {
     if (flatListRef.current && idx < pages.length) {
       flatListRef.current.scrollToIndex({ animated: true, index: idx });
@@ -117,12 +130,14 @@ const DummySliderScreen: React.FC = () => {
           style={styles.gradient}
         >
           <SafeAreaView style={styles.safeArea}>
+            {/* HEADER */}
             <View style={styles.header}>
               <Text style={styles.heading}>Preview Your Potential</Text>
               <Text style={styles.subheading}>
                 Improve your score from 6.7 to 8.8
               </Text>
             </View>
+            {/* SLIDER */}
             <View style={styles.sliderZone}>
               <FlatList
                 data={pages}
@@ -135,11 +150,20 @@ const DummySliderScreen: React.FC = () => {
                 scrollEventThrottle={16}
                 contentContainerStyle={styles.sliderContent}
                 renderItem={({ item }) => (
-                  <View style={{ width: screenWidth }}>{item}</View>
+                  <View
+                    style={{
+                      width: screenWidth,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {item}
+                  </View>
                 )}
                 style={styles.flatList}
               />
             </View>
+            {/* FOOTER */}
             <View style={styles.footer}>
               <Text style={styles.price}>at $9.99/week</Text>
               <TouchableOpacity
@@ -153,11 +177,12 @@ const DummySliderScreen: React.FC = () => {
                 <Text style={styles.ctaTxt}>See My Full Potential</Text>
               </TouchableOpacity>
               {pageIndex < pages.length - 1 && (
-                <TouchableOpacity onPress={() => scrollToIndex(pageIndex + 1)}>
+                <TouchableOpacity onPress={() => router.push("/(tabs)/lockedDashboard")}>
                   <Text style={styles.maybeTxt}>Maybe Later</Text>
                 </TouchableOpacity>
               )}
             </View>
+            {/* PAGINATION DOTS */}
             <View style={styles.pagination}>
               {pages.map((_, idx) => (
                 <View
@@ -181,13 +206,12 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safeArea: {
     flex: 1,
-    paddingHorizontal: scale(0),
     backgroundColor: "transparent",
     justifyContent: "flex-start",
   },
   header: {
-    marginTop: verticalScale(24),
-    marginBottom: verticalScale(4),
+    marginTop: verticalScale(30),
+    marginBottom: verticalScale(10),
     alignItems: "center",
   },
   heading: {
@@ -206,13 +230,13 @@ const styles = StyleSheet.create({
   },
   sliderZone: {
     flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    minHeight: verticalScale(280),
-    maxHeight: verticalScale(370),
-    // This centers the slide content and ensures it doesn't zoom/stretch
+    maxHeight: verticalScale(330),
   },
   sliderContent: {
     alignItems: "center",
+    justifyContent: "center",
   },
   flatList: {
     flexGrow: 0,
@@ -220,28 +244,31 @@ const styles = StyleSheet.create({
   pageContent: {
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: verticalScale(20),
+    minHeight: verticalScale(260),
+    width: scale(300),
   },
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    width: scale(267),
-    marginBottom: verticalScale(20),
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: verticalScale(12),
+    gap: scale(12),
   },
   gridItem: {
-    width: scale(120),
-    height: scale(120),
-    borderRadius: 12,
+    width: scale(128),
+    height: scale(128),
+    borderRadius: 15,
     overflow: "hidden",
-    marginBottom: verticalScale(18),
-    marginRight: scale(8),
+    marginBottom: verticalScale(12),
+    marginHorizontal: scale(7),
     position: "relative",
+    backgroundColor: "#241060",
   },
   gridImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    borderRadius: 15,
   },
   lockOverlay: {
     position: "absolute",
@@ -250,26 +277,28 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 15,
   },
   lockText: {
     color: "#fff",
-    fontSize: moderateScale(30),
+    fontSize: moderateScale(32),
   },
-  ratingsContainer: {
+  ratingsRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    width: scale(267),
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    width: "100%",
     marginBottom: verticalScale(22),
+    gap: scale(18),
   },
   ratingBox: {
-    width: scale(120),
-    height: scale(120),
+    width: scale(128),
+    height: scale(128),
     backgroundColor: "#371F9B",
-    borderRadius: 12,
+    borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: scale(8),
+    marginHorizontal: scale(7),
   },
   ratingCircle: {
     width: scale(68),
@@ -280,78 +309,82 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: verticalScale(8),
+    backgroundColor: "#4733B2",
   },
   ratingText: {
     color: "#fff",
-    fontSize: moderateScale(22),
+    fontSize: moderateScale(21),
     fontWeight: "700",
     textAlign: "center",
   },
   ratingLabel: {
     color: "#fff",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(15),
     textAlign: "center",
-    marginBottom: verticalScale(8),
+    marginBottom: verticalScale(2),
+    marginTop: verticalScale(4),
+    opacity: 0.75,
   },
-  // --- Task Section ---
-  taskItem: {
+  taskCard: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: verticalScale(20),
+    width: scale(260),
+    minHeight: verticalScale(54),
+    backgroundColor: "#391E8E",
+    borderRadius: 12,
+    paddingHorizontal: scale(18),
+    paddingVertical: verticalScale(14),
+    marginBottom: verticalScale(18),
+    elevation: 2,
   },
-  checkbox: {
-    width: scale(24),
-    height: scale(24),
-    borderWidth: 2,
-    borderColor: "#fff",
-    borderRadius: 4,
-    marginRight: scale(14),
-    backgroundColor: "#2D1B69",
+  taskLeft: {
+    flex: 1,
+    justifyContent: "center",
   },
-  taskTextContainer: { flex: 1 },
   taskLabel: {
     fontStyle: "italic",
     color: "#fff",
     fontWeight: "700",
-    fontSize: moderateScale(17),
+    fontSize: moderateScale(16),
     marginBottom: verticalScale(2),
   },
   taskDesc: {
-    color: "#fff",
-    fontSize: moderateScale(11),
+    color: "rgba(255,255,255,0.85)",
+    fontSize: moderateScale(12),
   },
   levelPill: {
     backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingHorizontal: scale(10),
-    paddingVertical: verticalScale(4),
+    borderRadius: 12,
+    minWidth: scale(58),
+    paddingVertical: verticalScale(2),
     alignItems: "center",
-    minWidth: scale(42),
+    justifyContent: "center",
   },
   taskLevel: {
     color: "#2F1C6A",
     fontWeight: "700",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(13.5),
+    textAlign: "center",
   },
-  // --- Footer/Price/Buttons ---
   footer: {
-    paddingTop: verticalScale(14),
-    paddingBottom: verticalScale(6),
+    paddingTop: verticalScale(18),
+    paddingBottom: verticalScale(8),
     alignItems: "center",
     backgroundColor: "transparent",
   },
   price: {
     color: "rgba(255,255,255,0.75)",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(15),
     textAlign: "center",
     marginBottom: verticalScale(8),
   },
   ctaBtn: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: verticalScale(12),
+    borderRadius: 13,
+    paddingVertical: verticalScale(13),
     alignItems: "center",
-    width: "85%",
+    width: "92%",
     alignSelf: "center",
     marginBottom: verticalScale(4),
   },
@@ -362,27 +395,27 @@ const styles = StyleSheet.create({
   },
   maybeTxt: {
     color: "#fff",
-    opacity: 0.6,
+    opacity: 0.62,
     fontSize: moderateScale(14),
     textAlign: "center",
     marginBottom: verticalScale(10),
+    marginTop: verticalScale(6),
   },
-  // --- Pagination ---
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: verticalScale(22),
+    bottom: verticalScale(14),
     width: "100%",
     zIndex: 1,
   },
   dot: {
-    width: scale(13),
-    height: scale(13),
+    width: scale(14),
+    height: scale(14),
     borderRadius: scale(7),
     backgroundColor: "rgba(255,255,255,0.28)",
-    marginHorizontal: scale(7),
+    marginHorizontal: scale(6),
   },
   dotActive: {
     backgroundColor: "#fff",

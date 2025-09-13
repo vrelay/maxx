@@ -13,6 +13,7 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 const TabsIndex = () => {
   const handleContinue = () => {
     router.push("/(auth)/socialproof");
+    // router.push("/(tabs)/aiResult");
   };
 
   return (
