@@ -5,6 +5,7 @@ export default {
   frontbody: require("@/src/assets/const/frontbody.png"),
   sideface: require("@/src/assets/const/sideface.png"),
   sidebody: require("@/src/assets/const/sidebody.png"),
+  fullbodydummy: require("@/src/assets/const/fullbodydummy.png"),
 
   gridpattern: require("@/src/assets/ui/gridpattern.png"),
   laurelWreath: require("@/src/assets/ui/laurelWreath.png"),
