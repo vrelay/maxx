@@ -24,8 +24,9 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   continueButton: {
-    height: verticalScale(40),
     width: "100%",
+    minWidth: scale(320),
+    height: verticalScale(40),
     backgroundColor: "#FFFFFF",
     borderRadius: moderateScale(8),
     paddingHorizontal: scale(16),

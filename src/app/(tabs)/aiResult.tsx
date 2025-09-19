@@ -1,17 +1,20 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
+import ButtonStart from "@/src/componants/atoms/startbutton";
+import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
+import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,54 +22,94 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const { width: screenWidth } = Dimensions.get("window");
 
-const PreviewMultiplePoses = () => (
+const PreviewMultiplePoses = ({ title }: { title: string }) => (
   <View style={styles.pageContent}>
-    <View style={styles.gridContainer}>
-      {[
-        img.faceimg_greyscaled,
-        img.faceimg,
-        img.faceimg_greyscaled,
-        img.faceimg,
-      ].map((imgSrc, idx) => (
-        <View key={idx} style={styles.gridItem}>
-          <Image source={imgSrc} style={styles.gridImage} />
-          {idx !== 0 && (
-            <View style={styles.lockOverlay}>
-              <Text style={styles.lockText}>{"\u{1F512}"}</Text>
-            </View>
-          )}
-        </View>
-      ))}
+    <View style={styles.cardContainer}>
+      <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
+        {title}
+      </Text>
+      <View style={styles.gridContainer}>
+        {["slider", img.frontbody, img.sideface, img.sidebody].map(
+          (item, idx) => {
+            if (idx === 0) {
+              return (
+                <View key={idx} style={styles.gridItem}>
+                  <ImageSlider
+                    beforeImage={img.faceimg_greyscaled}
+                    afterImage={img.faceimg}
+                    containerWidth={scale(128)}
+                    containerHeight={scale(128)}
+                    sliderWidth={moderateScale(2)}
+                    knobSize={moderateScale(24)}
+                  />
+                </View>
+              );
+            }
+            return (
+              <View key={idx} style={styles.gridItem}>
+                <Image source={item as any} style={styles.gridImage} />
+                <View style={styles.lockOverlay}>
+                  <FontAwesome
+                    name="lock"
+                    style={styles.lockText}
+                    color="#fff"
+                  />
+                </View>
+              </View>
+            );
+          }
+        )}
+      </View>
     </View>
   </View>
 );
 
-const PreviewYourRatings = () => (
-  <View style={styles.pageContent}>
-    <View style={styles.ratingsRow}>
-      {[78, 78].map((r, idx) => (
-        <View key={idx} style={styles.ratingBox}>
-          <View style={styles.ratingCircle}>
-            <Text style={styles.ratingText}>{r}</Text>
-          </View>
-          <Text style={styles.ratingLabel}>Jaw & Face</Text>
-        </View>
-      ))}
+// Helper function to determine the border color based on the rating
+const getBorderColor = (score: number) => {
+  if (score >= 85) return "#34D399"; // A vibrant green
+  if (score >= 70) return "#FBBF24"; // A warm yellow
+  return "#F87171"; // A soft red
+};
+
+// A dedicated component for the rating circles for cleaner code
+const RatingCircleDisplay = ({
+  score,
+  label,
+}: {
+  score: number;
+  label: string;
+}) => (
+  <View style={styles.ratingCircleBox}>
+    <View
+      style={[styles.newRatingCircle, { borderColor: getBorderColor(score) }]}
+    >
+      <Text style={styles.newRatingText}>{score}</Text>
     </View>
-    <View style={styles.ratingsRow}>
-      {[78, 78].map((r, idx) => (
-        <View key={idx} style={styles.ratingBox}>
-          <View style={styles.ratingCircle}>
-            <Text style={styles.ratingText}>{r}</Text>
-          </View>
-          <Text style={styles.ratingLabel}>Jaw & Face</Text>
-        </View>
-      ))}
+    <Text style={styles.newRatingLabel}>{label}</Text>
+  </View>
+);
+
+const PreviewYourRatings = ({ title }: { title: string }) => (
+  <View style={styles.pageContent}>
+    <View
+      style={[styles.cardContainer, { paddingVertical: verticalScale(30) }]}
+    >
+      <Text style={[styles.pageTitle, { marginBottom: verticalScale(25) }]}>
+        {title}
+      </Text>
+      <View style={styles.ratingsRow}>
+        <RatingCircleDisplay score={78} label="Jaw & Face" />
+        <RatingCircleDisplay score={85} label="Skin" />
+      </View>
+      <View style={styles.ratingsRow}>
+        <RatingCircleDisplay score={65} label="Eyes" />
+        <RatingCircleDisplay score={91} label="Hair" />
+      </View>
     </View>
   </View>
 );
 
-const StartTransformationToday = () => {
+const StartTransformationToday = ({ title }: { title: string }) => {
   const tasks = [
     {
       label: "Jaw & Face",
@@ -77,18 +120,35 @@ const StartTransformationToday = () => {
     { label: "Eyes", desc: "Fade cut + Sea salt spray styling", level: 6 },
   ];
   return (
-    <View style={styles.pageContent}>
-      {tasks.map((t, i) => (
-        <View key={i} style={styles.taskCard}>
-          <View style={styles.taskLeft}>
-            <Text style={styles.taskLabel}>{t.label}</Text>
-            <Text style={styles.taskDesc}>{t.desc}</Text>
-          </View>
-          <View style={styles.levelPill}>
-            <Text style={styles.taskLevel}>+{t.level} levels</Text>
-          </View>
+    <View style={styles.cardWrapper}>
+      <View style={styles.pageContent}>
+        <View style={styles.cardContainer}>
+          <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
+            {title}
+          </Text>
+          {tasks.map((t, i) => (
+            <View key={i} style={styles.taskCard}>
+              <View style={styles.taskLeft}>
+                <Text style={styles.taskLabel}>{t.label}</Text>
+                <Text style={styles.taskDesc}>{t.desc}</Text>
+              </View>
+              <View style={styles.levelPill}>
+                <Text style={styles.taskLevel}>+{t.level} levels</Text>
+              </View>
+              <LinearGradient
+                colors={[
+                  "rgba(255, 255, 255, 0)",
+                  "rgba(255, 255, 255, 0.25)",
+                  "rgba(255, 255, 255, 0)",
+                ]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.gradientBorder}
+              />
+            </View>
+          ))}
         </View>
-      ))}
+      </View>
     </View>
   );
 };
@@ -98,9 +158,9 @@ const DummySliderScreen: React.FC = () => {
   const flatListRef = useRef<FlatList>(null);
 
   const pages = [
-    <PreviewMultiplePoses key="0" />,
-    <PreviewYourRatings key="1" />,
-    <StartTransformationToday key="2" />,
+    <PreviewMultiplePoses key="0" title="Unlock Multiple Poses" />,
+    <PreviewYourRatings key="1" title="Discover Your Ratings" />,
+    <StartTransformationToday key="2" title="Start Transformation Today" />,
   ];
 
   const handleScroll = (event: any) => {
@@ -110,12 +170,7 @@ const DummySliderScreen: React.FC = () => {
     setPageIndex(newIndex);
   };
 
-  const scrollToIndex = (idx: number) => {
-    if (flatListRef.current && idx < pages.length) {
-      flatListRef.current.scrollToIndex({ animated: true, index: idx });
-      setPageIndex(idx);
-    }
-  };
+  const isLastPage = pageIndex === pages.length - 1;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -130,14 +185,13 @@ const DummySliderScreen: React.FC = () => {
           style={styles.gradient}
         >
           <SafeAreaView style={styles.safeArea}>
-            {/* HEADER */}
             <View style={styles.header}>
               <Text style={styles.heading}>Preview Your Potential</Text>
               <Text style={styles.subheading}>
                 Improve your score from 6.7 to 8.8
               </Text>
             </View>
-            {/* SLIDER */}
+
             <View style={styles.sliderZone}>
               <FlatList
                 data={pages}
@@ -153,7 +207,7 @@ const DummySliderScreen: React.FC = () => {
                   <View
                     style={{
                       width: screenWidth,
-                      justifyContent: "center",
+                      justifyContent: "flex-start",
                       alignItems: "center",
                     }}
                   >
@@ -162,37 +216,30 @@ const DummySliderScreen: React.FC = () => {
                 )}
                 style={styles.flatList}
               />
+              <View style={styles.pagination}>
+                {pages.map((_, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.dot,
+                      pageIndex === idx ? styles.dotActive : null,
+                    ]}
+                  />
+                ))}
+              </View>
             </View>
-            {/* FOOTER */}
+
             <View style={styles.footer}>
               <Text style={styles.price}>at $9.99/week</Text>
+              <ButtonStart
+                text="See My Full Potential"
+                handlepress={() => router.push("/(tabs)/lockedDashboard")}
+              />
               <TouchableOpacity
-                style={styles.ctaBtn}
-                onPress={() =>
-                  scrollToIndex(
-                    pageIndex + 1 === pages.length ? pageIndex : pageIndex + 1
-                  )
-                }
+                onPress={() => router.push("/(tabs)/lockedDashboard")}
               >
-                <Text style={styles.ctaTxt}>See My Full Potential</Text>
+                <Text style={styles.maybeTxt}>Maybe Later</Text>
               </TouchableOpacity>
-              {pageIndex < pages.length - 1 && (
-                <TouchableOpacity onPress={() => router.push("/(tabs)/lockedDashboard")}>
-                  <Text style={styles.maybeTxt}>Maybe Later</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {/* PAGINATION DOTS */}
-            <View style={styles.pagination}>
-              {pages.map((_, idx) => (
-                <View
-                  key={idx}
-                  style={[
-                    styles.dot,
-                    pageIndex === idx ? styles.dotActive : null,
-                  ]}
-                />
-              ))}
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -202,12 +249,18 @@ const DummySliderScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  gradientBorder: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  cardWrapper: {
+    marginBottom: verticalScale(16),
+  },
   container: { flex: 1 },
   gradient: { flex: 1 },
   safeArea: {
     flex: 1,
     backgroundColor: "transparent",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
   },
   header: {
     marginTop: verticalScale(30),
@@ -231,8 +284,7 @@ const styles = StyleSheet.create({
   sliderZone: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    maxHeight: verticalScale(330),
+    justifyContent: "space-between",
   },
   sliderContent: {
     alignItems: "center",
@@ -240,19 +292,39 @@ const styles = StyleSheet.create({
   },
   flatList: {
     flexGrow: 0,
+    maxHeight: verticalScale(450), // Adjusted height
   },
   pageContent: {
-    justifyContent: "center",
+    height: verticalScale(350),
+    justifyContent: "flex-start",
     alignItems: "center",
-    minHeight: verticalScale(260),
-    width: scale(300),
+    width: screenWidth,
+    paddingHorizontal: scale(20),
+  },
+  pageTitle: {
+    color: "#fff",
+    fontSize: moderateScale(22),
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  cardContainer: {
+    borderRadius: 20,
+    paddingVertical: verticalScale(20),
+    paddingHorizontal: scale(20),
+    width: "100%",
+    alignContent: "center",
+    justifyContent: "space-between",
+    flex: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 1.84,
+    elevation: 2,
   },
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: verticalScale(12),
     gap: scale(12),
   },
   gridItem: {
@@ -260,10 +332,7 @@ const styles = StyleSheet.create({
     height: scale(128),
     borderRadius: 15,
     overflow: "hidden",
-    marginBottom: verticalScale(12),
-    marginHorizontal: scale(7),
     position: "relative",
-    backgroundColor: "#241060",
   },
   gridImage: {
     width: "100%",
@@ -272,7 +341,7 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     position: "absolute",
-    backgroundColor: "rgba(22,22,22,0.38)",
+    backgroundColor: "rgba(22,22,22,0.78)",
     width: "100%",
     height: "100%",
     justifyContent: "center",
@@ -285,57 +354,48 @@ const styles = StyleSheet.create({
   },
   ratingsRow: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-around",
     alignItems: "center",
     width: "100%",
     marginBottom: verticalScale(22),
-    gap: scale(18),
   },
-  ratingBox: {
+  ratingCircleBox: {
+    alignItems: "center",
     width: scale(128),
-    height: scale(128),
-    backgroundColor: "#371F9B",
-    borderRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: scale(7),
   },
-  ratingCircle: {
-    width: scale(68),
-    height: scale(68),
-    borderRadius: scale(34),
+  newRatingCircle: {
+    width: scale(80),
+    height: scale(80),
+    borderRadius: scale(40),
     borderWidth: 4,
-    borderColor: "#E1663A",
-    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     alignItems: "center",
-    marginBottom: verticalScale(8),
-    backgroundColor: "#4733B2",
+    justifyContent: "center",
   },
-  ratingText: {
+  newRatingText: {
     color: "#fff",
-    fontSize: moderateScale(21),
     fontWeight: "700",
-    textAlign: "center",
+    fontSize: moderateScale(24),
   },
-  ratingLabel: {
-    color: "#fff",
-    fontSize: moderateScale(15),
-    textAlign: "center",
-    marginBottom: verticalScale(2),
-    marginTop: verticalScale(4),
-    opacity: 0.75,
+  newRatingLabel: {
+    color: "rgba(255,255,255,0.85)",
+    fontWeight: "500",
+    fontSize: moderateScale(14),
+    marginTop: verticalScale(10),
   },
   taskCard: {
+    overflow: "hidden", // Added this line
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: scale(260),
+    width: "100%",
     minHeight: verticalScale(54),
     backgroundColor: "#391E8E",
     borderRadius: 12,
     paddingHorizontal: scale(18),
     paddingVertical: verticalScale(14),
     marginBottom: verticalScale(18),
+    alignSelf: "center",
     elevation: 2,
   },
   taskLeft: {
@@ -370,6 +430,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingTop: verticalScale(18),
     paddingBottom: verticalScale(8),
+    height: verticalScale(150),
     alignItems: "center",
     backgroundColor: "transparent",
   },
@@ -377,21 +438,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.75)",
     fontSize: moderateScale(15),
     textAlign: "center",
-    marginBottom: verticalScale(8),
-  },
-  ctaBtn: {
-    backgroundColor: "#fff",
-    borderRadius: 13,
-    paddingVertical: verticalScale(13),
-    alignItems: "center",
-    width: "92%",
-    alignSelf: "center",
-    marginBottom: verticalScale(4),
-  },
-  ctaTxt: {
-    color: "#371F9B",
-    fontWeight: "700",
-    fontSize: moderateScale(17),
   },
   maybeTxt: {
     color: "#fff",
@@ -405,10 +451,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    bottom: verticalScale(14),
-    width: "100%",
-    zIndex: 1,
+    marginTop: verticalScale(20),
+    marginBottom: verticalScale(18),
   },
   dot: {
     width: scale(14),

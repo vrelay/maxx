@@ -1,16 +1,19 @@
 import img from "@/src/constants/img";
+import { Feather } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import ButtonStart from "../atoms/startbutton";
 
 type PhotoResult = {
   frontPhoto: string;
@@ -47,6 +50,8 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     | "full-body-position"
     | "full-body-preview"
   >("front-position");
+
+  const [cameraFacing, setCameraFacing] = useState<"front" | "back">("front");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [frontPhoto, setFrontPhoto] = useState<string | null>(null);
   const [sidePhoto, setSidePhoto] = useState<string | null>(null);
@@ -55,6 +60,15 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   useEffect(() => {
     if (visible && !permission?.granted) requestPermission();
   }, [visible]);
+
+  // Effect to switch camera based on the step
+  useEffect(() => {
+    if (step === "full-body-position") {
+      setCameraFacing("back");
+    } else {
+      setCameraFacing("front");
+    }
+  }, [step]);
 
   const handleCapture = async () => {
     if (cameraRef.current) {
@@ -95,7 +109,6 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     else if (step === "full-body-preview") setStep("full-body-position");
   };
 
-  // "Skip for now" on full-body step: call results with fullBodyPhoto=null
   const handleFullBodySkip = () => {
     onPhotosCaptured({
       frontPhoto: frontPhoto!,
@@ -105,24 +118,27 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     onClose();
   };
 
+  // Updated, more user-friendly instructions
   const instructions: Record<string, string> = {
-    "front-position": "Position face in frame",
+    "front-position": "Center Your Face in the Frame",
     "front-preview": "Front photo captured",
-    "side-position": "Turn your head slightly",
+    "side-position": "Now, Turn for a Profile Photo",
     "side-preview": "Side photo captured",
-    "full-body-position": "Show your full self in the frame",
+    "full-body-position": "Capture Your Full Body Photo",
     "full-body-preview": "Full-body photo captured",
   };
 
-  // Intro screen for full-body step (matches your reference)
   if (step === "full-body-intro") {
     return (
       <Modal visible={visible} animationType="slide">
         <SafeAreaView style={{ flex: 1, backgroundColor: "#2D1B69" }}>
           <View style={styles.fullBodyContainer}>
-            <Text style={styles.fullBodyTitle}>Show your full self for the best results</Text>
+            <Text style={styles.fullBodyTitle}>
+              Show your full self for the best results
+            </Text>
             <Text style={styles.fullBodySubtitle}>
-              Full-body photo helps us assess your transformation potential and suggest body specific improvements.
+              A full-body photo helps us assess your transformation potential
+              and suggest body-specific improvements.
             </Text>
             <View style={styles.fullBodyImageFrame}>
               <Image
@@ -132,12 +148,16 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
               />
             </View>
             <View style={styles.fullBodyActions}>
-              <TouchableOpacity onPress={handleFullBodySkip} style={styles.skipButton}>
+              <TouchableOpacity
+                onPress={handleFullBodySkip}
+                style={styles.skipButton}
+              >
                 <Text style={styles.skipText}>Skip for now</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setStep("full-body-position")} style={styles.continueButton}>
-                <Text style={styles.continueText}>Continue</Text>
-              </TouchableOpacity>
+              <ButtonStart
+                text="Continue"
+                handlepress={() => setStep("full-body-position")}
+              />
             </View>
           </View>
         </SafeAreaView>
@@ -147,7 +167,7 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#1a1752" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
         <View style={styles.topBar}>
           <BackArrow onPress={onClose} />
           <Text style={styles.instruction}>{instructions[step]}</Text>
@@ -156,12 +176,16 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
         {photoUri ? (
           <View style={styles.previewContainer}>
             <Image source={{ uri: photoUri }} style={styles.previewImage} />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.7)"]}
+              style={styles.gradientOverlay}
+            />
             <View style={styles.photoActions}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleReject}>
-                <Text style={styles.actionButtonText}>✗</Text>
+              <TouchableOpacity onPress={handleReject}>
+                <Feather name="x" style={styles.actionIcon} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton} onPress={handleAccept}>
-                <Text style={styles.actionButtonText}>✓</Text>
+              <TouchableOpacity onPress={handleAccept}>
+                <Feather name="check" style={styles.actionIcon} />
               </TouchableOpacity>
             </View>
           </View>
@@ -171,13 +195,17 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
               <CameraView
                 ref={cameraRef}
                 style={styles.camera}
-                facing="back"
+                facing={cameraFacing}
               />
             )}
-            {/* Hide oval for full-body shot */}
-            {(step === "front-position" || step === "side-position") && <View style={styles.ovalOverlay} />}
+            {(step === "front-position" || step === "side-position") && (
+              <View style={styles.ovalOverlay} />
+            )}
             <View style={styles.captureBar}>
-              <TouchableOpacity style={styles.captureButton} onPress={handleCapture}>
+              <TouchableOpacity
+                style={styles.captureButton}
+                onPress={handleCapture}
+              >
                 <View style={styles.captureCircle} />
               </TouchableOpacity>
             </View>
@@ -225,12 +253,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "15%",
     alignSelf: "center",
-    width: 240,
-    height: 320,
-    borderRadius: 120,
+    width: scale(220),
+    height: verticalScale(300),
+    borderRadius: scale(120), // Large radius creates an ellipse on a rectangle
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.7)",
-    backgroundColor: "rgba(255,255,255,0.07)",
+    backgroundColor: "transparent", // No fill color
     zIndex: 2,
   },
   captureBar: {
@@ -243,7 +271,7 @@ const styles = StyleSheet.create({
   },
   captureButton: {
     backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 32,
+    borderRadius: 40,
     padding: 8,
   },
   captureCircle: {
@@ -256,34 +284,34 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#222",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
   },
   previewImage: {
-    width: 320,
-    height: 426,
-    borderRadius: 16,
-    alignSelf: "center",
+    ...StyleSheet.absoluteFillObject,
+    resizeMode: "cover",
+  },
+  gradientOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "30%",
   },
   photoActions: {
+    position: "absolute",
+    bottom: verticalScale(50),
     flexDirection: "row",
-    justifyContent: "center",
-    marginTop: verticalScale(32),
+    justifyContent: "space-around",
+    width: "100%",
   },
-  actionButton: {
-    marginHorizontal: scale(24),
-    backgroundColor: "#fff",
-    borderRadius: 30,
-    padding: scale(14),
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 3,
-  },
-  actionButtonText: {
-    fontSize: moderateScale(26),
-    color: "#2D1B69",
-    fontWeight: "bold",
+  actionIcon: {
+    fontSize: moderateScale(40),
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   // Full-body intro styles
   fullBodyContainer: {
@@ -297,23 +325,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: moderateScale(28),
-    textAlign: "center",
     marginBottom: verticalScale(12),
   },
   fullBodySubtitle: {
     color: "rgba(255,255,255,0.8)",
     fontSize: moderateScale(16),
-    textAlign: "center",
     marginBottom: verticalScale(20),
   },
   fullBodyImageFrame: {
-    width: scale(220),
+    width: scale(310),
     height: scale(320),
+    marginTop: verticalScale(20),
     borderRadius: moderateScale(16),
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#462FA9",
+    backgroundColor: "#5947a7ff",
     marginBottom: verticalScale(32),
   },
   fullBodyImage: {
@@ -326,7 +353,6 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     padding: verticalScale(12),
-    marginBottom: verticalScale(16),
   },
   skipText: {
     color: "#fff",
@@ -334,18 +360,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     opacity: 0.85,
-  },
-  continueButton: {
-    backgroundColor: "#fff",
-    borderRadius: moderateScale(12),
-    paddingVertical: verticalScale(14),
-    paddingHorizontal: scale(60),
-  },
-  continueText: {
-    color: "#2D1B69",
-    fontSize: moderateScale(18),
-    fontWeight: "600",
-    textAlign: "center",
   },
 });
 

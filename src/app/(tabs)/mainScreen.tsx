@@ -1,4 +1,3 @@
-import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { FontAwesome } from "@expo/vector-icons";
@@ -10,17 +9,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
-  const onUnlock = () => {
-    // In a real app, you might navigate to a paywall screen first.
-    // For this example, we'll navigate to the unlocked look.
-    router.push("/(tabs)/unlockedLook");
-  };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Main content wrapper */}
           <View>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Maxx.</Text>
@@ -44,46 +36,54 @@ const LockedDashboard: React.FC = () => {
               <Text style={styles.progressLabel}>
                 Start Transformation Today
               </Text>
-              <Text style={styles.progressValue}>0/180</Text>
+              <Text style={styles.progressValue}>60/180</Text>
             </View>
 
-            {/* Visual Progress Bar */}
             <View style={styles.progressBarBackground}>
               <View style={styles.progressBarFill}></View>
             </View>
 
             <View style={styles.listContainer}>
-              <TouchableOpacity style={styles.lockedItem}>
+              <TouchableOpacity
+                style={styles.lockedItem}
+                onPress={() => router.push("/looksmaxxingPlan")} // Navigation added
+              >
                 <FontAwesome
                   name="calendar"
                   style={styles.itemIcon}
                   color="orange"
                 />
-                {/* Calendar Icon */}
                 <View style={styles.itemTextContainer}>
                   <Text style={styles.lockedItemTitle}>Your Plan</Text>
                   <Text style={styles.lockedItemSub}>View Daily Task</Text>
                 </View>
-                <FontAwesome name="lock" style={styles.itemIcon} color="grey" />
+                <FontAwesome
+                  name="chevron-right" // Icon changed
+                  style={styles.chevronIcon}
+                  color="grey"
+                />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.lockedItem}>
+              <TouchableOpacity
+                style={styles.lockedItem}
+                onPress={() => router.push("/unlockedLook")} // Navigation added
+              >
                 <FontAwesome
                   name="bar-chart-o"
                   style={styles.itemIcon}
                   color="orange"
                 />
-                {/* Chart Icon */}
                 <View style={styles.itemTextContainer}>
                   <Text style={styles.lockedItemTitle}>Analysis</Text>
                   <Text style={styles.lockedItemSub}>See Breakdown</Text>
                 </View>
-                <FontAwesome name="lock" style={styles.itemIcon} color="grey" />
+                <FontAwesome
+                  name="chevron-right" // Icon changed
+                  style={styles.chevronIcon}
+                  color="grey"
+                />
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Footer button */}
-          <ButtonStart text="Unlock at $9.99/week" handlepress={onUnlock} />
         </View>
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -97,9 +97,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "space-between", // Pushes button to bottom
     paddingHorizontal: scale(15),
-    paddingBottom: verticalScale(20), // Padding for the button
+    paddingBottom: verticalScale(20),
   },
   header: {
     flexDirection: "row",
@@ -148,7 +147,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: "100%",
-    width: "2%", // Represents the start of the progress
+    width: "33.33%", // Updated for 60/180
     backgroundColor: "#fff",
     borderRadius: 2,
   },
@@ -182,20 +181,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     marginTop: verticalScale(2),
   },
-  lockIcon: {
-    fontSize: moderateScale(20),
-  },
-  unlockBtn: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: moderateScale(14),
-    paddingVertical: verticalScale(16),
-    alignItems: "center",
-    marginTop: verticalScale(20), // Space from content above
-  },
-  unlockBtnText: {
-    color: "#2D1B69",
-    fontWeight: "700",
+  chevronIcon: {
     fontSize: moderateScale(16),
   },
 });

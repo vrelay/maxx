@@ -1,15 +1,15 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
+import ButtonStart from "@/src/componants/atoms/startbutton";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Animated,
-    Easing,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Easing,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
@@ -138,9 +138,7 @@ const LoadingScreen: React.FC = () => {
             AI is generating your maximum potential based on{"\n"}
             50k+ successful transformation
           </Text>
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
-            <Text style={styles.buttonText}>Continue</Text>
-          </TouchableOpacity>
+          <ButtonStart text="Continue" handlepress={handleContinue} />
         </SafeAreaView>
       </LinearGradient>
     </View>
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "flex-end",
-    marginBottom: verticalScale(32),
+    marginBottom: verticalScale(50),
     height: ballSize * 2,
   },
   ball: {
@@ -207,23 +205,8 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.82)",
     textAlign: "center",
     fontSize: moderateScale(14),
-    marginBottom: verticalScale(30),
     fontWeight: "400",
     lineHeight: 19,
-  },
-  button: {
-    marginTop: verticalScale(20),
-    backgroundColor: "#fff",
-    borderRadius: moderateScale(10),
-    paddingVertical: verticalScale(15),
-    paddingHorizontal: scale(70),
-  },
-  buttonText: {
-    color: "#6D37D4",
-    fontSize: moderateScale(17),
-    fontWeight: "700",
-    textAlign: "center",
-    letterSpacing: 0.2,
   },
 });
 

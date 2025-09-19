@@ -1,102 +1,145 @@
+import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { router } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+
+// Helper function to determine the border color based on the rating
+const getBorderColor = (score: number) => {
+  if (score >= 8.5) return "#34D399"; // A vibrant green
+  if (score >= 6) return "#FBBF24"; // A warm yellow
+  return "#F87171"; // A soft red
+};
+
+// A dedicated component for the rating circles for cleaner code
+const RatingCircle = ({ score, label }: { score: number; label: string }) => (
+  <View style={styles.ratingBox}>
+    <View style={[styles.ratingCircle, { borderColor: getBorderColor(score) }]}>
+      <Text style={styles.ratingCircleText}>{score}</Text>
+    </View>
+    <Text style={styles.ratingLabel}>{label}</Text>
+  </View>
+);
+
 const UnlockedLook: React.FC = () => {
   const onViewPlan = () => {
-    router.push("/(tabs)/unlockedLook");
+    router.push("/(tabs)/looksmaxxingPlan");
   };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-  <View style={styles.container}>
-    <Text style={styles.headerTitle}>Your looksmaxxed transformation</Text>
-    <Text style={styles.currentScore}>You current score: 4</Text>
-    <ImageSlider
-      beforeImage={img.faceimg_greyscaled}
-      afterImage={img.faceimg}
-      containerWidth={scale(270)}
-      containerHeight={scale(250)}
-      sliderWidth={moderateScale(4)}
-      knobSize={moderateScale(32)}
-    />
-    <View style={styles.ratingsRow}>
-      <View style={styles.ratingBox}>
-        <Text style={styles.ratingCircleText}>8.9</Text>
-        <Text style={styles.ratingLabel}>Chest</Text>
-      </View>
-      <View style={styles.ratingBox}>
-        <Text style={styles.ratingCircleText}>90</Text>
-        <Text style={styles.ratingLabel}>Eyes</Text>
-      </View>
-      <View style={styles.ratingBox}>
-        <Text style={styles.ratingCircleText}>90</Text>
-        <Text style={styles.ratingLabel}>Eyes</Text>
-      </View>
-    </View>
-    <TouchableOpacity style={styles.viewPlanBtn} onPress={onViewPlan}>
-      <Text style={styles.viewPlanBtnText}>View Looksmaxxing Plan</Text>
-    </TouchableOpacity>
-  </View>
-  </GestureHandlerRootView>
-)}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          {/* Main content wrapper */}
+          <View>
+            <View style={styles.headerContainer}>
+              <Text style={styles.headerTitle}>
+                Your looksmaxxed transformation
+              </Text>
+              <Text style={styles.currentScore}>You current score: 4</Text>
+            </View>
+
+            <View style={styles.sliderContainer}>
+              <ImageSlider
+                beforeImage={img.faceimg_greyscaled}
+                afterImage={img.faceimg}
+                containerWidth={scale(320)}
+                containerHeight={scale(340)}
+                sliderWidth={moderateScale(4)}
+                knobSize={moderateScale(32)}
+              />
+            </View>
+
+            <View style={styles.ratingsRow}>
+              <RatingCircle score={8.9} label="Chest" />
+              <RatingCircle score={9.0} label="Eyes" />
+              <RatingCircle score={5.5} label="Jawline" />
+            </View>
+          </View>
+
+          {/* Footer button */}
+          <ButtonStart text="View Looksmaxxing Plan" handlepress={onViewPlan} />
+        </View>
+      </SafeAreaView>
+    </GestureHandlerRootView>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#2D1B69",
-    alignItems: "center",
-    paddingTop: verticalScale(44),
-    paddingHorizontal: scale(24),
+  },
+  container: {
+    flex: 1,
+    justifyContent: "space-between", // Pushes button to the bottom
+    paddingHorizontal: scale(15),
+    paddingBottom: verticalScale(20),
+  },
+  headerContainer: {
+    alignItems: "flex-start",
+    width: "100%",
+    paddingTop: verticalScale(10),
   },
   headerTitle: {
     color: "#fff",
-    fontSize: moderateScale(26),
+    fontSize: moderateScale(34),
     fontWeight: "700",
-    marginBottom: verticalScale(8),
-    textAlign: "center",
+    marginBottom: verticalScale(6),
+    textAlign: "left",
   },
   currentScore: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: moderateScale(14),
-    marginBottom: verticalScale(16),
-    textAlign: "center",
+    color: "rgba(255,255,255,0.7)",
+    fontSize: moderateScale(15),
+    textAlign: "left",
+  },
+  sliderContainer: {
+    alignItems: "center",
+    marginTop: verticalScale(20),
   },
   ratingsRow: {
     flexDirection: "row",
-    width: scale(270),
-    justifyContent: "space-between",
-    marginVertical: verticalScale(24),
+    width: "100%",
+    justifyContent: "space-around",
+    marginTop: verticalScale(30),
   },
   ratingBox: {
-    width: scale(80),
-    height: scale(90),
-    backgroundColor: "#371F9B",
+    alignItems: "center",
+    backgroundColor: "rgba(135, 89, 209, 0.26)",
+    width: scale(100),
+    padding: scale(12),
     borderRadius: moderateScale(12),
+  },
+  ratingCircle: {
+    width: scale(70),
+    height: scale(70),
+    borderRadius: scale(40),
+    borderWidth: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: verticalScale(10),
   },
   ratingCircleText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: moderateScale(22),
-    marginBottom: verticalScale(8),
+    fontSize: moderateScale(24),
   },
   ratingLabel: {
     color: "rgba(255,255,255,0.85)",
-    fontWeight: "600",
+    fontWeight: "500",
     fontSize: moderateScale(14),
+    marginTop: verticalScale(10),
   },
   viewPlanBtn: {
-    marginTop: verticalScale(18),
-    width: scale(270),
+    width: "100%",
     backgroundColor: "#fff",
-    borderRadius: moderateScale(13),
-    paddingVertical: verticalScale(14),
+    borderRadius: moderateScale(14),
+    paddingVertical: verticalScale(16),
     alignItems: "center",
+    marginTop: verticalScale(20), // Ensure space from content above
   },
   viewPlanBtnText: {
     color: "#2D1B69",
