@@ -1,3 +1,4 @@
+import img from "@/src/constants/img";
 import React from "react";
 import { Dimensions, Image, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -5,11 +6,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-
 const { width: screenWidth } = Dimensions.get("window");
 
 const ImageSlider = ({
-  beforeImage,
+  beforeImage = img.before_img_grey,
   afterImage,
   containerWidth = screenWidth - 40,
   containerHeight = 400,
@@ -28,10 +28,7 @@ const ImageSlider = ({
       "worklet";
       const newPosition = startPosition.value + event.translationX;
       // Constrain the slider within bounds
-      sliderPosition.value = Math.max(
-        0,
-        Math.min(containerWidth, newPosition)
-      );
+      sliderPosition.value = Math.max(0, Math.min(containerWidth, newPosition));
     });
 
   // Before image container (left side) - only width changes

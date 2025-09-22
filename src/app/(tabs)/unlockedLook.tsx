@@ -1,6 +1,7 @@
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -26,6 +27,7 @@ const RatingCircle = ({ score, label }: { score: number; label: string }) => (
 );
 
 const UnlockedLook: React.FC = () => {
+  const { savedImages } = useAuth();
   const onViewPlan = () => {
     router.push("/(tabs)/looksmaxxingPlan");
   };
@@ -44,8 +46,8 @@ const UnlockedLook: React.FC = () => {
 
             <View style={styles.sliderContainer}>
               <ImageSlider
-                beforeImage={img.faceimg_greyscaled}
-                afterImage={img.faceimg}
+                beforeImage={{ uri: savedImages[0].uri }}
+                afterImage={{ uri: savedImages[1].uri }}
                 containerWidth={scale(320)}
                 containerHeight={scale(340)}
                 sliderWidth={moderateScale(4)}

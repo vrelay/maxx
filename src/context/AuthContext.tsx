@@ -1,0 +1,212 @@
+// context/AuthContext.tsx
+import { onAuthStateChanged, sendEmailVerification } from "firebase/auth";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
+import { auth } from "../config/firebase";
+import { authService } from "../services/authService";
+import {
+  AuthAction,
+  AuthState,
+  LoginCredentials,
+  SignupCredentials,
+  User,
+} from "../types/auth";
+import { SavedImage } from "../utils/imageStorage";
+
+interface AuthContextType extends AuthState {
+  savedImages: SavedImage[];
+  setSavedImages: (images: SavedImage[]) => void;
+  signIn: (credentials: LoginCredentials) => Promise<boolean>;
+  signUp: (credentials: SignupCredentials) => Promise<boolean>;
+  signOut: () => Promise<void>;
+  sendEmailVerificationForEmailSignup: () => Promise<boolean>;
+  checkEmailIsEmailVerified: () => Promise<boolean>;
+  clearError: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+  switch (action.type) {
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_USER":
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: action.payload !== null,
+        isLoading: false,
+        error: null,
+      };
+    case "SET_ERROR":
+      return { ...state, error: action.payload, isLoading: false };
+    case "SET_SUCCESS":
+      return { ...state, success: action.payload, isLoading: false };
+    case "CLEAR_ERROR":
+      return { ...state, error: null };
+    case "CLEAR_SUCCESS":
+      return { ...state, success: null };
+    case "RESET_STATE":
+      return {
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+        error: null,
+        success: null,
+      };
+    default:
+      return state;
+  }
+};
+
+const initialState: AuthState = {
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  success: null,
+};
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const user: User = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          emailVerified: firebaseUser.emailVerified,
+          providers: firebaseUser.providerData.map((p) => p.providerId),
+        };
+        dispatch({ type: "SET_USER", payload: user });
+      } else {
+        dispatch({ type: "SET_USER", payload: null });
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const signIn = async (credentials: LoginCredentials) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    dispatch({ type: "CLEAR_ERROR" });
+
+    const result = await authService.signInWithEmail(credentials);
+    if (result.success) {
+      dispatch({ type: "SET_SUCCESS", payload: result.message });
+      return true;
+    } else {
+      dispatch({ type: "SET_ERROR", payload: result.message });
+      return false;
+    }
+  };
+
+  const signUp = async (credentials: SignupCredentials) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    dispatch({ type: "CLEAR_ERROR" });
+
+    const result = await authService.signUpWithEmail(credentials);
+
+    if (result.success) {
+      dispatch({ type: "SET_SUCCESS", payload: result.message });
+      return true;
+    } else {
+      dispatch({ type: "SET_ERROR", payload: result.message });
+      return false;
+    }
+  };
+
+  const sendEmailVerificationForEmailSignup = async (): Promise<boolean> => {
+    const currentUser = auth.currentUser;
+    if (currentUser && !currentUser.emailVerified) {
+      try {
+        await sendEmailVerification(currentUser);
+        dispatch({ type: "SET_SUCCESS", payload: "Verification email sent!" });
+        return true;
+      } catch (error: any) {
+        dispatch({ type: "SET_ERROR", payload: error.message });
+        return false;
+      }
+    }
+    return false;
+  };
+
+  const checkEmailIsEmailVerified = async (): Promise<boolean> => {
+    const user = auth.currentUser;
+    if (user) {
+      await user.reload();
+
+      const updatedUser: User = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        providers: user.providerData.map((p) => p.providerId),
+      };
+
+      dispatch({ type: "SET_USER", payload: updatedUser });
+
+      if (user.emailVerified) {
+        dispatch({
+          type: "SET_SUCCESS",
+          payload: "Email verified successfully!",
+        });
+      }
+
+      return user.emailVerified;
+    }
+    return false;
+  };
+
+  const signOut = async () => {
+    const result = await authService.signOut();
+
+    if (result.success) {
+      dispatch({ type: "RESET_STATE" });
+      dispatch({ type: "SET_SUCCESS", payload: result.message });
+    }
+  };
+
+  const clearError = () => {
+    dispatch({ type: "CLEAR_ERROR" });
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        savedImages,
+        setSavedImages, 
+        signIn,
+        signUp,
+        signOut,
+        sendEmailVerificationForEmailSignup,
+        checkEmailIsEmailVerified,
+        clearError,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

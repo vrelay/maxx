@@ -2,6 +2,7 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
@@ -11,8 +12,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const TabsIndex = () => {
+  const { user, isAuthenticated } = useAuth();
+
   const handleContinue = () => {
-    router.push("/(auth)/socialproof");
+    if (isAuthenticated) {
+      if (user && user.emailVerified) {
+        router.push("/(tabs)");
+        return;
+      } else if (user && !user.emailVerified) {
+        router.push("/(auth)/verifyEmailScreen");
+        return;
+      }
+    } else {
+      router.push("/(auth)/authScreen");
+    }
     // router.push("/(tabs)/aiResult");
   };
 
@@ -45,8 +58,8 @@ const TabsIndex = () => {
             {/* Image Slider Section */}
             <View style={styles.sliderContainer}>
               <ImageSlider
-                beforeImage={img.faceimg_greyscaled}
-                afterImage={img.faceimg}
+                beforeImage={img.before_img_grey}
+                afterImage={img.after_img}
                 containerWidth={scale(300)}
                 containerHeight={scale(305)}
                 sliderWidth={moderateScale(3)}

@@ -1,6 +1,7 @@
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -10,12 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
+  const { savedImages } = useAuth();
   const onUnlock = () => {
     // In a real app, you might navigate to a paywall screen first.
     // For this example, we'll navigate to the unlocked look.
     router.push("/(tabs)/unlockedLook");
   };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
@@ -31,8 +32,8 @@ const LockedDashboard: React.FC = () => {
 
             <View style={styles.sliderContainer}>
               <ImageSlider
-                beforeImage={img.faceimg_greyscaled}
-                afterImage={img.faceimg}
+                beforeImage={{ uri: savedImages[0].uri }}
+                afterImage={{ uri: savedImages[1].uri }}
                 containerWidth={scale(290)}
                 containerHeight={scale(300)}
                 sliderWidth={moderateScale(4)}

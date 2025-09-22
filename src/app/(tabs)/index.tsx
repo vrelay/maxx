@@ -2,18 +2,20 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import GuidedCamera from "@/src/componants/molecules/GuidedCamera";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
+import { saveImageToAppStorage } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Image, StatusBar, StyleSheet, Text, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const HomeScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
 
-  const handleAllPhotosComplete = ({
+  const handleAllPhotosComplete = async ({
     frontPhoto,
     sidePhoto,
     fullBodyPhoto,
@@ -23,10 +25,30 @@ const HomeScreen: React.FC = () => {
     fullBodyPhoto: string | null;
   }) => {
     setShowCamera(false);
-    console.log("Front:", frontPhoto);
-    console.log("Side:", sidePhoto);
-    console.log("Full body:", fullBodyPhoto);
-    router.replace("/(tabs)/loadingAiProcessing");
+    console.log("Photos captured, calling APIs with hardcoded URLs...");
+    (async () => {
+      const result = await saveImageToAppStorage(frontPhoto, "front_before");
+      console.log("Image saved to app storage", result);
+      (async () => {
+        const result = await saveImageToAppStorage(sidePhoto, "side_before");
+        console.log("Image saved to app storage", result);
+      })();
+      if (fullBodyPhoto) {
+        (async () => {
+          const result = await saveImageToAppStorage(
+            fullBodyPhoto,
+            "fullbody_before"
+          );
+          console.log("Image saved to app storage", result);
+        })();
+      }
+    })();
+    //move with the three params with the router
+    router.replace("/(tabs)/loadingAiProcessing", {
+      frontPhoto,
+      sidePhoto,
+      fullBodyPhoto: fullBodyPhoto || undefined,
+    });
   };
 
   return (
@@ -53,13 +75,13 @@ const HomeScreen: React.FC = () => {
             <View style={styles.photosContainer}>
               <View style={styles.photoSection}>
                 <View style={styles.photoFrame}>
-                  <Image source={img.faceimg_greyscaled} style={styles.photo} />
+                  <Image source={img.before_img} style={styles.photo} />
                 </View>
                 <Text style={styles.photoLabel}>Before</Text>
               </View>
               <View style={styles.photoSection}>
                 <View style={styles.photoFrame}>
-                  <Image source={img.faceimg} style={styles.photo} />
+                  <Image source={img.after_img} style={styles.photo} />
                 </View>
                 <Text style={styles.photoLabel}>After</Text>
               </View>

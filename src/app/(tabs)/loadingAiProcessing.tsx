@@ -1,15 +1,18 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
+import { useAuth } from "@/src/context/AuthContext";
+import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Animated,
   Easing,
   StatusBar,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
@@ -34,6 +37,60 @@ const STEP_TEXTS = [
 
 const LoadingScreen: React.FC = () => {
   const [step, setStep] = useState(0);
+  const { frontPhoto, sidePhoto, fullBodyPhoto } = useLocalSearchParams();
+  const { user } = useAuth();
+
+  const callAllAPIs = async (
+    frontPhoto: string,
+    sidePhoto: string,
+    fullBodyPhoto?: string
+  ) => {
+    try {
+      // Test the connection first
+      await looksmaxxingService.testConnection();
+      const uploadResult = await looksmaxxingService.uploadUserPhotos(
+        user?.uid as string,
+        {
+          frontPhoto: frontPhoto,
+          sidePhoto: sidePhoto,
+          fullBodyPhoto: fullBodyPhoto,
+        }
+      );
+      if (!uploadResult.success) {
+        const result = await looksmaxxingService.processLooksmaxxing(
+          uploadResult.frontPhotoUrl,
+          uploadResult.sidePhotoUrl,
+          uploadResult.fullBodyPhotoUrl
+        );
+        if (result.success) {
+          router.replace("/(tabs)/aiResult");
+        } else {
+          Alert.alert(
+            "API Error",
+            result.error || "Failed to call APIs. Check console for details.",
+            [{ text: "OK" }]
+          );
+        }
+      }
+    } catch (error) {
+      console.error("API call error:", error);
+      Alert.alert(
+        "API Error",
+        "Failed to call APIs. Check console for details.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  useEffect(() => {
+    const call = async () =>
+      await callAllAPIs(
+        frontPhoto as string,
+        sidePhoto as string,
+        (fullBodyPhoto as string) || undefined
+      );
+    call();
+  }, [frontPhoto, sidePhoto, fullBodyPhoto]);
 
   // Animate loading balls
   const ballAnim = [

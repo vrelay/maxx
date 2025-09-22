@@ -6,6 +6,8 @@ export default function AuthLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="socialproof" />
       <Stack.Screen name="referralScreen" />
+      <Stack.Screen name="authScreen" />
+      <Stack.Screen name="verifyEmailScreen" />
     </Stack>
   );
 }

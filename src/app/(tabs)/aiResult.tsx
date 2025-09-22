@@ -2,10 +2,17 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
+import {
+  clearAllSavedImages,
+  getSavedImages,
+  GetSavedImagesResult,
+  SavedImage,
+} from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -22,21 +29,27 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const { width: screenWidth } = Dimensions.get("window");
 
-const PreviewMultiplePoses = ({ title }: { title: string }) => (
+const PreviewMultiplePoses = ({
+  title,
+  savedImages,
+}: {
+  title: string;
+  savedImages: SavedImage[];
+}) => (
   <View style={styles.pageContent}>
     <View style={styles.cardContainer}>
       <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
         {title}
       </Text>
       <View style={styles.gridContainer}>
-        {["slider", img.frontbody, img.sideface, img.sidebody].map(
+        {["slider", ...savedImages.slice(-3).map((image) => image.uri)].map(
           (item, idx) => {
             if (idx === 0) {
               return (
                 <View key={idx} style={styles.gridItem}>
                   <ImageSlider
-                    beforeImage={img.faceimg_greyscaled}
-                    afterImage={img.faceimg}
+                    beforeImage={{ uri: savedImages[0].uri }}
+                    afterImage={{ uri: savedImages[1].uri }}
                     containerWidth={scale(128)}
                     containerHeight={scale(128)}
                     sliderWidth={moderateScale(2)}
@@ -47,7 +60,10 @@ const PreviewMultiplePoses = ({ title }: { title: string }) => (
             }
             return (
               <View key={idx} style={styles.gridItem}>
-                <Image source={item as any} style={styles.gridImage} />
+                <Image
+                  source={{ uri: item as string }}
+                  style={styles.gridImage}
+                />
                 <View style={styles.lockOverlay}>
                   <FontAwesome
                     name="lock"
@@ -157,8 +173,71 @@ const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
+  const { savedImages, setSavedImages } = useAuth();
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Load saved images on component mount
+  useEffect(() => {
+    loadSavedImages();
+  }, []);
+
+  const loadSavedImages = async (): Promise<void> => {
+    setLoading(true);
+    const result: GetSavedImagesResult = await getSavedImages();
+    if (result.success) {
+      const filteredImages = result.images.filter((image) => {
+        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+        return [
+          "front_before",
+          "front_after",
+          "side_after",
+          "physique_after",
+          "lifestyle_after",
+        ].includes(nameWithoutExtension);
+      });
+      console.log("filteredImages", filteredImages);
+      setSavedImages(filteredImages);
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View
+          style={[
+            styles.container,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
+          <LinearGradient
+            colors={["#171840", "#6D37D4"]}
+            style={styles.gradient}
+          >
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                flex: 1,
+              }}
+            >
+              <Text style={{ color: "#fff", fontSize: 18 }}>
+                Loading your potential...
+              </Text>
+              {/* You can add ActivityIndicator here */}
+            </View>
+          </LinearGradient>
+        </View>
+      </GestureHandlerRootView>
+    );
+  }
+
   const pages = [
-    <PreviewMultiplePoses key="0" title="Unlock Multiple Poses" />,
+    <PreviewMultiplePoses
+      key="0"
+      title="Unlock Multiple Poses"
+      savedImages={savedImages}
+    />,
     <PreviewYourRatings key="1" title="Discover Your Ratings" />,
     <StartTransformationToday key="2" title="Start Transformation Today" />,
   ];
@@ -216,17 +295,19 @@ const DummySliderScreen: React.FC = () => {
                 )}
                 style={styles.flatList}
               />
-              <View style={styles.pagination}>
-                {pages.map((_, idx) => (
-                  <View
-                    key={idx}
-                    style={[
-                      styles.dot,
-                      pageIndex === idx ? styles.dotActive : null,
-                    ]}
-                  />
-                ))}
-              </View>
+              {savedImages.length > 0 && (
+                <View style={styles.pagination}>
+                  {pages.map((_, idx) => (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.dot,
+                        pageIndex === idx ? styles.dotActive : null,
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
 
             <View style={styles.footer}>
