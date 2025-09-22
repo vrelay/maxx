@@ -56,8 +56,10 @@ const LoadingScreen: React.FC = () => {
           fullBodyPhoto: fullBodyPhoto,
         }
       );
-      if (!uploadResult.success) {
+      console.log("firesbase image upload result", uploadResult);
+      if (uploadResult.success) {
         const result = await looksmaxxingService.processLooksmaxxing(
+          user?.uid as string,
           uploadResult.frontPhotoUrl,
           uploadResult.sidePhotoUrl,
           uploadResult.fullBodyPhotoUrl
@@ -71,6 +73,12 @@ const LoadingScreen: React.FC = () => {
             [{ text: "OK" }]
           );
         }
+      } else {
+        Alert.alert(
+          "Upload Error",
+          uploadResult.error || "Failed to upload images to Firebase",
+          [{ text: "OK" }]
+        );
       }
     } catch (error) {
       console.error("API call error:", error);
@@ -89,7 +97,9 @@ const LoadingScreen: React.FC = () => {
         sidePhoto as string,
         (fullBodyPhoto as string) || undefined
       );
-    call();
+    if (frontPhoto && sidePhoto) {
+      call();
+    }
   }, [frontPhoto, sidePhoto, fullBodyPhoto]);
 
   // Animate loading balls

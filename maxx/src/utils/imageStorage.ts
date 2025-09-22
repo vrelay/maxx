@@ -59,7 +59,7 @@ export const saveImageToAppStorage = async (
     // Handle Firebase Storage path - download from Firebase
     const imageRef = ref(storage, imagePath);
     const downloadURL: string = await getDownloadURL(imageRef);
-    console.log("Firebase download URL obtained");
+    // console.log("Firebase download URL obtained");
 
     // Create filename - use custom name or generate from original path
     const originalFileName: string = imagePath.split("/").pop() || "image";
@@ -84,7 +84,7 @@ export const saveImageToAppStorage = async (
     }).promise;
 
     if (downloadResult.statusCode === 200) {
-      console.log("Image saved to app storage:", localFilePath);
+      // console.log("Image saved to app storage:", localFilePath);
 
       return {
         success: true,

@@ -25,30 +25,47 @@ const HomeScreen: React.FC = () => {
     fullBodyPhoto: string | null;
   }) => {
     setShowCamera(false);
-    console.log("Photos captured, calling APIs with hardcoded URLs...");
-    (async () => {
-      const result = await saveImageToAppStorage(frontPhoto, "front_before");
-      console.log("Image saved to app storage", result);
-      (async () => {
-        const result = await saveImageToAppStorage(sidePhoto, "side_before");
-        console.log("Image saved to app storage", result);
-      })();
+    
+    try {
+      // Save all images to app storage and wait for completion
+      const frontResult = await saveImageToAppStorage(frontPhoto, "front_before");
+      console.log("Front image saved to app storage", frontResult);
+      
+      const sideResult = await saveImageToAppStorage(sidePhoto, "side_before");
+      console.log("Side image saved to app storage", sideResult);
+      
+      let fullBodyResult = null;
       if (fullBodyPhoto) {
-        (async () => {
-          const result = await saveImageToAppStorage(
-            fullBodyPhoto,
-            "fullbody_before"
-          );
-          console.log("Image saved to app storage", result);
-        })();
+        fullBodyResult = await saveImageToAppStorage(fullBodyPhoto, "fullbody_before");
+        console.log("Full body image saved to app storage", fullBodyResult);
       }
-    })();
-    //move with the three params with the router
-    router.replace("/(tabs)/loadingAiProcessing", {
-      frontPhoto,
-      sidePhoto,
-      fullBodyPhoto: fullBodyPhoto || undefined,
-    });
+
+      // Use the saved app storage paths for navigation
+      const savedFrontPhoto = frontResult.success ? frontResult.uri : frontPhoto;
+      const savedSidePhoto = sideResult.success ? sideResult.uri : sidePhoto;
+      const savedFullBodyPhoto = fullBodyResult?.success ? fullBodyResult.uri : fullBodyPhoto;
+
+      
+      router.replace({
+        pathname: "/(tabs)/loadingAiProcessing",
+        params: {
+          frontPhoto: savedFrontPhoto,
+          sidePhoto: savedSidePhoto,
+          fullBodyPhoto: savedFullBodyPhoto || undefined,
+        }
+      });
+    } catch (error) {
+      console.error("Error saving images to app storage:", error);
+      // Fallback to original paths if saving fails
+      router.replace({
+        pathname: "/(tabs)/loadingAiProcessing",
+        params: {
+          frontPhoto,
+          sidePhoto,
+          fullBodyPhoto: fullBodyPhoto || undefined,
+        }
+      });
+    }
   };
 
   return (
@@ -119,6 +136,7 @@ const HomeScreen: React.FC = () => {
             <ButtonStart
               text="Begin My Scan"
               handlepress={() => setShowCamera(true)}
+              // handlepress={() => router.replace("/(tabs)/aiResult")}
             />
           </View>
         </SafeAreaView>

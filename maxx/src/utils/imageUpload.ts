@@ -45,17 +45,13 @@ export const uploadImageToStorage = async (
     const storageRef = ref(storage, `${folder}/${finalFileName}`);
     console.log("Storage path:", `${folder}/${finalFileName}`);
 
-    console.log("Converting image to blob...");
     const blob = await uriToBlob(imageUri);
     console.log("Blob size:", blob.size, "bytes");
 
-    console.log("Uploading to Firebase Storage...");
     const uploadResult = await uploadBytes(storageRef, blob);
     console.log("Upload completed");
 
-    console.log("Getting download URL...");
     const downloadURL = await getDownloadURL(uploadResult.ref);
-    console.log("Upload successful!");
     console.log("Download URL:", downloadURL);
 
     return {
@@ -84,17 +80,15 @@ export const uploadUserPhotos = async (
     fullBodyPhoto?: string | null;
   }
 ) => {
-  console.log("Starting user photos upload...");
+  console.log("Starting user photos upload to firebase...");
 
   try {
-    console.log("Uploading front photo...");
     const frontResult = await uploadImageToStorage(
       photos.frontPhoto,
       `${userId}_front_before.jpg`,
       "user-photos"
     );
 
-    console.log("Uploading side photo...");
     const sideResult = await uploadImageToStorage(
       photos.sidePhoto,
       `${userId}_side_before.jpg`,
@@ -103,30 +97,10 @@ export const uploadUserPhotos = async (
 
     let fullBodyResult: UploadResult | null = null;
     if (photos.fullBodyPhoto) {
-      console.log("Uploading full body photo...");
       fullBodyResult = await uploadImageToStorage(
         photos.fullBodyPhoto,
         `${userId}_fullbody_before.jpg`,
         "user-photos"
-      );
-    }
-
-    console.log("Upload Results:");
-    console.log(
-      "Front Photo:",
-      frontResult.success ? "Success" : "Failed",
-      frontResult.url || frontResult.error
-    );
-    console.log(
-      "Side Photo:",
-      sideResult.success ? "Success" : "Failed",
-      sideResult.url || sideResult.error
-    );
-    if (fullBodyResult) {
-      console.log(
-        "Full Body Photo:",
-        fullBodyResult.success ? "Success" : "Failed",
-        fullBodyResult.url || fullBodyResult.error
       );
     }
 

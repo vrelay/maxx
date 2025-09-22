@@ -59,7 +59,9 @@ const AuthScreen = () => {
     if (isLoginView) {
       const success = await signIn({ email, password });
       if (success) {
-        router.push("/(auth)/socialproof");
+        // router.push("/(tabs)/aiResult");
+
+        router.push("/(auth)");
       }
     } else {
       const success = await signUp({ email, password, displayName });

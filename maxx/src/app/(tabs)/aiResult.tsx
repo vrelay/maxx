@@ -3,8 +3,8 @@ import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
+import looksmaxxingService from "@/src/services/looksmaxxingService";
 import {
-  clearAllSavedImages,
   getSavedImages,
   GetSavedImagesResult,
   SavedImage,
@@ -42,39 +42,42 @@ const PreviewMultiplePoses = ({
         {title}
       </Text>
       <View style={styles.gridContainer}>
-        {["slider", ...savedImages.slice(-3).map((image) => image.uri)].map(
-          (item, idx) => {
-            if (idx === 0) {
+        {(() => {
+          const images =
+            savedImages.length >= 5
+              ? savedImages.slice(-3)
+              : [img.frontbody, img.sideface, img.sidebody];
+          return ["slider", ...images.map((image) => image)].map(
+            (item, idx) => {
+              if (idx === 0) {
+                return (
+                  <View key={idx} style={styles.gridItem}>
+                    <ImageSlider
+                      beforeImage={{ uri: savedImages[0].uri }}
+                      afterImage={{ uri: savedImages[1].uri }}
+                      containerWidth={scale(128)}
+                      containerHeight={scale(128)}
+                      sliderWidth={moderateScale(2)}
+                      knobSize={moderateScale(24)}
+                    />
+                  </View>
+                );
+              }
               return (
                 <View key={idx} style={styles.gridItem}>
-                  <ImageSlider
-                    beforeImage={{ uri: savedImages[0].uri }}
-                    afterImage={{ uri: savedImages[1].uri }}
-                    containerWidth={scale(128)}
-                    containerHeight={scale(128)}
-                    sliderWidth={moderateScale(2)}
-                    knobSize={moderateScale(24)}
-                  />
+                  <Image source={images[idx - 1]} style={styles.gridImage} />
+                  <View style={styles.lockOverlay}>
+                    <FontAwesome
+                      name="lock"
+                      style={styles.lockText}
+                      color="#fff"
+                    />
+                  </View>
                 </View>
               );
             }
-            return (
-              <View key={idx} style={styles.gridItem}>
-                <Image
-                  source={{ uri: item as string }}
-                  style={styles.gridImage}
-                />
-                <View style={styles.lockOverlay}>
-                  <FontAwesome
-                    name="lock"
-                    style={styles.lockText}
-                    color="#fff"
-                  />
-                </View>
-              </View>
-            );
-          }
-        )}
+          );
+        })()}
       </View>
     </View>
   </View>
@@ -173,9 +176,9 @@ const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  const { savedImages, setSavedImages } = useAuth();
+  const { user, savedImages, setSavedImages } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
   // Load saved images on component mount
   useEffect(() => {
     loadSavedImages();
@@ -197,6 +200,13 @@ const DummySliderScreen: React.FC = () => {
       });
       console.log("filteredImages", filteredImages);
       setSavedImages(filteredImages);
+      const looksmaxxingResults =
+        await looksmaxxingService.getJsonFromFirestore(
+          user?.uid as string,
+          "looksmaxxing_results"
+        );
+        console.log("looksmaxxingResults", looksmaxxingResults);
+      setLooksmaxxingResults(looksmaxxingResults.data);
       setLoading(false);
     }
   };
@@ -204,12 +214,7 @@ const DummySliderScreen: React.FC = () => {
   if (loading) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View
-          style={[
-            styles.container,
-            { justifyContent: "center", alignItems: "center" },
-          ]}
-        >
+        <View style={[styles.container]}>
           <LinearGradient
             colors={["#171840", "#6D37D4"]}
             style={styles.gradient}
@@ -422,7 +427,7 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     position: "absolute",
-    backgroundColor: "rgba(22,22,22,0.78)",
+    backgroundColor: "rgba(0, 0, 0, 0.67)",
     width: "100%",
     height: "100%",
     justifyContent: "center",

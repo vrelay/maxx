@@ -8,33 +8,73 @@ admin.initializeApp();
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
 const bucket = admin.storage().bucket();
 
-const ANALYSIS_PROMPT = `You are a looksmaxxing expert analyzing these photos for male aesthetic improvement. Evaluate the subject's PSL rating potential and provide specific, actionable looksmaxxing advice.
+// System Prompt for Analysis (Gemini 2.5 Pro)
+const ANALYSIS_SYSTEM_PROMPT = `ROLE: You are a professional looksmaxxing consultant and photo art director.
+GOAL: Evaluate the user's three photos (front, side, full body). Produce safe, respectful, highly actionable advice that improves perceived attractiveness while preserving identity and realism.
+CONTEXT: The next step will feed your "edit_brief_front" into an image editing model to enhance the front selfie realistically.
+CONSTRAINTS:
+- Stay within grooming, posture, styling, and reversible changes.
+- No medical or invasive procedures; no diagnosis.
+- Use precise, plain language; avoid shaming; be encouraging.
+- Prioritize changes by impact vs. difficulty.
+OUTPUT: Follow the JSON schema exactly; no extra prose.`;
 
-Analyze and provide improvements for:
-1. Hair: Optimal haircut for face shape, Norwood scale assessment, density maximization
-2. Jawline & Chin: Gonial angle optimization, ramus length, chin projection
-3. Eyes: Canthal tilt, hunter eyes potential, under-eye support, eyebrow thickness/shape
-4. Midface: Ratio optimization, hollow cheeks potential, zygomatic projection
-5. Skin: Collagen density, even tone, glow maximization
-6. Neck & Posture: Forward head posture correction, neck thickness
-7. Style: Clothing fit for frame, color matching for skin undertone
-8. Facial hair: Optimal style for jaw enhancement and facial structure
+// System Prompt for Image Editing (Gemini 2.5 Flash Preview)
+const EDITING_SYSTEM_PROMPT = `ROLE: You are a professional portrait retoucher.
+GOAL: Apply the incoming edit brief to the provided front selfie while preserving identity and realism.
+RULES:
+- Keep natural skin texture (no plastic/waxy look).
+- Subtle, believable micro-adjustments only.
+- No age/ethnicity changes, no face swaps, no body morphing.
+- Follow negative list strictly (avoid halos, HDR glow, porcelain skin, over-whitened teeth).
+OUTPUT: 4:5 or 3:4 portrait, high-res. Crop minimally.`;
 
-Provide SPECIFIC actionable steps like "Get a mid-fade haircut with 3 inches on top styled with matte clay pomade" or "Grow stubble to 3-4mm to enhance jaw definition."
+// Transform prompt templates
+const TRANSFORM_PROMPT_TEMPLATE = `REFERENCE_IMAGE: <lm_front>
+TASK: Recompose the same person into a new view while preserving identity and the exact looksmaxxed styling (hair, brows, skin finish) from the reference.
 
-Output 10-12 concrete looksmaxxing improvements that will increase PSL rating.`;
+VIEW: {VIEW}
+POSE: {POSE}
+ENVIRONMENT: {ENVIRONMENT}
+WARDROBE: Tasteful, well-fitting neutral outfit aligned with smart casual style
+LIGHTING: soft key, natural contrast; accurate skin tones
+NEGATIVE: over-smoothed/waxy skin, porcelain/fake texture, cartoon/anime/CGI, extreme symmetry, warped anatomy, altered eye color, heavy makeup, fake catchlights, over-whitened teeth, overly sharp beard edges, lens warping, unreal bokeh, beauty-filter look, HDR glow, vignettes
 
-const ENHANCEMENT_PROMPT = `Apply these looksmaxxing enhancements to ascend this male subject's appearance:
+OUTPUT: high-res, {OUTPUT_FORMAT}
 
-[ADVICE_PLACEHOLDER]
+Maintain photorealism and identity. Avoid artifacts (waxy skin, HDR halos, CG look).`;
 
-Transform him into his maximum aesthetic potential while keeping it realistic. Focus on masculine features - stronger jaw, hunter eyes, better facial harmony. The improvements should look like achievable softmaxxing results (grooming, skincare, gym gains). Maintain his ethnicity but optimize all features for maximum PSL rating.`;
+// Specific transform configurations
+const TRANSFORM_CONFIGS = {
+  SIDE_PROFILE: {
+    VIEW: "SIDE_PROFILE",
+    POSE: "neutral expression, chin slightly forward, 90° profile",
+    ENVIRONMENT: "clean studio backdrop with soft gradient",
+    OUTPUT_FORMAT: "4:5 portrait format",
+  },
+  FULL_BODY: {
+    VIEW: "FULL_BODY",
+    POSE: "relaxed, shoulders back, balanced stance, hands relaxed",
+    ENVIRONMENT: "minimal interior or studio cyclorama",
+    OUTPUT_FORMAT: "3:4 or 9:16 full-body format",
+  },
+  ACTION_FULL_BODY: {
+    VIEW: "ACTION_FULL_BODY",
+    POSE: "walking in mid-step, natural arm swing",
+    ENVIRONMENT:
+      "urban street at golden hour; shallow depth of field; slight background motion blur; subtle rim light on hair",
+    OUTPUT_FORMAT: "3:4 or 9:16 full-body format",
+  },
+};
 
-const SIDE_PROFILE_PROMPT = `Convert this looksmaxxed front portrait into a perfect side profile showing his improved forward growth and facial projection. Display the enhanced jawline, ideal gonial angle, chin projection, and improved posture. Maintain all looksmaxxing improvements - the perfect hair, skin, and any visible style enhancements. Show the masculine profile with optimal nasofrontal angle and ramus length.`;
-
-const PHYSIQUE_PROMPT = `Extend this looksmaxxed portrait into a full-body physique shot showing ideal male proportions. Display athletic V-taper with visible shoulder to waist ratio, wearing fitted clothing that shows frame. Include visible signs of gymmaxxing - developed neck, shoulders, and athletic posture. Style should be high-value male fashion - fitted dark jeans or chinos, quality fitted t-shirt or button-down showing physique.`;
-
-const LIFESTYLE_PROMPT = `Create a high-SMV lifestyle shot of this looksmaxxed subject in a status-signaling environment. Show him at an upscale rooftop bar during golden hour, dressed in business casual (fitted dress shirt, designer watch visible), with confident alpha body language. He should be in a dominant social position - center of frame, taking up space, relaxed but authoritative posture. Maximum status and attractiveness display.`;
+// Helper function to generate transform prompts
+function generateTransformPrompt(transformType) {
+  const config = TRANSFORM_CONFIGS[transformType];
+  return TRANSFORM_PROMPT_TEMPLATE.replace("{VIEW}", config.VIEW)
+    .replace("{POSE}", config.POSE)
+    .replace("{ENVIRONMENT}", config.ENVIRONMENT)
+    .replace("{OUTPUT_FORMAT}", config.OUTPUT_FORMAT);
+}
 
 async function imageToBase64(imageUrl) {
   try {
@@ -85,7 +125,6 @@ async function uploadImageToFirebase(generatedImageData, fileName, userId) {
   }
 }
 
-// Step 1: Analyze images and get looksmaxxing advice
 exports.analyzeLooksmaxxing = functions.https.onCall(
   {
     timeoutSeconds: 120,
@@ -100,7 +139,14 @@ exports.analyzeLooksmaxxing = functions.https.onCall(
           "User ID is required"
         );
       }
-      const { frontImageUrl, sideImageUrl, fullBodyImageUrl } = request.data;
+
+      const {
+        frontImageUrl,
+        sideImageUrl,
+        fullBodyImageUrl,
+        user_style_prefs = "none",
+        target_intensity = "S2",
+      } = request.data;
 
       if (!frontImageUrl || !sideImageUrl) {
         throw new functions.https.HttpsError(
@@ -111,6 +157,7 @@ exports.analyzeLooksmaxxing = functions.https.onCall(
 
       const model = genAI.getGenerativeModel({
         model: config.gemini.model.pro,
+        systemInstruction: ANALYSIS_SYSTEM_PROMPT,
       });
 
       const frontBase64 = await imageToBase64(frontImageUrl);
@@ -143,15 +190,77 @@ exports.analyzeLooksmaxxing = functions.https.onCall(
         });
       }
 
+      const userPrompt = `Analyze these images as numbered inputs:
+1) Front selfie → <image_front>
+2) Side profile → <image_side>
+3) Full body → <image_fullbody>
+
+User style preference: ${user_style_prefs}
+Target intensity: ${target_intensity}
+
+Return prioritized, practical improvements and an "edit_brief_front" tailored to the front selfie so an editor can implement them realistically.
+
+Respond with ONLY valid JSON following this exact schema:
+{
+  "score": {"overall": 0-100, "confidence": "low|med|high"},
+  "priorities": [
+    {"area": "jawline|skin|hair|brows|facial_hair|eyes|teeth|posture|physique|style|grooming|accessories",
+     "why": "string",
+     "exercises": "string/*only four five words long*/",
+     "score": 0-100/*represents current state of the area*/,
+     "impact": "low|med|high",
+     "difficulty": "low|med|high",
+     "time_horizon": "now|2-4w|1-3m"}
+  ],
+  "recommendations": {
+    "skin": ["actionable tip 1", "actionable tip 2"],
+    "hair": ["..."],
+    "facial_hair": ["..."],
+    "brows": ["..."],
+    "eyes": ["..."],
+    "teeth": ["..."],
+    "jawline": ["..."],
+    "posture": ["..."],
+    "physique": ["..."],
+    "style": ["..."],
+    "grooming": ["..."],
+    "accessories": ["..."]
+  },
+  "edit_brief_front": [
+    {"edit": "micro action for the **front selfie** only", "intensity": "S1|S2|S3"}
+  ],
+  "tone": "natural|editorial|studio",
+  "lighting": "soft key / natural contrast",
+  "negative": ["list of artifacts to avoid"],
+  "notes": "edge cases / uncertainties"
+}`;
+
       const analysisResult = await model.generateContent([
-        ANALYSIS_PROMPT,
+        userPrompt,
         ...imageParts,
       ]);
-      const looksmaxxingAdvice = analysisResult.response.text();
+
+      const responseText = analysisResult.response.text();
+
+      let adviceJson;
+      try {
+        const cleanedResponse = responseText
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+        adviceJson = JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        console.error("Failed to parse JSON response:", responseText);
+        throw new functions.https.HttpsError(
+          "internal",
+          "Invalid JSON response from analysis",
+          parseError.message
+        );
+      }
 
       return {
         success: true,
-        advice: looksmaxxingAdvice,
+        advice_json: adviceJson,
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
@@ -165,7 +274,6 @@ exports.analyzeLooksmaxxing = functions.https.onCall(
   }
 );
 
-// Step 2: Generate enhanced front image
 exports.generateEnhancedFront = functions.https.onCall(
   {
     timeoutSeconds: 300,
@@ -173,8 +281,13 @@ exports.generateEnhancedFront = functions.https.onCall(
   },
   async (request, context) => {
     try {
-      const { frontImageUrl, sideImageUrl, fullBodyImageUrl, advice } =
-        request.data;
+      const {
+        frontImageUrl,
+        sideImageUrl,
+        fullBodyImageUrl,
+        advice,
+        target_intensity = "S2",
+      } = request.data;
       const userId = request.auth.uid;
 
       if (!userId) {
@@ -193,56 +306,42 @@ exports.generateEnhancedFront = functions.https.onCall(
       console.log("Generating enhanced front image using AI...");
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-image-preview",
+        model: config.gemini.model.flash, // Now using gemini-2.5-flash-preview
+        systemInstruction: EDITING_SYSTEM_PROMPT,
         generationConfig: {
           responseModalities: ["IMAGE"],
         },
       });
 
       const frontBase64 = await imageToBase64(frontImageUrl);
-      const sideBase64 = await imageToBase64(sideImageUrl);
-      const fullBodyBase64 = fullBodyImageUrl
-        ? await imageToBase64(fullBodyImageUrl)
-        : null;
 
-      const enhancementPrompt = `${ENHANCEMENT_PROMPT.replace(
-        "[ADVICE_PLACEHOLDER]",
-        advice
+      const adviceJson = JSON.parse(advice);
+      const editingPrompt = `SOURCE_IMAGE: <image_front>
+EDIT_BRIEF (apply in order, keep identity): ${JSON.stringify(
+        adviceJson.edit_brief_front
       )}
+NEGATIVE (avoid): ${
+        adviceJson.negative
+          ? adviceJson.negative.join(", ")
+          : "over-smoothed skin, waxy texture, CGI look"
+      }
+INTENSITY: ${target_intensity}
+STYLE: tone=${adviceJson.tone || "natural"}, lighting=${
+        adviceJson.lighting || "soft key / natural contrast"
+      }
 
-IMPORTANT: Generate a high-quality, realistic portrait image that shows the enhanced version of this person. Apply all the looksmaxxing improvements mentioned in the advice while keeping the person's core facial features and ethnicity intact.
+REQUIREMENTS: natural skin texture, realistic hair strands, subtle symmetry only, tidy brows/facial hair, slight teeth brightening (no overwhite), jawline definition without distortions. No CGI/illustration look.
 
-Make sure to generate an actual image, not just describe it.`;
+OUTPUT: High-res portrait (4:5 or 3:4). Minimal crop; keep original framing if possible.`;
 
-      // Prepare image parts for context
-      const imageParts = [
+      const result = await model.generateContent([
+        editingPrompt,
         {
           inlineData: {
             data: frontBase64,
             mimeType: "image/jpeg",
           },
         },
-        {
-          inlineData: {
-            data: sideBase64,
-            mimeType: "image/jpeg",
-          },
-        },
-      ];
-
-      if (fullBodyBase64) {
-        imageParts.push({
-          inlineData: {
-            data: fullBodyBase64,
-            mimeType: "image/jpeg",
-          },
-        });
-      }
-
-      // Generate the enhanced image
-      const result = await model.generateContent([
-        enhancementPrompt,
-        ...imageParts,
       ]);
 
       console.log("Image enhancement processing completed");
@@ -262,8 +361,7 @@ Make sure to generate an actual image, not just describe it.`;
         }
       }
 
-      // Upload the generated image to Firebase Storage
-      const fileName = `enhanced-front-${Date.now()}.jpg`;
+      const fileName = `lm_front-${Date.now()}.jpg`;
       const enhancedImagePath = await uploadImageToFirebase(
         generatedImageBase64,
         fileName,
@@ -288,7 +386,6 @@ Make sure to generate an actual image, not just describe it.`;
   }
 );
 
-// Step 3: Generate side profile
 exports.generateSideProfile = functions.https.onCall(
   {
     timeoutSeconds: 300,
@@ -315,7 +412,7 @@ exports.generateSideProfile = functions.https.onCall(
       console.log("Generating side profile image using AI...");
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-image-preview",
+        model: config.gemini.model.flash, // Now using gemini-2.5-flash-preview
         generationConfig: {
           responseModalities: ["IMAGE"],
         },
@@ -326,11 +423,7 @@ exports.generateSideProfile = functions.https.onCall(
       const [buffer] = await file.download();
       const enhancedFrontBase64 = buffer.toString("base64");
 
-      const sideProfilePrompt = `${SIDE_PROFILE_PROMPT} Apply the following enhancements: ${advice}
-
-IMPORTANT: Generate a high-quality side profile image that shows the enhanced version of this person from a 90-degree side angle. Apply all the looksmaxxing improvements while keeping the person's core facial features and ethnicity intact.
-
-Make sure to generate an actual image, not just describe it.`;
+      const transformPrompt = generateTransformPrompt("SIDE_PROFILE");
 
       console.log(
         "image loaded successfully,enhancedFrontBase64",
@@ -339,7 +432,7 @@ Make sure to generate an actual image, not just describe it.`;
 
       // Generate the side profile image
       const result = await model.generateContent([
-        sideProfilePrompt,
+        transformPrompt,
         {
           inlineData: {
             data: enhancedFrontBase64,
@@ -366,7 +459,7 @@ Make sure to generate an actual image, not just describe it.`;
       }
 
       // Upload the generated image to Firebase Storage
-      const fileName = `side-profile-${Date.now()}.jpg`;
+      const fileName = `lm_side-${Date.now()}.jpg`; // Updated naming convention
       const sideProfileImagePath = await uploadImageToFirebase(
         generatedImageBase64,
         fileName,
@@ -394,7 +487,6 @@ Make sure to generate an actual image, not just describe it.`;
   }
 );
 
-// Step 4: Generate physique image
 exports.generatePhysique = functions.https.onCall(
   {
     timeoutSeconds: 300,
@@ -421,7 +513,7 @@ exports.generatePhysique = functions.https.onCall(
       console.log("Generating physique image using AI...");
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-image-preview",
+        model: config.gemini.model.flash, // Now using gemini-2.5-flash-preview
         generationConfig: {
           responseModalities: ["IMAGE"],
         },
@@ -432,15 +524,11 @@ exports.generatePhysique = functions.https.onCall(
       const [buffer] = await file.download();
       const enhancedFrontBase64 = buffer.toString("base64");
 
-      const physiquePrompt = `${PHYSIQUE_PROMPT} Apply the following enhancements: ${advice}
-
-IMPORTANT: Generate a high-quality full-body physique image that shows the enhanced version of this person with ideal male proportions and athletic build. Apply all the looksmaxxing improvements while keeping the person's core facial features and ethnicity intact.
-
-Make sure to generate an actual image, not just describe it.`;
+      const transformPrompt = generateTransformPrompt("FULL_BODY");
 
       // Generate the physique image
       const result = await model.generateContent([
-        physiquePrompt,
+        transformPrompt,
         {
           inlineData: {
             data: enhancedFrontBase64,
@@ -467,7 +555,7 @@ Make sure to generate an actual image, not just describe it.`;
       }
 
       // Upload the generated image to Firebase Storage
-      const fileName = `physique-${Date.now()}.jpg`;
+      const fileName = `lm_fullbody-${Date.now()}.jpg`; // Updated naming convention
       const physiqueImagePath = await uploadImageToFirebase(
         generatedImageBase64,
         fileName,
@@ -492,7 +580,6 @@ Make sure to generate an actual image, not just describe it.`;
   }
 );
 
-// Step 5: Generate lifestyle image
 exports.generateLifestyle = functions.https.onCall(
   {
     timeoutSeconds: 300,
@@ -519,7 +606,7 @@ exports.generateLifestyle = functions.https.onCall(
       console.log("Generating lifestyle image using AI...");
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-image-preview",
+        model: config.gemini.model.flash, // Now using gemini-2.5-flash-preview
         generationConfig: {
           responseModalities: ["IMAGE"],
         },
@@ -530,15 +617,11 @@ exports.generateLifestyle = functions.https.onCall(
       const [buffer] = await file.download();
       const enhancedFrontBase64 = buffer.toString("base64");
 
-      const lifestylePrompt = `${LIFESTYLE_PROMPT} Apply the following enhancements: ${advice}
-
-IMPORTANT: Generate a high-quality lifestyle image that shows the enhanced version of this person in an upscale, status-signaling environment. Apply all the looksmaxxing improvements while keeping the person's core facial features and ethnicity intact.
-
-Make sure to generate an actual image, not just describe it.`;
+      const transformPrompt = generateTransformPrompt("ACTION_FULL_BODY");
 
       // Generate the lifestyle image
       const result = await model.generateContent([
-        lifestylePrompt,
+        transformPrompt,
         {
           inlineData: {
             data: enhancedFrontBase64,
@@ -565,7 +648,7 @@ Make sure to generate an actual image, not just describe it.`;
       }
 
       // Upload the generated image to Firebase Storage
-      const fileName = `lifestyle-${Date.now()}.jpg`;
+      const fileName = `lm_action_fullbody-${Date.now()}.jpg`; // Updated naming convention
       const lifestyleImagePath = await uploadImageToFirebase(
         generatedImageBase64,
         fileName,
