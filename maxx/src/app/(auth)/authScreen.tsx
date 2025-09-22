@@ -28,6 +28,7 @@ const AuthScreen = () => {
   const {
     signIn,
     signUp,
+    user,
     isLoading,
     error,
     clearError,
@@ -59,15 +60,21 @@ const AuthScreen = () => {
     if (isLoginView) {
       const success = await signIn({ email, password });
       if (success) {
-        // router.push("/(tabs)/aiResult");
-
-        router.push("/(auth)");
+        if (user && !user.emailVerified) {
+          router.push("/(auth)/verifyEmailScreen");
+          return;
+        }
+        router.push("/(tabs)");
       }
     } else {
       const success = await signUp({ email, password, displayName });
       if (success) {
         await sendEmailVerificationForEmailSignup();
-        router.push("/(auth)/verifyEmailScreen");
+        if (user && !user.emailVerified) {
+          router.push("/(auth)/verifyEmailScreen");
+          return;
+        }
+        router.push("/(tabs)");
       }
     }
     return;

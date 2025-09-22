@@ -35,7 +35,7 @@ const VerifyEmailScreen = () => {
     }
     // If verified, the root layout will automatically navigate the user.
     setIsChecking(false);
-    router.push("/(tabs)");
+    router.replace("/(auth)/socialproof");
   };
 
   const handleResendEmail = async () => {

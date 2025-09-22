@@ -108,36 +108,50 @@ const RatingCircleDisplay = ({
   </View>
 );
 
-const PreviewYourRatings = ({ title }: { title: string }) => (
-  <View style={styles.pageContent}>
-    <View
-      style={[styles.cardContainer, { paddingVertical: verticalScale(30) }]}
-    >
-      <Text style={[styles.pageTitle, { marginBottom: verticalScale(25) }]}>
-        {title}
-      </Text>
-      <View style={styles.ratingsRow}>
-        <RatingCircleDisplay score={78} label="Jaw & Face" />
-        <RatingCircleDisplay score={85} label="Skin" />
-      </View>
-      <View style={styles.ratingsRow}>
-        <RatingCircleDisplay score={65} label="Eyes" />
-        <RatingCircleDisplay score={91} label="Hair" />
+const PreviewYourRatings = ({ title, priorities }: { title: string; priorities: any[] }) => {
+  // Get top 4 priorities and format area names
+  const topPriorities = priorities.slice(0, 4).map(priority => ({
+    ...priority,
+    formattedArea: priority.area
+      .split('_')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }));
+
+  return (
+    <View style={styles.pageContent}>
+      <View
+        style={[styles.cardContainer, { paddingVertical: verticalScale(30) }]}
+      >
+        <Text style={[styles.pageTitle, { marginBottom: verticalScale(25) }]}>
+          {title}
+        </Text>
+        <View style={styles.ratingsRow}>
+          <RatingCircleDisplay score={topPriorities[0]?.score || 0} label={topPriorities[0]?.formattedArea || "Loading..."} />
+          <RatingCircleDisplay score={topPriorities[1]?.score || 0} label={topPriorities[1]?.formattedArea || "Loading..."} />
+        </View>
+        <View style={styles.ratingsRow}>
+          <RatingCircleDisplay score={topPriorities[2]?.score || 0} label={topPriorities[2]?.formattedArea || "Loading..."} />
+          <RatingCircleDisplay score={topPriorities[3]?.score || 0} label={topPriorities[3]?.formattedArea || "Loading..."} />
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
-const StartTransformationToday = ({ title }: { title: string }) => {
-  const tasks = [
-    {
-      label: "Jaw & Face",
-      desc: "Mewing and chewing exercises daily",
-      level: 2,
-    },
-    { label: "Skin", desc: "Tretinoin + Ceramide routine", level: 5 },
-    { label: "Eyes", desc: "Fade cut + Sea salt spray styling", level: 6 },
-  ];
+const StartTransformationToday = ({ title, priorities }: { title: string; priorities: any[] }) => {
+  // Get top 4 priorities and format them for display
+  const topPriorities = priorities.slice(0, 3).map(priority => ({
+    label: priority.area
+      .split('_')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' '),
+    desc: priority.improvement_habits,
+    level: Math.round((100 - priority.score) / 10), // Convert score to level improvement
+    impact: priority.impact,
+    difficulty: priority.difficulty
+  }));
+
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.pageContent}>
@@ -145,7 +159,7 @@ const StartTransformationToday = ({ title }: { title: string }) => {
           <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
             {title}
           </Text>
-          {tasks.map((t, i) => (
+          {topPriorities.map((t, i) => (
             <View key={i} style={styles.taskCard}>
               <View style={styles.taskLeft}>
                 <Text style={styles.taskLabel}>{t.label}</Text>
@@ -205,8 +219,8 @@ const DummySliderScreen: React.FC = () => {
           user?.uid as string,
           "looksmaxxing_results"
         );
-        console.log("looksmaxxingResults", looksmaxxingResults);
-      setLooksmaxxingResults(looksmaxxingResults.data);
+        console.log("looksmaxxingResults", looksmaxxingResults.data.data.advice_json);
+      setLooksmaxxingResults(looksmaxxingResults.data.data.advice_json);
       setLoading(false);
     }
   };
@@ -243,8 +257,16 @@ const DummySliderScreen: React.FC = () => {
       title="Unlock Multiple Poses"
       savedImages={savedImages}
     />,
-    <PreviewYourRatings key="1" title="Discover Your Ratings" />,
-    <StartTransformationToday key="2" title="Start Transformation Today" />,
+    <PreviewYourRatings 
+      key="1" 
+      title="Discover Your Ratings" 
+      priorities={looksmaxxingResults?.priorities || []} 
+    />,
+    <StartTransformationToday 
+      key="2" 
+      title="Start Transformation Today" 
+      priorities={looksmaxxingResults?.priorities || []} 
+    />,
   ];
 
   const handleScroll = (event: any) => {

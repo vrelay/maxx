@@ -25,7 +25,7 @@ const LockedDashboard: React.FC = () => {
           <View>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Maxx.</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/settings")}>
                 <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
               </TouchableOpacity>
             </View>

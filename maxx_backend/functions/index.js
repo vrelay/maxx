@@ -206,7 +206,7 @@ Respond with ONLY valid JSON following this exact schema:
   "priorities": [
     {"area": "jawline|skin|hair|brows|facial_hair|eyes|teeth|posture|physique|style|grooming|accessories",
      "why": "string",
-     "exercises": "string/*only four five words long*/",
+     "improvement_habits": "string/*only four five words long ex-Mewing and chewing exercises daily */",
      "score": 0-100/*represents current state of the area*/,
      "impact": "low|med|high",
      "difficulty": "low|med|high",

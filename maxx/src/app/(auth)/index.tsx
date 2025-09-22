@@ -18,6 +18,7 @@ const TabsIndex = () => {
     if (isAuthenticated) {
       if (user && user.emailVerified) {
         router.push("/(tabs)");
+        // router.push("/(tabs)/aiResult");
         return;
       } else if (user && !user.emailVerified) {
         router.push("/(auth)/verifyEmailScreen");
@@ -26,7 +27,6 @@ const TabsIndex = () => {
     } else {
       router.push("/(auth)/authScreen");
     }
-    // router.push("/(tabs)/aiResult");
   };
 
   return (

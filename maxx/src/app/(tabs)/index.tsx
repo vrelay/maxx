@@ -2,7 +2,6 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import GuidedCamera from "@/src/componants/molecules/GuidedCamera";
 import img from "@/src/constants/img";
-import { useAuth } from "@/src/context/AuthContext";
 import { saveImageToAppStorage } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";

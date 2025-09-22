@@ -2,9 +2,10 @@ import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
+import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { router } from "expo-router";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
@@ -27,7 +28,33 @@ const RatingCircle = ({ score, label }: { score: number; label: string }) => (
 );
 
 const UnlockedLook: React.FC = () => {
-  const { savedImages } = useAuth();
+  const { savedImages, user } = useAuth();
+  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Function to fetch looksmaxxing data
+  const fetchLooksmaxxingData = async () => {
+    try {
+      setLoading(true);
+      const result = await looksmaxxingService.getJsonFromFirestore(
+        user?.uid as string,
+        "looksmaxxing_results"
+      );
+      setLooksmaxxingResults(result.data.data.advice_json);
+    } catch (error) {
+      console.error("Error fetching looksmaxxing data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    if (user?.uid) {
+      fetchLooksmaxxingData();
+    }
+  }, [user?.uid]);
+
   const onViewPlan = () => {
     router.push("/(tabs)/looksmaxxingPlan");
   };
@@ -49,16 +76,53 @@ const UnlockedLook: React.FC = () => {
                 beforeImage={{ uri: savedImages[0].uri }}
                 afterImage={{ uri: savedImages[1].uri }}
                 containerWidth={scale(320)}
-                containerHeight={scale(340)}
+                containerHeight={scale(320)}
                 sliderWidth={moderateScale(4)}
                 knobSize={moderateScale(32)}
               />
             </View>
 
             <View style={styles.ratingsRow}>
-              <RatingCircle score={8.9} label="Chest" />
-              <RatingCircle score={9.0} label="Eyes" />
-              <RatingCircle score={5.5} label="Jawline" />
+              {loading ? (
+                <ActivityIndicator size="large" color="#fff" />
+              ) : (
+                (() => {
+                  // Get top 3 priorities and format area names
+                  const topPriorities =
+                    looksmaxxingResults?.priorities?.slice(0, 3) || [];
+                  const formattedPriorities = topPriorities.map(
+                    (priority: any) => ({
+                      ...priority,
+                      formattedArea: priority.area
+                        .split("_")
+                        .map(
+                          (word: string) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" "),
+                    })
+                  );
+
+                  // Fill with default data if we don't have enough priorities
+                  while (formattedPriorities.length < 3) {
+                    formattedPriorities.push({
+                      score: 0,
+                      formattedArea: "Loading...",
+                      area: "loading",
+                    });
+                  }
+
+                  return formattedPriorities.map(
+                    (priority: any, index: number) => (
+                      <RatingCircle
+                        key={index}
+                        score={priority.score || 0}
+                        label={priority.formattedArea || "Loading..."}
+                      />
+                    )
+                  );
+                })()
+              )}
             </View>
           </View>
 
@@ -106,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-around",
-    marginTop: verticalScale(30),
+    marginTop: verticalScale(20),
   },
   ratingBox: {
     alignItems: "center",

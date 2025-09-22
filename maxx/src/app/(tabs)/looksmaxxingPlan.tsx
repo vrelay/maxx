@@ -1,8 +1,11 @@
 import ButtonStart from "@/src/componants/atoms/startbutton";
+import { useAuth } from "@/src/context/AuthContext";
+import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -24,29 +27,7 @@ const startDayOne = () => {
   router.push("/mainScreen");
 };
 
-const planData: { [key: string]: Task[] } = {
-  "Month 1-2": [
-    { id: "1", title: "Jaw & Face", description: "Mewing and chewing exercises daily", levels: 2 },
-    { id: "2", title: "Skin", description: "Tretinoin + Ceramide routine", levels: 5 },
-    { id: "3", title: "Hair", description: "Fade cut + Sea salt spray styling", levels: 3 },
-    { id: "4", title: "Body", description: "12% body fat + Lean muscle", levels: 2 },
-    { id: "5", title: "Eyes", description: "Gua Sha for lymphatic drainage", levels: 6 },
-  ],
-  "Month 3-4": [
-    { id: "6", title: "Posture", description: "Daily stretching and strengthening", levels: 4 },
-    { id: "7", title: "Style", description: "Develop a personal aesthetic", levels: 5 },
-    { id: "8", title: "Diet", description: "Focus on whole foods and hydration", levels: 3 },
-    { id: "9", title: "Mindset", description: "Practice confidence-building exercises", levels: 7 },
-    { id: "10", title: "Grooming", description: "Establish a consistent grooming routine", levels: 4 },
-  ],
-  "Month 5-6": [
-    { id: "11", title: "Advanced Skincare", description: "Incorporate weekly masks and peels", levels: 6 },
-    { id: "12", title: "Fitness II", description: "Focus on symmetry and proportion", levels: 5 },
-    { id: "13", title: "Social Skills", description: "Practice active listening and charisma", levels: 8 },
-    { id: "14", title: "Habits", description: "Solidify all new routines", levels: 5 },
-    { id: "15", title: "Reflection", description: "Assess progress and set new goals", levels: 4 },
-  ],
-};
+// Static planData removed - now using dynamic data from looksmaxxing results
 
 const TaskCard = ({ item }: { item: Task }) => (
   <View style={styles.cardWrapper}>
@@ -74,8 +55,106 @@ const TaskCard = ({ item }: { item: Task }) => (
 );
 
 const LooksmaxxingPlanScreen: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("Month 1-2");
+  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [planData, setPlanData] = useState<{ [key: string]: Task[] }>({});
   const tabs = ["Month 1-2", "Month 3-4", "Month 5-6"];
+
+  // Function to fetch looksmaxxing data and organize it
+  const fetchAndOrganizeData = async () => {
+    try {
+      setLoading(true);
+      const result = await looksmaxxingService.getJsonFromFirestore(
+        user?.uid as string,
+        "looksmaxxing_results"
+      );
+      
+      if (result.success) {
+        const data = result.data.data.advice_json;
+        setLooksmaxxingResults(data);
+        
+        // Organize priorities by time horizon
+        const organizedData = organizeDataByTimeHorizon(data);
+        setPlanData(organizedData);
+      }
+    } catch (error) {
+      console.error("Error fetching looksmaxxing data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to organize data by time horizon
+  const organizeDataByTimeHorizon = (data: any) => {
+    const priorities = data.priorities || [];
+    const recommendations = data.recommendations || {};
+    
+    const organized: { [key: string]: Task[] } = {
+      "Month 1-2": [],
+      "Month 3-4": [],
+      "Month 5-6": []
+    };
+
+    priorities.forEach((priority: any, index: number) => {
+      const formattedArea = priority.area
+        .split('_')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      const task: Task = {
+        id: `priority_${index}`,
+        title: formattedArea,
+        description: priority.improvement_habits,
+        levels: Math.round((100 - priority.score) / 10)
+      };
+
+      // Organize by time horizon
+      switch (priority.time_horizon) {
+        case "now":
+          organized["Month 1-2"].push(task);
+          break;
+        case "2-4w":
+          organized["Month 1-2"].push(task);
+          break;
+        case "1-3m":
+          organized["Month 3-4"].push(task);
+          break;
+        default:
+          organized["Month 1-2"].push(task);
+      }
+    });
+
+    // Add recommendations as additional tasks
+    Object.entries(recommendations).forEach(([area, tips]: [string, any]) => {
+      if (Array.isArray(tips) && tips.length > 0) {
+        const formattedArea = area
+          .split('_')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        
+        const task: Task = {
+          id: `rec_${area}`,
+          title: formattedArea,
+          description: tips[0], // Use first tip as description
+          levels: 3 // Default level improvement
+        };
+
+        // Add to Month 5-6 for advanced recommendations
+        organized["Month 5-6"].push(task);
+      }
+    });
+
+    return organized;
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    if (user?.uid) {
+      fetchAndOrganizeData();
+    }
+  }, [user?.uid]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -107,13 +186,25 @@ const LooksmaxxingPlanScreen: React.FC = () => {
                 </TouchableOpacity>
               ))}
             </View>
-            <FlatList
-              data={planData[activeTab]}
-              renderItem={({ item }) => <TaskCard item={item} />}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContainer}
-              showsVerticalScrollIndicator={false}
-            />
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#fff" />
+                <Text style={styles.loadingText}>Loading your personalized plan...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={planData[activeTab] || []}
+                renderItem={({ item }) => <TaskCard item={item} />}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No tasks available for this period</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
           <ButtonStart text="Start Day 1" handlepress={startDayOne} />
         </View>
@@ -222,6 +313,29 @@ const styles = StyleSheet.create({
     color: "#2F1C6A",
     fontWeight: "700",
     fontSize: moderateScale(13),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(50),
+  },
+  loadingText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: moderateScale(16),
+    marginTop: verticalScale(16),
+    textAlign: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(50),
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: moderateScale(14),
+    textAlign: "center",
   },
 });
 

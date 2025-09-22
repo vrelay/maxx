@@ -1,11 +1,13 @@
 import { Redirect } from "expo-router";
 import React from "react";
+import { useAuth } from "../context/AuthContext";
 
 
 
 const index = () => {
-  const isloggedIn = false;
-  return <Redirect href={isloggedIn ? "/(tabs)" : "/(auth)"} />;
+  const { isAuthenticated, user } = useAuth();
+
+  return <Redirect href={isAuthenticated && user?.emailVerified ? "/(tabs)" : "/(auth)"} />;
 };
 
 export default index;
