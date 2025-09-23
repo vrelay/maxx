@@ -1,8 +1,10 @@
+import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -19,82 +21,102 @@ const LockedDashboard: React.FC = () => {
   };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          {/* Main content wrapper */}
-          <View>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Maxx.</Text>
-              <TouchableOpacity onPress={() => router.push("/(tabs)/settings")}>
-                <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
-              </TouchableOpacity>
-            </View>
+      <GridBackgroundImg top={true} />
+      <LinearGradient
+        colors={["#171840", "#6D37D4"]}
+        locations={[0, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container}>
+            {/* Main content wrapper */}
+            <View>
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>Maxx.</Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/settings")}
+                >
+                  <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
+                </TouchableOpacity>
+              </View>
 
-            <View style={styles.sliderContainer}>
-              <ImageSlider
-                beforeImage={{ uri: savedImages[0].uri }}
-                afterImage={{ uri: savedImages[1].uri }}
-                containerWidth={scale(290)}
-                containerHeight={scale(300)}
-                sliderWidth={moderateScale(4)}
-                knobSize={moderateScale(32)}
-              />
-            </View>
-
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressLabel}>
-                Start Transformation Today
-              </Text>
-              <Text style={styles.progressValue}>0/180</Text>
-            </View>
-
-            {/* Visual Progress Bar */}
-            <View style={styles.progressBarBackground}>
-              <View style={styles.progressBarFill}></View>
-            </View>
-
-            <View style={styles.listContainer}>
-              <TouchableOpacity style={styles.lockedItem}>
-                <FontAwesome
-                  name="calendar"
-                  style={styles.itemIcon}
-                  color="orange"
+              <View style={styles.sliderContainer}>
+                <ImageSlider
+                  beforeImage={{ uri: savedImages[0].uri }}
+                  afterImage={{ uri: savedImages[1].uri }}
+                  containerWidth={scale(290)}
+                  containerHeight={scale(300)}
+                  sliderWidth={moderateScale(4)}
+                  knobSize={moderateScale(32)}
                 />
-                {/* Calendar Icon */}
-                <View style={styles.itemTextContainer}>
-                  <Text style={styles.lockedItemTitle}>Your Plan</Text>
-                  <Text style={styles.lockedItemSub}>View Daily Task</Text>
-                </View>
-                <FontAwesome name="lock" style={styles.itemIcon} color="grey" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.lockedItem}>
-                <FontAwesome
-                  name="bar-chart-o"
-                  style={styles.itemIcon}
-                  color="orange"
-                />
-                {/* Chart Icon */}
-                <View style={styles.itemTextContainer}>
-                  <Text style={styles.lockedItemTitle}>Analysis</Text>
-                  <Text style={styles.lockedItemSub}>See Breakdown</Text>
-                </View>
-                <FontAwesome name="lock" style={styles.itemIcon} color="grey" />
-              </TouchableOpacity>
+              </View>
+
+              <View style={styles.progressContainer}>
+                <Text style={styles.progressLabel}>
+                  Start Transformation Today
+                </Text>
+                <Text style={styles.progressValue}>0/180</Text>
+              </View>
+
+              {/* Visual Progress Bar */}
+              <View style={styles.progressBarBackground}>
+                <View style={styles.progressBarFill}></View>
+              </View>
+
+              <View style={styles.listContainer}>
+                <TouchableOpacity style={styles.lockedItem}>
+                  <FontAwesome
+                    name="calendar"
+                    style={styles.itemIcon}
+                    color="orange"
+                  />
+                  {/* Calendar Icon */}
+                  <View style={styles.itemTextContainer}>
+                    <Text style={styles.lockedItemTitle}>Your Plan</Text>
+                    <Text style={styles.lockedItemSub}>View Daily Task</Text>
+                  </View>
+                  <FontAwesome
+                    name="lock"
+                    style={styles.itemIcon}
+                    color="grey"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.lockedItem}>
+                  <FontAwesome
+                    name="bar-chart-o"
+                    style={styles.itemIcon}
+                    color="orange"
+                  />
+                  {/* Chart Icon */}
+                  <View style={styles.itemTextContainer}>
+                    <Text style={styles.lockedItemTitle}>Analysis</Text>
+                    <Text style={styles.lockedItemSub}>See Breakdown</Text>
+                  </View>
+                  <FontAwesome
+                    name="lock"
+                    style={styles.itemIcon}
+                    color="grey"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
+
+            {/* Footer button */}
+            <ButtonStart text="Unlock at $9.99/week" handlepress={onUnlock} />
           </View>
-
-          {/* Footer button */}
-          <ButtonStart text="Unlock at $9.99/week" handlepress={onUnlock} />
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   safeArea: {
     flex: 1,
-    backgroundColor: "#2D1B69",
+    zIndex: 2,
   },
   container: {
     flex: 1,
@@ -106,12 +128,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: verticalScale(10),
+    paddingTop: verticalScale(15),
     width: "100%",
   },
   headerTitle: {
     color: "#fff",
-    fontSize: moderateScale(32),
+    fontSize: moderateScale(22),
     fontWeight: "700",
   },
   settingsIcon: {

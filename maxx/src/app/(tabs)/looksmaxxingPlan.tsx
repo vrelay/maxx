@@ -1,3 +1,4 @@
+import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
@@ -158,6 +159,14 @@ const LooksmaxxingPlanScreen: React.FC = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <GridBackgroundImg top={true} />
+      <LinearGradient
+        colors={["#171840", "#6D37D4"]}
+        locations={[0, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.header}>
@@ -209,15 +218,17 @@ const LooksmaxxingPlanScreen: React.FC = () => {
           <ButtonStart text="Start Day 1" handlepress={startDayOne} />
         </View>
       </SafeAreaView>
+      </LinearGradient>
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   safeArea: {
     flex: 1,
-    backgroundColor: "#2D1B69",
     paddingBottom: verticalScale(20),
+    zIndex: 2,
   },
   container: {
     flex: 1,

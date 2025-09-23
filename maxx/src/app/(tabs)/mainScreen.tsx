@@ -1,7 +1,9 @@
+import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -13,6 +15,14 @@ const LockedDashboard: React.FC = () => {
   const { savedImages } = useAuth();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <GridBackgroundImg top={true} />
+      <LinearGradient
+        colors={["#171840", "#6D37D4"]}
+        locations={[0, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View>
@@ -88,14 +98,16 @@ const LockedDashboard: React.FC = () => {
           </View>
         </View>
       </SafeAreaView>
+      </LinearGradient>
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   safeArea: {
     flex: 1,
-    backgroundColor: "#2D1B69",
+    zIndex: 2,
   },
   container: {
     flex: 1,
@@ -106,12 +118,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: verticalScale(10),
+    paddingTop: verticalScale(15),
     width: "100%",
   },
   headerTitle: {
     color: "#fff",
-    fontSize: moderateScale(32),
+    fontSize: moderateScale(22),
     fontWeight: "700",
   },
   settingsIcon: {
