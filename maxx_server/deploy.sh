@@ -51,11 +51,39 @@ install_docker() {
         return
     fi
     
+    # Detect OS
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+        VERSION_CODENAME=$VERSION_CODENAME
+    else
+        print_error "Cannot detect OS. Please install Docker manually."
+        exit 1
+    fi
+    
+    # Set Docker repository URL based on OS
+    if [ "$OS" = "ubuntu" ]; then
+        DOCKER_REPO_URL="https://download.docker.com/linux/ubuntu"
+        GPG_URL="https://download.docker.com/linux/ubuntu/gpg"
+    elif [ "$OS" = "debian" ]; then
+        DOCKER_REPO_URL="https://download.docker.com/linux/debian"
+        GPG_URL="https://download.docker.com/linux/debian/gpg"
+    else
+        print_error "Unsupported OS: $OS. Please install Docker manually."
+        exit 1
+    fi
+    
+    print_status "Detected OS: $OS $VERSION_CODENAME"
+    
+    # Clean up any existing broken Docker repository
+    sudo rm -f /etc/apt/sources.list.d/docker.list
+    sudo rm -f /usr/share/keyrings/docker-archive-keyring.gpg
+    
     # Add Docker's official GPG key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL $GPG_URL | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     
     # Add Docker repository
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] $DOCKER_REPO_URL $VERSION_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     
     # Install Docker
     sudo apt update
