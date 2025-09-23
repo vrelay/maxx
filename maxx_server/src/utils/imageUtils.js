@@ -1,5 +1,4 @@
 import { bucket } from '../config/firebase.js';
-import axios from 'axios';
 
 /**
  * Convert image URL to base64
@@ -15,23 +14,17 @@ export const imageToBase64 = async (imageUrl) => {
 
     console.log("Fetching image from URL:", imageUrl);
     
-    const response = await axios.get(imageUrl, {
-      responseType: 'arraybuffer',
-      timeout: 30000, // 30 second timeout
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Maxx-Server/1.0)',
-      }
-    });
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
     
-    const base64 = Buffer.from(response.data).toString("base64");
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
     console.log("Successfully converted image to base64, length:", base64.length);
     return base64;
   } catch (error) {
     console.error("Error converting image to base64:", error);
-    if (error.response) {
-      console.error("Response status:", error.response.status);
-      console.error("Response data:", error.response.data);
-    }
     throw new Error(`Failed to convert image to base64: ${error.message}`);
   }
 };

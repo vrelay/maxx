@@ -60,9 +60,9 @@ const LoadingScreen: React.FC = () => {
       if (uploadResult.success) {
         const result = await looksmaxxingService.processLooksmaxxing(
           user?.uid as string,
-          frontPhoto,
-          sidePhoto,
-          fullBodyPhoto as string
+          uploadResult.frontPhotoUrl,
+          uploadResult.sidePhotoUrl,
+          uploadResult.fullBodyPhotoUrl || ""
         );
         // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=9a260ef3-641f-40e1-8ad2-988dd200d593",
         // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=2fa6117d-39e4-429a-9305-47f6f81446e4",
