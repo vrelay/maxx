@@ -2,6 +2,7 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
+import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -145,11 +146,6 @@ const LoadingScreen: React.FC = () => {
     }
   }, [step]);
 
-  // Button handler
-  const handleContinue = () => {
-    router.replace("/(tabs)/aiResult");
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
@@ -173,9 +169,17 @@ const LoadingScreen: React.FC = () => {
                 }}
               >
                 {step === i ? (
-                  <Text style={styles.icon}>{"\u27F3"}</Text> // Unicode reload icon
+                  <FontAwesome
+                    name="refresh"
+                    style={styles.icon}
+                    color="white"
+                  />
                 ) : step > i ? (
-                  <Text style={styles.iconCheck}>✓</Text>
+                  <FontAwesome
+                    name="check"
+                    style={styles.iconCheck}
+                    color="white"
+                  />
                 ) : (
                   <Text style={{ width: 20 }} />
                 )}
@@ -208,7 +212,6 @@ const LoadingScreen: React.FC = () => {
             AI is generating your maximum potential based on{"\n"}
             50k+ successful transformation
           </Text>
-          <ButtonStart text="Continue" handlepress={handleContinue} />
         </SafeAreaView>
       </LinearGradient>
     </View>
