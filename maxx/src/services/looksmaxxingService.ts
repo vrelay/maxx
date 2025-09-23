@@ -1,8 +1,4 @@
-import {
-  getFunctions,
-  httpsCallable,
-  connectFunctionsEmulator,
-} from "firebase/functions";
+import { getAuth } from "firebase/auth";
 import app, { db } from "@/src/config/firebase";
 import { saveImageToAppStorage } from "../utils/imageStorage";
 import { uploadUserPhotos } from "../utils/imageUpload";
@@ -91,22 +87,69 @@ export interface LooksmaxxingResult {
   error?: string;
 }
 
-// Initialize functions and connect to emulator if in development
-const functions = getFunctions(app);
+// API Configuration
+const API_BASE_URL = __DEV__ 
+  ? 'http://10.0.2.2:3000/api'  // Android emulator localhost
+  : 'https://your-production-domain.com/api'; // Replace with your production URL
 
-if (__DEV__) {
-  try {
-    connectFunctionsEmulator(functions, "10.0.2.2", 5001);
-    // console.log(
-    //   "Connected to Firebase Functions emulator at 10.105.66.143:5001"
-    // );
-  } catch (error) {
-    console.log("Functions emulator connection error:", error);
-  }
-}
+// Initialize Firebase Auth
+const auth = getAuth(app);
 
 class LooksmaxxingService {
-  private functions = functions;
+  private apiBaseUrl = API_BASE_URL;
+
+  /**
+   * Get Firebase ID token for authentication
+   */
+  private async getAuthToken(): Promise<string> {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    return await user.getIdToken();
+  }
+
+  /**
+   * Make authenticated HTTP request to the API
+   */
+  private async makeApiRequest(
+    endpoint: string,
+    data: any,
+    timeout: number = 120000
+  ): Promise<any> {
+    try {
+      const token = await this.getAuthToken();
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      throw error;
+    }
+  }
 
   private hasStructuredAnalysis(analysisResult: any): boolean {
     return (
@@ -172,12 +215,16 @@ class LooksmaxxingService {
 
   async testConnection(): Promise<void> {
     try {
-      // console.log("Testing Firebase Functions connection...");
-
-      const testFunction = httpsCallable(this.functions, "analyzeLooksmaxxing");
-      // console.log(
-      //   "Successfully created httpsCallable - connection appears to be working"
-      // );
+      console.log("Testing API server connection...");
+      
+      const response = await fetch(`${this.apiBaseUrl.replace('/api', '')}/health`);
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'healthy') {
+        console.log("API server connection successful:", data);
+      } else {
+        throw new Error('API server health check failed');
+      }
     } catch (error) {
       console.error("Connection test failed:", error);
     }
@@ -203,128 +250,93 @@ class LooksmaxxingService {
     try {
       console.log("Starting API calls with URLs...");
 
-      console.log("Step 1: Calling analyzeLooksmaxxing API...");
+      console.log("Step 1: Calling analyze API...");
 
-      const analyzeLooksmaxxing = httpsCallable(
-        this.functions,
-        "analyzeLooksmaxxing",
-        { timeout: 120000 }
-      );
-      console.log("Created httpsCallable for analyzeLooksmaxxing");
-
-      console.log("Making API call to analyzeLooksmaxxing...");
-
-      const analysisResult = (await analyzeLooksmaxxing({
+      const analysisResult = await this.makeApiRequest('/analyze', {
         frontImageUrl: frontPhoto,
         sideImageUrl: sidePhoto,
         fullBodyImageUrl: fullBodyPhoto,
-        user_style_prefs: userStylePrefs,
-        target_intensity: targetIntensity || "S2",
-      })) as any;
+        userStylePrefs: userStylePrefs,
+        targetIntensity: targetIntensity || "S2",
+      }, 120000);
 
-      console.log("Analysis Result:", analysisResult.data);
+      console.log("Analysis Result:", analysisResult);
       this.uploadJsonToFirestore(
         userId,
-        analysisResult.data,
+        analysisResult,
         "looksmaxxing_results"
       );
 
-      console.log("Step 2: Calling generateEnhancedFront API...");
-      const generateEnhancedFront = httpsCallable(
-        this.functions,
-        "generateEnhancedFront",
-        { timeout: 120000 }
-      );
-      const enhancedFrontResult = (await generateEnhancedFront({
+      console.log("Step 2: Calling generate/front API...");
+      const enhancedFrontResult = await this.makeApiRequest('/generate/front', {
         frontImageUrl: frontPhoto,
         sideImageUrl: sidePhoto,
-        fullBodyImageUrl: fullBodyPhoto,
-        advice: JSON.stringify(analysisResult.data.advice_json),
-        target_intensity: targetIntensity || "S2",
-      })) as any;
-      console.log("Enhanced Front Result:", enhancedFrontResult.data);
+        advice: JSON.stringify(analysisResult.advice_json),
+        targetIntensity: targetIntensity || "S2",
+      }, 300000);
+      console.log("Enhanced Front Result:", enhancedFrontResult);
       await saveImageToAppStorage(
-        enhancedFrontResult.data.imagePath,
+        enhancedFrontResult.imagePath,
         "front_after"
       );
 
-      // console.log("Step 3: Calling generateSideProfile API...");
-      // const generateSideProfile = httpsCallable(
-      //   this.functions,
-      //   "generateSideProfile",
-      //  { timeout: 120000 }
-      // );
-      // const sideProfileResult = (await generateSideProfile({
-      //   enhancedFrontImagePath: enhancedFrontResult.data.imagePath,
-      //   advice: JSON.stringify(analysisResult.data.advice_json),
-      // })) as any;
-      // console.log("Side Profile Result:", sideProfileResult.data);
-      // await saveImageToAppStorage(
-      //   sideProfileResult.data.imagePath,
-      //   "side_after"
-      // );
+      console.log("Step 3: Calling generate/side API...");
+      const sideProfileResult = await this.makeApiRequest('/generate/side', {
+        enhancedFrontImagePath: enhancedFrontResult.imagePath,
+        advice: JSON.stringify(analysisResult.advice_json),
+      }, 300000);
+      console.log("Side Profile Result:", sideProfileResult);
+      await saveImageToAppStorage(
+        sideProfileResult.imagePath,
+        "side_after"
+      );
 
-      // console.log("Step 4: Calling generatePhysique API...");
-      // const generatePhysique = httpsCallable(
-      //   this.functions,
-      //   "generatePhysique",
-       // { timeout: 120000 }
-      // );
-      // const physiqueResult = (await generatePhysique({
-      //   enhancedFrontImagePath: enhancedFrontResult.data.imagePath,
-      //   advice: JSON.stringify(analysisResult.data.advice_json),
-      // })) as any;
-      // console.log("Physique Result:", physiqueResult.data);
-      // await saveImageToAppStorage(
-      //   physiqueResult.data.imagePath,
-      //   "physique_after"
-      // );
+      console.log("Step 4: Calling generate/physique API...");
+      const physiqueResult = await this.makeApiRequest('/generate/physique', {
+        enhancedFrontImagePath: enhancedFrontResult.imagePath,
+        advice: JSON.stringify(analysisResult.advice_json),
+      }, 300000);
+      console.log("Physique Result:", physiqueResult);
+      await saveImageToAppStorage(
+        physiqueResult.imagePath,
+        "physique_after"
+      );
 
-      // console.log("Step 5: Calling generateLifestyle API...");
-      // const generateLifestyle = httpsCallable(
-      //   this.functions,
-      //   "generateLifestyle",
-      //  { timeout: 120000 }
-      // );
-      // const lifestyleResult = (await generateLifestyle({
-      //   enhancedFrontImagePath: enhancedFrontResult.data.imagePath,
-      //   advice: JSON.stringify(analysisResult.data.advice_json),
-      // })) as any;
-      // console.log("Lifestyle Result:", lifestyleResult.data);
-      // await saveImageToAppStorage(
-      //   lifestyleResult.data.imagePath,
-      //   "lifestyle_after"
-      // );
+      console.log("Step 5: Calling generate/lifestyle API...");
+      const lifestyleResult = await this.makeApiRequest('/generate/lifestyle', {
+        enhancedFrontImagePath: enhancedFrontResult.imagePath,
+        advice: JSON.stringify(analysisResult.advice_json),
+      }, 300000);
+      console.log("Lifestyle Result:", lifestyleResult);
+      await saveImageToAppStorage(
+        lifestyleResult.imagePath,
+        "lifestyle_after"
+      );
 
       console.log("All API calls completed successfully!");
 
       return {
         success: true,
-        analysisResult: analysisResult.data,
-        enhancedFrontResult: enhancedFrontResult.data,
-        // sideProfileResult: sideProfileResult.data,
-        // physiqueResult: physiqueResult.data,
-        // lifestyleResult: lifestyleResult.data,
+        analysisResult: analysisResult,
+        enhancedFrontResult: enhancedFrontResult,
+        sideProfileResult: sideProfileResult,
+        physiqueResult: physiqueResult,
+        lifestyleResult: lifestyleResult,
       };
     } catch (error: any) {
       console.error("API call error:", error);
       console.error("Error details:", {
         name: error?.name,
         message: error?.message,
-        code: error?.code,
         stack: error?.stack,
       });
-
-      if (error?.code) {
-        console.error("Firebase error code:", error.code);
-      }
 
       return {
         success: false,
         error:
           error instanceof Error
-            ? `${error.name}: ${error.message}`
-            : "Unknown error",
+            ? error.message
+            : "Unknown error occurred",
       };
     }
   }
@@ -337,18 +349,14 @@ class LooksmaxxingService {
     targetIntensity?: "S1" | "S2" | "S3"
   ): Promise<any> {
     try {
-      const analyzeLooksmaxxing = httpsCallable(
-        this.functions,
-        "analyzeLooksmaxxing"
-      );
-      const result = await analyzeLooksmaxxing({
+      const result = await this.makeApiRequest('/analyze', {
         frontImageUrl: frontPhoto,
         sideImageUrl: sidePhoto,
         fullBodyImageUrl: fullBodyPhoto,
-        user_style_prefs: userStylePrefs,
-        target_intensity: targetIntensity || "S2",
+        userStylePrefs: userStylePrefs,
+        targetIntensity: targetIntensity || "S2",
       });
-      return result.data;
+      return result;
     } catch (error) {
       console.error("Analysis error:", error);
       throw error;
@@ -363,18 +371,13 @@ class LooksmaxxingService {
     targetIntensity?: "S1" | "S2" | "S3"
   ): Promise<any> {
     try {
-      const generateEnhancedFront = httpsCallable(
-        this.functions,
-        "generateEnhancedFront"
-      );
-      const result = await generateEnhancedFront({
+      const result = await this.makeApiRequest('/generate/front', {
         frontImageUrl: frontPhoto,
         sideImageUrl: sidePhoto,
-        fullBodyImageUrl: fullBodyPhoto,
         advice: JSON.stringify(advice_json),
-        target_intensity: targetIntensity || "S2",
-      });
-      return result.data;
+        targetIntensity: targetIntensity || "S2",
+      }, 300000);
+      return result;
     } catch (error) {
       console.error("Enhanced front generation error:", error);
       throw error;
@@ -386,15 +389,11 @@ class LooksmaxxingService {
     advice_json: StructuredAnalysisResponse
   ): Promise<any> {
     try {
-      const generateSideProfile = httpsCallable(
-        this.functions,
-        "generateSideProfile"
-      );
-      const result = await generateSideProfile({
+      const result = await this.makeApiRequest('/generate/side', {
         enhancedFrontImagePath: enhancedFrontImagePath,
         advice: JSON.stringify(advice_json),
-      });
-      return result.data;
+      }, 300000);
+      return result;
     } catch (error) {
       console.error("Side profile generation error:", error);
       throw error;
@@ -406,15 +405,11 @@ class LooksmaxxingService {
     advice_json: StructuredAnalysisResponse
   ): Promise<any> {
     try {
-      const generatePhysique = httpsCallable(
-        this.functions,
-        "generatePhysique"
-      );
-      const result = await generatePhysique({
+      const result = await this.makeApiRequest('/generate/physique', {
         enhancedFrontImagePath: enhancedFrontImagePath,
         advice: JSON.stringify(advice_json),
-      });
-      return result.data;
+      }, 300000);
+      return result;
     } catch (error) {
       console.error("Physique generation error:", error);
       throw error;
@@ -426,15 +421,11 @@ class LooksmaxxingService {
     advice_json: StructuredAnalysisResponse
   ): Promise<any> {
     try {
-      const generateLifestyle = httpsCallable(
-        this.functions,
-        "generateLifestyle"
-      );
-      const result = await generateLifestyle({
+      const result = await this.makeApiRequest('/generate/lifestyle', {
         enhancedFrontImagePath: enhancedFrontImagePath,
         advice: JSON.stringify(advice_json),
-      });
-      return result.data;
+      }, 300000);
+      return result;
     } catch (error) {
       console.error("Lifestyle generation error:", error);
       throw error;

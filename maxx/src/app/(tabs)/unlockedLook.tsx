@@ -1,6 +1,5 @@
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
-import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { router } from "expo-router";
