@@ -88,9 +88,8 @@ export interface LooksmaxxingResult {
 }
 
 // API Configuration
-const API_BASE_URL = __DEV__ 
-  ? 'http://10.0.2.2:3000/api'  // Android emulator localhost
-  : 'https://your-production-domain.com/api'; // Replace with your production URL
+const API_BASE_URL = "http://34.41.142.44/api";
+  // 'http://10.0.2.2:3000/api'  // Android emulator localhost
 
 // Initialize Firebase Auth
 const auth = getAuth(app);
