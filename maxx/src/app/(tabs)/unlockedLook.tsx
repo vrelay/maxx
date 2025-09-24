@@ -28,7 +28,7 @@ const RatingCircle = ({ score, label }: { score: number; label: string }) => (
 );
 
 const UnlockedLook: React.FC = () => {
-  const { savedImages, user } = useAuth();
+  const { savedImages, user, isPremium } = useAuth();
   const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -58,6 +58,27 @@ const UnlockedLook: React.FC = () => {
   const onViewPlan = () => {
     router.push("/(tabs)/looksmaxxingPlan");
   };
+
+  // Check if user has premium access
+  if (!isPremium) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.headerTitle}>Premium Required</Text>
+              <Text style={styles.currentScore}>Please upgrade to access this feature</Text>
+            </View>
+            <ButtonStart 
+              text="Upgrade to Premium" 
+              handlepress={() => router.push('/(tabs)/lockedDashboard')} 
+            />
+          </View>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>

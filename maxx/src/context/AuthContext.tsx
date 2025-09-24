@@ -8,8 +8,10 @@ import React, {
   useReducer,
   useState,
 } from "react";
+import { CustomerInfo } from 'react-native-purchases';
 import { auth } from "../config/firebase";
 import { authService } from "../services/authService";
+import revenueCatService from "../services/revenueCatService";
 import {
   AuthAction,
   AuthState,
@@ -28,6 +30,10 @@ interface AuthContextType extends AuthState {
   sendEmailVerificationForEmailSignup: () => Promise<boolean>;
   checkEmailIsEmailVerified: () => Promise<boolean>;
   clearError: () => void;
+  // RevenueCat premium status
+  customerInfo: CustomerInfo | null;
+  isPremium: boolean;
+  refreshCustomerInfo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,6 +84,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -98,6 +105,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     return unsubscribe;
   }, []);
+
+  // Initialize RevenueCat when user is authenticated
+  useEffect(() => {
+    if (state.user) {
+      refreshCustomerInfo();
+      
+      // Listen for customer info updates
+      const listener = revenueCatService.addCustomerInfoUpdateListener((info) => {
+        setCustomerInfo(info);
+      });
+
+      return () => {
+        if (listener && listener.remove) {
+          listener.remove();
+        }
+      };
+    }
+  }, [state.user]);
+
+  const refreshCustomerInfo = async () => {
+    try {
+      const info = await revenueCatService.getCustomerInfo();
+      setCustomerInfo(info);
+    } catch (error) {
+      console.error('Error refreshing customer info:', error);
+    }
+  };
 
   const signIn = async (credentials: LoginCredentials) => {
     dispatch({ type: "SET_LOADING", payload: true });
@@ -184,6 +218,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     dispatch({ type: "CLEAR_ERROR" });
   };
 
+  const isPremium = revenueCatService.isPremiumUser(customerInfo);
+
   return (
     <AuthContext.Provider
       value={{
@@ -196,6 +232,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         sendEmailVerificationForEmailSignup,
         checkEmailIsEmailVerified,
         clearError,
+        customerInfo,
+        isPremium,
+        refreshCustomerInfo,
       }}
     >
       {children}
