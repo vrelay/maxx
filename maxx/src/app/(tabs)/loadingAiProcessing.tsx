@@ -102,7 +102,7 @@ const LoadingScreen: React.FC = () => {
         (fullBodyPhoto as string) || undefined
       );
     if (frontPhoto && sidePhoto) {
-      call();
+      // call();
     }
   }, [frontPhoto, sidePhoto, fullBodyPhoto]);
 
@@ -116,23 +116,28 @@ const LoadingScreen: React.FC = () => {
   useEffect(() => {
     const animateBalls = () => {
       ballAnim.forEach((anim, i) => {
-        Animated.loop(
+        // Create a smooth sine wave animation using sequence
+        const sineWaveAnimation = Animated.loop(
           Animated.sequence([
-            Animated.delay(i * 120),
             Animated.timing(anim, {
               toValue: -12,
-              duration: 320,
+              duration: 500,
               useNativeDriver: true,
-              easing: Easing.out(Easing.quad),
+              easing: Easing.inOut(Easing.sin),
             }),
             Animated.timing(anim, {
               toValue: 0,
-              duration: 320,
+              duration: 500,
               useNativeDriver: true,
-              easing: Easing.in(Easing.quad),
+              easing: Easing.inOut(Easing.sin),
             }),
           ])
-        ).start();
+        );
+
+        // Start with a delay for each ball
+        setTimeout(() => {
+          sineWaveAnimation.start();
+        }, i * 200);
       });
     };
     animateBalls();
@@ -186,8 +191,8 @@ const LoadingScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.mainText,
-                    step === i && { fontWeight: "600", color: "#fff" },
-                    step > i && { fontWeight: "600", color: "#fff" },
+                    step === i && { fontWeight: "400", color: "#fff" },
+                    step > i && { fontWeight: "400", color: "#fff" },
                     step < i && { color: "rgba(255,255,255,0.6)" },
                   ]}
                 >
@@ -202,7 +207,13 @@ const LoadingScreen: React.FC = () => {
                 key={i}
                 style={[
                   styles.ball,
-                  { transform: [{ translateY: ballAnim[i] }] },
+                  {
+                    transform: [
+                      {
+                        translateY: ballAnim[i],
+                      },
+                    ],
+                  },
                   { backgroundColor: "#fff", opacity: 1 },
                 ]}
               />
@@ -275,10 +286,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statusText: {
-    color: "rgba(255,255,255,0.82)",
+    color: "rgba(255,255,255,0.9)",
     textAlign: "center",
     fontSize: moderateScale(14),
-    fontWeight: "400",
+    fontWeight: "500",
     lineHeight: 19,
   },
 });
