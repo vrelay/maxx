@@ -39,9 +39,8 @@ const PreviewMultiplePoses = ({
 }) => (
   <View style={styles.pageContent}>
     <View style={styles.cardContainer}>
-      <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
-        {title}
-      </Text>
+      <Text style={styles.pageTitle}>{title}</Text>
+      <Image source={img.decor_bar} style={styles.decor_bar} />
       <View style={styles.gridContainer}>
         {(() => {
           const images =
@@ -84,13 +83,6 @@ const PreviewMultiplePoses = ({
   </View>
 );
 
-// Helper function to determine the border color based on the rating
-const getBorderColor = (score: number) => {
-  if (score >= 75) return "#34D399"; // A vibrant green
-  if (score >= 50) return "#FBBF24"; // A warm yellow
-  return "#F87171"; // A soft red
-};
-
 // SVG-based Circular Progress Component - ANTICLOCKWISE ONLY
 const CircularProgress = ({
   score,
@@ -103,10 +95,9 @@ const CircularProgress = ({
   strokeWidth?: number;
   showText?: boolean;
 }) => {
-  const progressColor = getBorderColor(score);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  
+
   // For anticlockwise: Use negative stroke-dashoffset calculation
   const strokeDashoffset = circumference - (circumference * score) / 100;
 
@@ -134,14 +125,15 @@ const CircularProgress = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={progressColor}
+          stroke={"#fff"}
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          // KEY CHANGE: Rotate +90 degrees for anticlockwise (instead of -90)
-          transform={`rotate(90 ${size / 2} ${size / 2}) scale(-1, 1) translate(-${size}, 0)`}
+          transform={`rotate(90 ${size / 2} ${
+            size / 2
+          }) scale(-1, 1) translate(-${size}, 0)`}
         />
       </Svg>
 
@@ -174,87 +166,112 @@ const RatingCircleDisplay = ({
   label: string;
 }) => (
   <View style={styles.ratingCircleBox}>
-    <CircularProgress 
-      score={score} 
-      size={scale(80)} 
-      strokeWidth={4} 
+    <CircularProgress
+      score={score}
+      size={scale(65)}
+      strokeWidth={3}
       showText={true}
     />
     <Text style={styles.newRatingLabel}>{label}</Text>
   </View>
 );
 
-const PreviewYourRatings = ({ title, priorities }: { title: string; priorities: any[] }) => {
+const PreviewYourRatings = ({
+  title,
+  priorities,
+}: {
+  title: string;
+  priorities: any[];
+}) => {
   // Get top 4 priorities and format area names
-  const topPriorities = priorities.slice(0, 4).map(priority => ({
+  const topPriorities = priorities.slice(0, 4).map((priority) => ({
     ...priority,
     formattedArea: priority.area
-      .split('_')
+      .split("_")
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+      .join(" "),
   }));
 
   return (
     <View style={styles.pageContent}>
-      <View
-        style={[styles.cardContainer, { paddingVertical: verticalScale(30) }]}
-      >
-        <Text style={[styles.pageTitle, { marginBottom: verticalScale(25) }]}>
-          {title}
-        </Text>
+      <View style={styles.cardContainer}>
+        <Text style={styles.pageTitle}>{title}</Text>
+        <Image source={img.decor_bar} style={styles.decor_bar} />
         <View style={styles.ratingsRow}>
-          <RatingCircleDisplay score={topPriorities[0]?.score || 0} label={topPriorities[0]?.formattedArea || "Loading..."} />
-          <RatingCircleDisplay score={topPriorities[1]?.score || 0} label={topPriorities[1]?.formattedArea || "Loading..."} />
+          <RatingCircleDisplay
+            score={topPriorities[0]?.score || 0}
+            label={topPriorities[0]?.formattedArea || "Loading..."}
+          />
+          <RatingCircleDisplay
+            score={topPriorities[1]?.score || 0}
+            label={topPriorities[1]?.formattedArea || "Loading..."}
+          />
         </View>
         <View style={styles.ratingsRow}>
-          <RatingCircleDisplay score={topPriorities[2]?.score || 0} label={topPriorities[2]?.formattedArea || "Loading..."} />
-          <RatingCircleDisplay score={topPriorities[3]?.score || 0} label={topPriorities[3]?.formattedArea || "Loading..."} />
+          <RatingCircleDisplay
+            score={topPriorities[2]?.score || 0}
+            label={topPriorities[2]?.formattedArea || "Loading..."}
+          />
+          <RatingCircleDisplay
+            score={topPriorities[3]?.score || 0}
+            label={topPriorities[3]?.formattedArea || "Loading..."}
+          />
         </View>
       </View>
     </View>
   );
 };
 
-const StartTransformationToday = ({ title, priorities }: { title: string; priorities: any[] }) => {
+const StartTransformationToday = ({
+  title,
+  priorities,
+}: {
+  title: string;
+  priorities: any[];
+}) => {
   // Get top 4 priorities and format them for display
-  const topPriorities = priorities.slice(0, 3).map(priority => ({
+  const topPriorities = priorities.slice(0, 3).map((priority) => ({
     label: priority.area
-      .split('_')
+      .split("_")
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' '),
+      .join(" "),
     desc: priority.improvement_habits,
     level: Math.round((100 - priority.score) / 10), // Convert score to level improvement
     impact: priority.impact,
-    difficulty: priority.difficulty
+    difficulty: priority.difficulty,
   }));
 
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.pageContent}>
         <View style={styles.cardContainer}>
-          <Text style={[styles.pageTitle, { marginBottom: verticalScale(15) }]}>
-            {title}
-          </Text>
+          <Text style={styles.pageTitle}>{title}</Text>
+          <Image source={img.decor_bar} style={styles.decor_bar} />
           {topPriorities.map((t, i) => (
-            <View key={i} style={styles.taskCard}>
-              <View style={styles.taskLeft}>
-                <Text style={styles.taskLabel}>{t.label}</Text>
-                <Text style={styles.taskDesc}>{t.desc}</Text>
+            <>
+              <View style={styles.cardWrapper}>
+                <View style={styles.taskCard}>
+                  <View style={styles.imagePlaceholder} />
+                  <View style={styles.taskTextContainer}>
+                    <Text style={styles.taskTitle}>{t.label}</Text>
+                    <Text style={styles.taskDescription}>{t.desc}</Text>
+                  </View>
+                  <View style={styles.levelPill}>
+                    <Text style={styles.taskLevel}>+{t.level} levels</Text>
+                  </View>
+                </View>
+                <LinearGradient
+                  colors={[
+                    "rgba(255, 255, 255, 0)",
+                    "rgba(255, 255, 255, 0.25)",
+                    "rgba(255, 255, 255, 0)",
+                  ]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.gradientBorder}
+                />
               </View>
-              <View style={styles.levelPill}>
-                <Text style={styles.taskLevel}>+{t.level} levels</Text>
-              </View>
-              <LinearGradient
-                colors={[
-                  "rgba(255, 255, 255, 0)",
-                  "rgba(255, 255, 255, 0.25)",
-                  "rgba(255, 255, 255, 0)",
-                ]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.gradientBorder}
-              />
-            </View>
+            </>
           ))}
         </View>
       </View>
@@ -295,7 +312,10 @@ const DummySliderScreen: React.FC = () => {
           user?.uid as string,
           "looksmaxxing_results"
         );
-        console.log("looksmaxxingResults", looksmaxxingResults.data.data.advice_json);
+      console.log(
+        "looksmaxxingResults",
+        looksmaxxingResults.data.data.advice_json
+      );
       setLooksmaxxingResults(looksmaxxingResults.data.data.advice_json);
       setLoading(false);
     }
@@ -333,15 +353,15 @@ const DummySliderScreen: React.FC = () => {
       title="Unlock Multiple Poses"
       savedImages={savedImages}
     />,
-    <PreviewYourRatings 
-      key="1" 
-      title="Discover Your Ratings" 
-      priorities={looksmaxxingResults?.priorities || []} 
+    <PreviewYourRatings
+      key="1"
+      title="Discover Your Ratings"
+      priorities={looksmaxxingResults?.priorities || []}
     />,
-    <StartTransformationToday 
-      key="2" 
-      title="Start Transformation Today" 
-      priorities={looksmaxxingResults?.priorities || []} 
+    <StartTransformationToday
+      key="2"
+      title="Start Transformation Today"
+      priorities={looksmaxxingResults?.priorities || []}
     />,
   ];
 
@@ -357,7 +377,6 @@ const DummySliderScreen: React.FC = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
         <GridBackgroundImg top={true} />
         <LinearGradient
           colors={["#171840", "#6D37D4"]}
@@ -433,11 +452,12 @@ const DummySliderScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  gradientBorder: {
-    ...StyleSheet.absoluteFillObject,
-  },
   cardWrapper: {
     marginBottom: verticalScale(16),
+  },
+  gradientBorder: {
+    height: 1,
+    width: "100%",
   },
   container: { flex: 1 },
   gradient: { flex: 1 },
@@ -488,8 +508,14 @@ const styles = StyleSheet.create({
   pageTitle: {
     color: "#fff",
     fontSize: moderateScale(22),
+    marginBottom: verticalScale(20),
     fontWeight: "600",
     textAlign: "center",
+  },
+  decor_bar: {
+    width: "100%",
+    height: scale(10),
+    marginBottom: verticalScale(15),
   },
   cardContainer: {
     borderRadius: 20,
@@ -499,10 +525,8 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "space-between",
     flex: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 1.84,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.54)",
   },
   gridContainer: {
     flexDirection: "row",
@@ -541,75 +565,66 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     width: "100%",
-    marginBottom: verticalScale(22),
+    marginBottom: verticalScale(15),
+    gap: scale(10),
   },
   ratingCircleBox: {
     alignItems: "center",
-    width: scale(128),
-  },
-  newRatingCircle: {
-    width: scale(80),
-    height: scale(80),
-    borderRadius: scale(40),
-    borderWidth: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    alignItems: "center",
     justifyContent: "center",
+    maxWidth: "100%",
+    height: verticalScale(115),
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: scale(10),
+    flex: 1,
   },
   newRatingText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: moderateScale(24),
+    fontSize: moderateScale(20),
   },
   newRatingLabel: {
     color: "rgba(255,255,255,0.85)",
     fontWeight: "500",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     marginTop: verticalScale(10),
   },
   taskCard: {
-    overflow: "hidden", // Added this line
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    minHeight: verticalScale(54),
-    backgroundColor: "#391E8E",
-    borderRadius: 12,
-    paddingHorizontal: scale(18),
-    paddingVertical: verticalScale(14),
-    marginBottom: verticalScale(18),
-    alignSelf: "center",
-    elevation: 2,
+    backgroundColor: "transparent",
+    paddingBottom: verticalScale(12),
+    height: verticalScale(50),
   },
-  taskLeft: {
+  imagePlaceholder: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: moderateScale(10),
+    backgroundColor: "rgb(205, 205, 205)",
+    marginRight: scale(16),
+  },
+  taskTextContainer: {
     flex: 1,
-    justifyContent: "center",
   },
-  taskLabel: {
-    fontStyle: "italic",
+  taskTitle: {
     color: "#fff",
-    fontWeight: "700",
     fontSize: moderateScale(16),
-    marginBottom: verticalScale(2),
+    fontWeight: "700",
   },
-  taskDesc: {
-    color: "rgba(255,255,255,0.85)",
+  taskDescription: {
+    color: "rgba(255,255,255,0.7)",
     fontSize: moderateScale(12),
+    marginTop: verticalScale(2),
   },
   levelPill: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    minWidth: scale(58),
-    paddingVertical: verticalScale(2),
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: moderateScale(8),
+    paddingVertical: verticalScale(6),
+    paddingHorizontal: scale(8),
   },
   taskLevel: {
     color: "#2F1C6A",
     fontWeight: "700",
-    fontSize: moderateScale(13.5),
-    textAlign: "center",
+    fontSize: moderateScale(13),
   },
   footer: {
     paddingTop: verticalScale(18),
@@ -639,14 +654,15 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(18),
   },
   dot: {
-    width: scale(14),
-    height: scale(14),
-    borderRadius: scale(7),
+    width: scale(10),
+    height: scale(10),
+    borderRadius: scale(5),
     backgroundColor: "rgba(255,255,255,0.28)",
     marginHorizontal: scale(6),
   },
   dotActive: {
     backgroundColor: "#fff",
+    width: scale(20),
   },
 });
 

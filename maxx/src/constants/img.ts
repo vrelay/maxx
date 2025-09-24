@@ -10,5 +10,5 @@ export default {
 
   gridpattern: require("@/src/assets/ui/gridpattern.png"),
   laurelWreath: require("@/src/assets/ui/laurelWreath.png"),
-  loading_dots: require("@/src/assets/ui/loading_dots.png"),
+  decor_bar: require("@/src/assets/ui/decor_bar.png"),
 };
