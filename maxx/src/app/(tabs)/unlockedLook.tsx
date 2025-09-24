@@ -1,28 +1,109 @@
+import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
-import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import Svg, { Circle } from "react-native-svg";
 
 // Helper function to determine the border color based on the rating
 const getBorderColor = (score: number) => {
-  if (score >= 8.5) return "#34D399"; // A vibrant green
-  if (score >= 6) return "#FBBF24"; // A warm yellow
+  if (score >= 75) return "#34D399"; // A vibrant green
+  if (score >= 50) return "#FBBF24"; // A warm yellow
   return "#F87171"; // A soft red
+};
+
+// SVG-based Circular Progress Component - ANTICLOCKWISE ONLY
+const CircularProgress = ({
+  score,
+  size = 70,
+  strokeWidth = 4,
+  showText = true,
+}: {
+  score: number;
+  size?: number;
+  strokeWidth?: number;
+  showText?: boolean;
+}) => {
+  const progressColor = getBorderColor(score);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+
+  // For anticlockwise: Use negative stroke-dashoffset calculation
+  const strokeDashoffset = circumference - (circumference * score) / 100;
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Svg width={size} height={size}>
+        {/* Background Circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth={strokeWidth}
+          fill="rgba(255, 255, 255, 0.08)"
+        />
+        {/* Progress Circle - ANTICLOCKWISE */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={progressColor}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          // KEY CHANGE: Rotate +90 degrees for anticlockwise (instead of -90)
+          transform={`rotate(90 ${size / 2} ${
+            size / 2
+          }) scale(-1, 1) translate(-${size}, 0)`}
+        />
+      </Svg>
+
+      {/* Score text in center */}
+      {showText && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: size,
+            height: size,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.ratingCircleText}>{score}</Text>
+        </View>
+      )}
+    </View>
+  );
 };
 
 // A dedicated component for the rating circles for cleaner code
 const RatingCircle = ({ score, label }: { score: number; label: string }) => (
-  <View style={styles.ratingBox}>
-    <View style={[styles.ratingCircle, { borderColor: getBorderColor(score) }]}>
-      <Text style={styles.ratingCircleText}>{score}</Text>
-    </View>
+  <View style={[styles.ratingBox]}>
+    <CircularProgress
+      score={score}
+      size={scale(70)}
+      strokeWidth={4}
+      showText={true}
+    />
     <Text style={styles.ratingLabel}>{label}</Text>
   </View>
 );
@@ -78,87 +159,99 @@ const UnlockedLook: React.FC = () => {
       </GestureHandlerRootView>
     );
   }
-
+        
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          {/* Main content wrapper */}
-          <View>
-            <View style={styles.headerContainer}>
-              <Text style={styles.headerTitle}>
-                Your looksmaxxed transformation
-              </Text>
-              <Text style={styles.currentScore}>You current score: 4</Text>
+      <GridBackgroundImg top={true} />
+      <LinearGradient
+        colors={["#171840", "#6D37D4"]}
+        locations={[0, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container}>
+            {/* Main content wrapper */}
+            <View>
+              <View style={styles.headerContainer}>
+                <Text style={styles.headerTitle}>
+                  Your looksmaxxed transformation
+                </Text>
+                <Text style={styles.currentScore}>You current score: 4</Text>
+              </View>
+
+              <View style={styles.sliderContainer}>
+                <ImageSlider
+                  beforeImage={{ uri: savedImages[0].uri }}
+                  afterImage={{ uri: savedImages[1].uri }}
+                  containerWidth={scale(320)}
+                  containerHeight={scale(320)}
+                  sliderWidth={moderateScale(4)}
+                  knobSize={moderateScale(32)}
+                />
+              </View>
+
+              <View style={styles.ratingsRow}>
+                {loading ? (
+                  <ActivityIndicator size="large" color="#fff" />
+                ) : (
+                  (() => {
+                    // Get top 3 priorities and format area names
+                    const topPriorities =
+                      looksmaxxingResults?.priorities?.slice(0, 3) || [];
+                    const formattedPriorities = topPriorities.map(
+                      (priority: any) => ({
+                        ...priority,
+                        formattedArea: priority.area
+                          .split("_")
+                          .map(
+                            (word: string) =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" "),
+                      })
+                    );
+
+                    // Fill with default data if we don't have enough priorities
+                    while (formattedPriorities.length < 3) {
+                      formattedPriorities.push({
+                        score: 0,
+                        formattedArea: "Loading...",
+                        area: "loading",
+                      });
+                    }
+
+                    return formattedPriorities.map(
+                      (priority: any, index: number) => (
+                        <RatingCircle
+                          key={index}
+                          score={priority.score || 0}
+                          label={priority.formattedArea || "Loading..."}
+                        />
+                      )
+                    );
+                  })()
+                )}
+              </View>
             </View>
 
-            <View style={styles.sliderContainer}>
-              <ImageSlider
-                beforeImage={{ uri: savedImages[0].uri }}
-                afterImage={{ uri: savedImages[1].uri }}
-                containerWidth={scale(320)}
-                containerHeight={scale(320)}
-                sliderWidth={moderateScale(4)}
-                knobSize={moderateScale(32)}
-              />
-            </View>
-
-            <View style={styles.ratingsRow}>
-              {loading ? (
-                <ActivityIndicator size="large" color="#fff" />
-              ) : (
-                (() => {
-                  // Get top 3 priorities and format area names
-                  const topPriorities =
-                    looksmaxxingResults?.priorities?.slice(0, 3) || [];
-                  const formattedPriorities = topPriorities.map(
-                    (priority: any) => ({
-                      ...priority,
-                      formattedArea: priority.area
-                        .split("_")
-                        .map(
-                          (word: string) =>
-                            word.charAt(0).toUpperCase() + word.slice(1)
-                        )
-                        .join(" "),
-                    })
-                  );
-
-                  // Fill with default data if we don't have enough priorities
-                  while (formattedPriorities.length < 3) {
-                    formattedPriorities.push({
-                      score: 0,
-                      formattedArea: "Loading...",
-                      area: "loading",
-                    });
-                  }
-
-                  return formattedPriorities.map(
-                    (priority: any, index: number) => (
-                      <RatingCircle
-                        key={index}
-                        score={priority.score || 0}
-                        label={priority.formattedArea || "Loading..."}
-                      />
-                    )
-                  );
-                })()
-              )}
-            </View>
+            {/* Footer button */}
+            <ButtonStart
+              text="View Looksmaxxing Plan"
+              handlepress={onViewPlan}
+            />
           </View>
-
-          {/* Footer button */}
-          <ButtonStart text="View Looksmaxxing Plan" handlepress={onViewPlan} />
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   safeArea: {
     flex: 1,
-    backgroundColor: "#2D1B69",
   },
   container: {
     flex: 1,
@@ -200,15 +293,6 @@ const styles = StyleSheet.create({
     padding: scale(12),
     borderRadius: moderateScale(12),
   },
-  ratingCircle: {
-    width: scale(70),
-    height: scale(70),
-    borderRadius: scale(40),
-    borderWidth: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   ratingCircleText: {
     color: "#fff",
     fontWeight: "700",
@@ -234,4 +318,5 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
   },
 });
+
 export default UnlockedLook;

@@ -2,6 +2,7 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
+import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -60,17 +61,16 @@ const LoadingScreen: React.FC = () => {
       if (uploadResult.success) {
         const result = await looksmaxxingService.processLooksmaxxing(
           user?.uid as string,
-          frontPhoto as string,
-          sidePhoto as string,
-          fullBodyPhoto as string,
+          uploadResult.frontPhotoUrl,
+          uploadResult.sidePhotoUrl,
+          uploadResult.fullBodyPhotoUrl || ""
         );
         // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=9a260ef3-641f-40e1-8ad2-988dd200d593",
         // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=2fa6117d-39e4-429a-9305-47f6f81446e4",
         // ""
         if (result.success) {
           router.replace("/(tabs)/aiResult");
-        }
-       else {
+        } else {
           Alert.alert(
             "API Error",
             result.error || "Failed to call APIs. Check console for details.",
@@ -97,9 +97,9 @@ const LoadingScreen: React.FC = () => {
   useEffect(() => {
     const call = async () =>
       await callAllAPIs(
-          frontPhoto as string,
-          sidePhoto as string,
-          (fullBodyPhoto as string) || undefined
+        frontPhoto as string,
+        sidePhoto as string,
+        (fullBodyPhoto as string) || undefined
       );
     if (frontPhoto && sidePhoto) {
       call();
@@ -146,11 +146,6 @@ const LoadingScreen: React.FC = () => {
     }
   }, [step]);
 
-  // Button handler
-  const handleContinue = () => {
-    router.replace("/(tabs)/aiResult");
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
@@ -174,9 +169,17 @@ const LoadingScreen: React.FC = () => {
                 }}
               >
                 {step === i ? (
-                  <Text style={styles.icon}>{"\u27F3"}</Text> // Unicode reload icon
+                  <FontAwesome
+                    name="refresh"
+                    style={styles.icon}
+                    color="white"
+                  />
                 ) : step > i ? (
-                  <Text style={styles.iconCheck}>✓</Text>
+                  <FontAwesome
+                    name="check"
+                    style={styles.iconCheck}
+                    color="white"
+                  />
                 ) : (
                   <Text style={{ width: 20 }} />
                 )}
@@ -209,7 +212,6 @@ const LoadingScreen: React.FC = () => {
             AI is generating your maximum potential based on{"\n"}
             50k+ successful transformation
           </Text>
-          <ButtonStart text="Continue" handlepress={handleContinue} />
         </SafeAreaView>
       </LinearGradient>
     </View>
