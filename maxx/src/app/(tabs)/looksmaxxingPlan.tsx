@@ -1,5 +1,6 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
+import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,6 +9,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -24,8 +26,19 @@ interface Task {
   levels: number;
 }
 
+interface PlanType {
+  id: string;
+  name: string;
+  description: string;
+  tasks: Task[];
+}
+
 const startDayOne = () => {
   router.push("/mainScreen");
+};
+
+const onUnlock = () => {
+  return;
 };
 
 // Static planData removed - now using dynamic data from looksmaxxing results
@@ -44,9 +57,9 @@ const TaskCard = ({ item }: { item: Task }) => (
     </View>
     <LinearGradient
       colors={[
-        'rgba(255, 255, 255, 0)',
-        'rgba(255, 255, 255, 0.25)',
-        'rgba(255, 255, 255, 0)'
+        "rgba(255, 255, 255, 0)",
+        "rgba(255, 255, 255, 0.25)",
+        "rgba(255, 255, 255, 0)",
       ]}
       start={{ x: 0, y: 0.5 }}
       end={{ x: 1, y: 0.5 }}
@@ -56,11 +69,11 @@ const TaskCard = ({ item }: { item: Task }) => (
 );
 
 const LooksmaxxingPlanScreen: React.FC = () => {
-  const { user } = useAuth();
+  const { user, subscriptionDays } = useAuth();
   const [activeTab, setActiveTab] = useState("Month 1-2");
   const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [planData, setPlanData] = useState<{ [key: string]: Task[] }>({});
+  const [planData, setPlanData] = useState<{ [key: string]: PlanType }>({});
   const tabs = ["Month 1-2", "Month 3-4", "Month 5-6"];
 
   // Function to fetch looksmaxxing data and organize it
@@ -71,13 +84,13 @@ const LooksmaxxingPlanScreen: React.FC = () => {
         user?.uid as string,
         "looksmaxxing_results"
       );
-      
+
       if (result.success) {
         const data = result.data.data.advice_json;
         setLooksmaxxingResults(data);
-        
-        // Organize priorities by time horizon
-        const organizedData = organizeDataByTimeHorizon(data);
+
+        // Organize priorities by plan types
+        const organizedData = organizeDataByPlanTypes(data);
         setPlanData(organizedData);
       }
     } catch (error) {
@@ -87,63 +100,48 @@ const LooksmaxxingPlanScreen: React.FC = () => {
     }
   };
 
-  // Function to organize data by time horizon
-  const organizeDataByTimeHorizon = (data: any) => {
+  // Function to organize data by plan types
+  const organizeDataByPlanTypes = (data: any) => {
     const priorities = data.priorities || [];
     const recommendations = data.recommendations || {};
-    
-    const organized: { [key: string]: Task[] } = {
-      "Month 1-2": [],
-      "Month 3-4": [],
-      "Month 5-6": []
+
+    const organized: { [key: string]: PlanType } = {
+      "Month 1-2": {
+        id: "month_1_2",
+        name: "Month 1-2 Plan",
+        description: "Essential improvements for beginners",
+        tasks: [],
+      },
+      "Month 3-4": {
+        id: "month_3_4",
+        name: "Month 3-4 Plan",
+        description: "Advanced techniques for continued growth",
+        tasks: [],
+      },
+      "Month 5-6": {
+        id: "month_5_6",
+        name: "Month 5-6 Plan",
+        description: "Expert-level optimizations",
+        tasks: [],
+      },
     };
 
+    // Create tasks for months 1-2 in the first plan
     priorities.forEach((priority: any, index: number) => {
       const formattedArea = priority.area
-        .split('_')
+        .split("_")
         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      
-      const task: Task = {
-        id: `priority_${index}`,
-        title: formattedArea,
-        description: priority.improvement_habits,
-        levels: Math.round((100 - priority.score) / 10)
-      };
+        .join(" ");
 
-      // Organize by time horizon
-      switch (priority.time_horizon) {
-        case "now":
-          organized["Month 1-2"].push(task);
-          break;
-        case "2-4w":
-          organized["Month 1-2"].push(task);
-          break;
-        case "1-3m":
-          organized["Month 3-4"].push(task);
-          break;
-        default:
-          organized["Month 1-2"].push(task);
-      }
-    });
-
-    // Add recommendations as additional tasks
-    Object.entries(recommendations).forEach(([area, tips]: [string, any]) => {
-      if (Array.isArray(tips) && tips.length > 0) {
-        const formattedArea = area
-          .split('_')
-          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-        
+      // Create tasks for months 1-2
+      for (let month = 1; month <= 2; month++) {
         const task: Task = {
-          id: `rec_${area}`,
-          title: formattedArea,
-          description: tips[0], // Use first tip as description
-          levels: 3 // Default level improvement
+          id: `month_1_2_priority_${index}_month_${month}`,
+          title: `${formattedArea}`,
+          description: priority.improvement_habits,
+          levels: Math.round((100 - priority.score) / 10),
         };
-
-        // Add to Month 5-6 for advanced recommendations
-        organized["Month 5-6"].push(task);
+        organized["Month 1-2"].tasks.push(task);
       }
     });
 
@@ -167,57 +165,78 @@ const LooksmaxxingPlanScreen: React.FC = () => {
         end={{ x: 0, y: 1 }}
         style={styles.gradient}
       >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.backButton}>{"\u2190"}</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Your Looksmaxxing Plan</Text>
-            <View style={{ width: scale(20) }} />
-          </View>
-          <View style={styles.content}>
-            <View style={styles.tabContainer}>
-              {tabs.map((tab) => (
-                <TouchableOpacity
-                  key={tab}
-                  style={[styles.tab, activeTab === tab && styles.activeTab]}
-                  onPress={() => setActiveTab(tab)}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === tab && styles.activeTabText,
-                    ]}
-                  >
-                    {tab}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={styles.backButton}>{"\u2190"}</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Your Looksmaxxing Plan</Text>
+              <View style={{ width: scale(20) }} />
             </View>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#fff" />
-                <Text style={styles.loadingText}>Loading your personalized plan...</Text>
+            <View style={styles.content}>
+              <View style={styles.tabContainer}>
+                {tabs.map((tab) => (
+                  <TouchableOpacity
+                    key={tab}
+                    style={[styles.tab, activeTab === tab && styles.activeTab]}
+                    onPress={() => setActiveTab(tab)}
+                  >
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === tab && styles.activeTabText,
+                      ]}
+                    >
+                      {tab}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ) : (
-              <FlatList
-                data={planData[activeTab] || []}
-                renderItem={({ item }) => <TaskCard item={item} />}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No tasks available for this period</Text>
-                  </View>
-                }
-              />
-            )}
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#fff" />
+                  <Text style={styles.loadingText}>
+                    Loading your personalized plan...
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={planData[activeTab]?.tasks || []}
+                  renderItem={({ item }) => <TaskCard item={item} />}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.listContainer}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      {activeTab === "Month 1-2" ? (
+                        <Text style={styles.emptyText}>
+                          No tasks available for this period
+                        </Text>
+                      ) : (
+                        <Image
+                          source={img.nextplan_islocked}
+                          style={styles.emptyImage}
+                          resizeMode="contain"
+                        />
+                      )}
+                    </View>
+                  }
+                />
+              )}
+            </View>
+            {subscriptionDays &&
+              subscriptionDays < 60 &&
+              activeTab === "Month 1-2" && (
+                <ButtonStart text="Start Day 1" handlepress={startDayOne} />
+              )}
+            {subscriptionDays &&
+              subscriptionDays >= 60 &&
+              activeTab != "Month 1-2" && (
+                <ButtonStart text="Scan Progress" handlepress={onUnlock} />
+              )}
           </View>
-          <ButtonStart text="Start Day 1" handlepress={startDayOne} />
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
       </LinearGradient>
     </GestureHandlerRootView>
   );
@@ -292,7 +311,7 @@ const styles = StyleSheet.create({
   },
   gradientBorder: {
     height: 1,
-    width: '100%',
+    width: "100%",
   },
   imagePlaceholder: {
     width: scale(50),
@@ -313,6 +332,12 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
     fontSize: moderateScale(12),
     marginTop: verticalScale(2),
+  },
+  monthText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: moderateScale(10),
+    marginTop: verticalScale(2),
+    fontStyle: "italic",
   },
   levelPill: {
     backgroundColor: "#fff",
@@ -347,6 +372,9 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.5)",
     fontSize: moderateScale(14),
     textAlign: "center",
+  },
+  emptyImage: {
+    width: scale(350),
   },
 });
 

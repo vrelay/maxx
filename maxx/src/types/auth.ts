@@ -5,12 +5,14 @@ export interface User {
   photoURL: string | null;
   emailVerified: boolean;
   providers: string[];
+  creationTime?: string;
 }
 
 export interface AuthState {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  subscriptionDays: number | null;
   error: string | null;
   success: string | null;
 }
@@ -36,6 +38,7 @@ export interface ServiceResponse<T = any> {
 export type AuthAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_USER"; payload: User | null }
+  | { type: "SET_SUBSCRIPTION_DAYS"; payload: number }
   | { type: "SET_ERROR"; payload: string }
   | { type: "SET_SUCCESS"; payload: string }
   | { type: "CLEAR_ERROR" }

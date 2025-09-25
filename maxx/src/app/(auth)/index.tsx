@@ -17,9 +17,10 @@ const TabsIndex = () => {
   const handleContinue = () => {
     if (isAuthenticated) {
       if (user && user.emailVerified) {
-        router.push("/(tabs)");
+        // router.push("/(tabs)");
         // router.push("/(tabs)/aiResult");
         // router.push("/(tabs)/loadingAiProcessing");
+        router.push("/(tabs)/generateOtherThreeImgs");
         return;
       } else if (user && !user.emailVerified) {
         router.push("/(auth)/verifyEmailScreen");

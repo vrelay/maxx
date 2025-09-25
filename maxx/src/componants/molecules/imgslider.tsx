@@ -1,11 +1,12 @@
 import img from "@/src/constants/img";
 import React from "react";
-import { Dimensions, Image, StyleSheet, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
+import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 const { width: screenWidth } = Dimensions.get("window");
 
 const ImageSlider = ({
@@ -15,6 +16,10 @@ const ImageSlider = ({
   containerHeight = 400,
   sliderWidth = 4,
   knobSize = 40,
+  lefttext = "",
+  righttext = "",
+  leftnavigation = false,
+  rightnavigation = false,
 }) => {
   const sliderPosition = useSharedValue(containerWidth / 2);
   const startPosition = useSharedValue(0);
@@ -122,6 +127,11 @@ const ImageSlider = ({
           </View>
         </Animated.View>
       </GestureDetector>
+
+      <View style={styles.bottomTextContainer}>
+        {lefttext && <Text style={styles.lefttext}>{lefttext}</Text>}
+        {righttext && <Text style={styles.righttext}>{righttext}</Text>}
+      </View>
     </View>
   );
 };
@@ -215,6 +225,34 @@ const styles = StyleSheet.create({
     borderTopColor: "transparent",
     borderBottomColor: "transparent",
     borderLeftColor: "#666",
+  },
+  bottomTextContainer: {
+    position: "absolute",
+    bottom: verticalScale(10),
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: scale(10),
+  },
+  lefttext: {
+    color: "black",
+    fontSize: moderateScale(12),
+    fontWeight: "500",
+    backgroundColor: "rgba(255,255,255,0.85)",
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(5),
+    borderRadius: moderateScale(7),
+  },
+  righttext: {
+    color: "black",
+    fontSize: moderateScale(12),
+    fontWeight: "500",
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(5),
+    borderRadius: moderateScale(7),
   },
 });
 

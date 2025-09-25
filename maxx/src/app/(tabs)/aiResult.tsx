@@ -249,7 +249,7 @@ const StartTransformationToday = ({
           <Image source={img.decor_bar} style={styles.decor_bar} />
           {topPriorities.map((t, i) => (
             <>
-              <View style={styles.cardWrapper}>
+              <View style={styles.cardWrapper} key={i}>
                 <View style={styles.taskCard}>
                   <View style={styles.imagePlaceholder} />
                   <View style={styles.taskTextContainer}>

@@ -44,6 +44,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isLoading: false,
         error: null,
       };
+    case "SET_SUBSCRIPTION_DAYS":
+      return { ...state, subscriptionDays: action.payload };
     case "SET_ERROR":
       return { ...state, error: action.payload, isLoading: false };
     case "SET_SUCCESS":
@@ -57,6 +59,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: null,
         isLoading: false,
         isAuthenticated: false,
+        subscriptionDays: null,
         error: null,
         success: null,
       };
@@ -69,6 +72,7 @@ const initialState: AuthState = {
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  subscriptionDays: null,
   error: null,
   success: null,
 };
@@ -89,6 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           photoURL: firebaseUser.photoURL,
           emailVerified: firebaseUser.emailVerified,
           providers: firebaseUser.providerData.map((p) => p.providerId),
+          creationTime: firebaseUser.metadata.creationTime,
         };
         dispatch({ type: "SET_USER", payload: user });
       } else {
@@ -184,12 +189,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     dispatch({ type: "CLEAR_ERROR" });
   };
 
+  const calculateCurrentDays = () => {
+    const user = state.user;
+    if (!user?.creationTime) {
+      // Fallback to a default start date if user creation time is not available for testing
+      const defaultStartDate = new Date("2024-01-01");
+      const today = new Date();
+      const diffTime = Math.abs(today.getTime() - defaultStartDate.getTime());
+      dispatch({
+        type: "SET_SUBSCRIPTION_DAYS",
+        payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+      });
+    }
+
+    const startDate = new Date(user?.creationTime || "");
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - startDate.getTime());
+    dispatch({
+      type: "SET_SUBSCRIPTION_DAYS",
+      payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+    });
+  };
+
+  useEffect(() => {
+    calculateCurrentDays();
+  }, [state.user]);
+
   return (
     <AuthContext.Provider
       value={{
         ...state,
         savedImages,
-        setSavedImages, 
+        setSavedImages,
         signIn,
         signUp,
         signOut,
