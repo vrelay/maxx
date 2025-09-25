@@ -258,9 +258,15 @@ const GenerateOtherThreeImgs: React.FC = () => {
                 )}
 
                 <View style={styles.paginationDots}>
-                  <View style={styles.dot} />
-                  <View style={styles.dot} />
-                  <View style={styles.dot} />
+                  {[0, 1, 2, 3].map((_, idx) => (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.dot,
+                        currentPoseIndex === idx ? styles.dotActive : null,
+                      ]}
+                    />
+                  ))}
                 </View>
               </View>
             </View>
@@ -399,10 +405,14 @@ const styles = StyleSheet.create({
     gap: scale(8),
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
     backgroundColor: "rgba(255, 255, 255, 0.5)",
+  },
+  dotActive: {
+    backgroundColor: "#fff",
+    width: scale(20),
   },
   navigationContainer: {
     marginTop: verticalScale(40),

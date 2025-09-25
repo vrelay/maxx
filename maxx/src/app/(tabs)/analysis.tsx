@@ -158,6 +158,17 @@ const Analysis: React.FC = () => {
                 onleftnavigation={onLeftNavigation}
                 onrightnavigation={onRightNavigation}
               />
+                          <View style={styles.paginationDots}>
+              {[0, 1, 2, 3].map((_, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.dot,
+                    currentPoseIndex === idx ? styles.dotActive : null,
+                  ]}
+                />
+              ))}
+            </View>
             </View>
 
             {loading ? (
@@ -191,6 +202,7 @@ const Analysis: React.FC = () => {
                 )}
               />
             )}
+
           </View>
         );
       case "Month 3-4":
@@ -357,6 +369,22 @@ const styles = StyleSheet.create({
   emptyImage: {
     width: scale(350),
     marginTop: verticalScale(100),
+  },
+  paginationDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: verticalScale(15),
+    gap: scale(8),
+  },
+  dot: {
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
+    backgroundColor: "rgba(255,255,255,0.5)",
+  },
+  dotActive: {
+    backgroundColor: "#fff",
+    width: scale(20),
   },
 });
 
