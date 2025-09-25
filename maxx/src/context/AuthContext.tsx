@@ -200,6 +200,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         type: "SET_SUBSCRIPTION_DAYS",
         payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
       });
+      return;
     }
 
     const startDate = new Date(user?.creationTime || "");
@@ -209,6 +210,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       type: "SET_SUBSCRIPTION_DAYS",
       payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
     });
+    return;
   };
 
   useEffect(() => {
