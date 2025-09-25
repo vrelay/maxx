@@ -1,6 +1,6 @@
 import img from "@/src/constants/img";
 import React from "react";
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -8,6 +8,19 @@ import Animated, {
 } from "react-native-reanimated";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 const { width: screenWidth } = Dimensions.get("window");
+
+interface ImageSliderProps {
+  beforeImage?: any;
+  afterImage?: any;
+  containerWidth?: number;
+  containerHeight?: number;
+  sliderWidth?: number;
+  knobSize?: number;
+  lefttext?: string;
+  righttext?: string;
+  onleftnavigation?: () => void;
+  onrightnavigation?: () => void;
+}
 
 const ImageSlider = ({
   beforeImage = img.before_img_grey,
@@ -18,9 +31,9 @@ const ImageSlider = ({
   knobSize = 40,
   lefttext = "",
   righttext = "",
-  leftnavigation = false,
-  rightnavigation = false,
-}) => {
+  onleftnavigation,
+  onrightnavigation,
+}: ImageSliderProps) => {
   const sliderPosition = useSharedValue(containerWidth / 2);
   const startPosition = useSharedValue(0);
 
@@ -127,6 +140,18 @@ const ImageSlider = ({
           </View>
         </Animated.View>
       </GestureDetector>
+
+      {onleftnavigation && (
+        <TouchableOpacity onPress={onleftnavigation} style={styles.leftArrowbtn}>
+          <Text style={styles.arrowText}>{`<`}</Text>
+        </TouchableOpacity>
+      )}
+
+      {onrightnavigation && (
+        <TouchableOpacity onPress={onrightnavigation} style={styles.rightArrowbtn}>
+          <Text style={styles.arrowText}>{`>`}</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.bottomTextContainer}>
         {lefttext && <Text style={styles.lefttext}>{lefttext}</Text>}
@@ -253,6 +278,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(10),
     paddingVertical: verticalScale(5),
     borderRadius: moderateScale(7),
+  },
+  leftArrowbtn: {
+    backgroundColor: "rgba(117, 117, 117, 0.15)",
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(5),
+    borderRadius: moderateScale(7),
+    position: "absolute",
+    left: scale(10),
+    top: verticalScale(143),
+  },
+  rightArrowbtn: {
+    backgroundColor: "rgba(117, 117, 117, 0.15)",
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(5),
+    borderRadius: moderateScale(7),
+    position: "absolute",
+    right: scale(10),
+    top: verticalScale(143),
+  },
+  arrowText: {
+    color: "white",
+    fontSize: moderateScale(25),
   },
 });
 

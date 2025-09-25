@@ -22,16 +22,6 @@ const MonthlyProgressBars: React.FC<MonthlyProgressBarsProps> = ({
     }
   };
 
-  const getCurrentPeriodDays = (periodStart: number, periodEnd: number) => {
-    if (currentDays < periodStart) {
-      return 0;
-    } else if (currentDays >= periodEnd) {
-      return periodEnd - periodStart;
-    } else {
-      return currentDays - periodStart;
-    }
-  };
-
   return (
     <View style={styles.monthlyProgressContainer}>
       <View style={styles.monthlyProgressHeader}>

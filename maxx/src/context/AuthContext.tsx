@@ -20,8 +20,12 @@ import {
 import { SavedImage } from "../utils/imageStorage";
 
 interface AuthContextType extends AuthState {
-  savedImages: SavedImage[];
-  setSavedImages: (images: SavedImage[]) => void;
+  leftImages: SavedImage[];
+  rightImages: SavedImage[];
+  setLeftImages: (images: SavedImage[]) => void;
+  setRightImages: (images: SavedImage[]) => void;
+  looksmaxxingResults: any;
+  setLooksmaxxingResults: (results: any) => void;
   signIn: (credentials: LoginCredentials) => Promise<boolean>;
   signUp: (credentials: SignupCredentials) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -81,7 +85,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
+  const [leftImages, setLeftImages] = useState<SavedImage[]>([]);
+  const [rightImages, setRightImages] = useState<SavedImage[]>([]);
+  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -221,8 +227,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     <AuthContext.Provider
       value={{
         ...state,
-        savedImages,
-        setSavedImages,
+        leftImages,
+        rightImages,
+        setLeftImages,
+        setRightImages,
+        looksmaxxingResults,
+        setLooksmaxxingResults,
         signIn,
         signUp,
         signOut,

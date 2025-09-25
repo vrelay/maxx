@@ -74,7 +74,7 @@ const AuthScreen = () => {
           router.push("/(auth)/verifyEmailScreen");
           return;
         }
-        router.push("/(tabs)");
+        router.push("/(auth)/socialproof");
       }
     }
     return;

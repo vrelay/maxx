@@ -32,10 +32,12 @@ const { width: screenWidth } = Dimensions.get("window");
 
 const PreviewMultiplePoses = ({
   title,
-  savedImages,
+  leftImages,
+  rightImages,
 }: {
   title: string;
-  savedImages: SavedImage[];
+  leftImages: SavedImage[];
+  rightImages: SavedImage[];
 }) => (
   <View style={styles.pageContent}>
     <View style={styles.cardContainer}>
@@ -43,18 +45,15 @@ const PreviewMultiplePoses = ({
       <Image source={img.decor_bar} style={styles.decor_bar} />
       <View style={styles.gridContainer}>
         {(() => {
-          const images =
-            savedImages.length >= 5
-              ? savedImages.slice(-3)
-              : [img.frontbody, img.sideface, img.sidebody];
+          const images = [img.frontbody, img.sideface, img.sidebody];
           return ["slider", ...images.map((image) => image)].map(
             (item, idx) => {
               if (idx === 0) {
                 return (
                   <View key={idx} style={styles.gridItem}>
                     <ImageSlider
-                      beforeImage={{ uri: savedImages[0].uri }}
-                      afterImage={{ uri: savedImages[1].uri }}
+                      beforeImage={{ uri: leftImages[0].uri }}
+                      afterImage={{ uri: rightImages[0].uri }}
                       containerWidth={scale(128)}
                       containerHeight={scale(128)}
                       sliderWidth={moderateScale(2)}
@@ -248,30 +247,28 @@ const StartTransformationToday = ({
           <Text style={styles.pageTitle}>{title}</Text>
           <Image source={img.decor_bar} style={styles.decor_bar} />
           {topPriorities.map((t, i) => (
-            <>
-              <View style={styles.cardWrapper} key={i}>
-                <View style={styles.taskCard}>
-                  <View style={styles.imagePlaceholder} />
-                  <View style={styles.taskTextContainer}>
-                    <Text style={styles.taskTitle}>{t.label}</Text>
-                    <Text style={styles.taskDescription}>{t.desc}</Text>
-                  </View>
-                  <View style={styles.levelPill}>
-                    <Text style={styles.taskLevel}>+{t.level} levels</Text>
-                  </View>
+            <View style={styles.cardWrapper} key={i}>
+              <View style={styles.taskCard}>
+                <View style={styles.imagePlaceholder} />
+                <View style={styles.taskTextContainer}>
+                  <Text style={styles.taskTitle}>{t.label}</Text>
+                  <Text style={styles.taskDescription}>{t.desc}</Text>
                 </View>
-                <LinearGradient
-                  colors={[
-                    "rgba(255, 255, 255, 0)",
-                    "rgba(255, 255, 255, 0.25)",
-                    "rgba(255, 255, 255, 0)",
-                  ]}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={styles.gradientBorder}
-                />
+                <View style={styles.levelPill}>
+                  <Text style={styles.taskLevel}>+{t.level} levels</Text>
+                </View>
               </View>
-            </>
+              <LinearGradient
+                colors={[
+                  "rgba(255, 255, 255, 0)",
+                  "rgba(255, 255, 255, 0.25)",
+                  "rgba(255, 255, 255, 0)",
+                ]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.gradientBorder}
+              />
+            </View>
           ))}
         </View>
       </View>
@@ -283,9 +280,16 @@ const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  const { user, savedImages, setSavedImages } = useAuth();
+  const {
+    user,
+    looksmaxxingResults,
+    setLooksmaxxingResults,
+    leftImages,
+    rightImages,
+    setLeftImages,
+    setRightImages,
+  } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
-  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
   // Load saved images on component mount
   useEffect(() => {
     loadSavedImages();
@@ -295,28 +299,52 @@ const DummySliderScreen: React.FC = () => {
     setLoading(true);
     const result: GetSavedImagesResult = await getSavedImages();
     if (result.success) {
-      const filteredImages = result.images.filter((image) => {
+      const filteredleftImages = result.images.filter((image) => {
         const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
         return [
           "front_before",
-          "front_after",
-          "side_after",
-          "physique_after",
-          "lifestyle_after",
+          // "side_before",
+          // "physique_before",
+          // "front_after",
+          // "side_after",
+          // "physique_after",
+          // "lifestyle_after",
         ].includes(nameWithoutExtension);
       });
-      console.log("filteredImages", filteredImages);
-      setSavedImages(filteredImages);
+      const filteredrightImages = result.images.filter((image) => {
+        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+        return [
+          "front_after",
+          // "side_after",
+          // "physique_after",
+          // "lifestyle_after",
+        ].includes(nameWithoutExtension);
+      });
+      console.log("filteredImages", filteredleftImages);
+      console.log("filteredImages", filteredrightImages);
+      // {"modificationTime": 2025-09-23T05:18:57.177Z,
+      //    "name": "front_before.jpg",
+      //     "path": "/data/user/0/com.vbochliya.maxx/files/front_before.jpg",
+      //      "size": 1376920,
+      //       "uri": "file:///data/user/0/com.vbochliya.maxx/files/front_before.jpg"}
+      // const dummyImages = {
+      //   modificationTime: new Date(),
+      //   name: "",
+      //   path: "",
+      //   size: 0,
+      //   uri: "",
+      // };
+      setLeftImages(filteredleftImages);
+      setRightImages(filteredrightImages);
       const looksmaxxingResults =
         await looksmaxxingService.getJsonFromFirestore(
           user?.uid as string,
           "looksmaxxing_results"
         );
-      console.log(
-        "looksmaxxingResults",
-        looksmaxxingResults.data.data.advice_json
+
+      setLooksmaxxingResults(
+        looksmaxxingResults.data.analysisResult.advice_json
       );
-      setLooksmaxxingResults(looksmaxxingResults.data.data.advice_json);
       setLoading(false);
     }
   };
@@ -351,7 +379,8 @@ const DummySliderScreen: React.FC = () => {
     <PreviewMultiplePoses
       key="0"
       title="Unlock Multiple Poses"
-      savedImages={savedImages}
+      leftImages={leftImages}
+      rightImages={rightImages}
     />,
     <PreviewYourRatings
       key="1"
@@ -417,19 +446,18 @@ const DummySliderScreen: React.FC = () => {
                 )}
                 style={styles.flatList}
               />
-              {savedImages.length > 0 && (
-                <View style={styles.pagination}>
-                  {pages.map((_, idx) => (
-                    <View
-                      key={idx}
-                      style={[
-                        styles.dot,
-                        pageIndex === idx ? styles.dotActive : null,
-                      ]}
-                    />
-                  ))}
-                </View>
-              )}
+
+              <View style={styles.pagination}>
+                {pages.map((_, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.dot,
+                      pageIndex === idx ? styles.dotActive : null,
+                    ]}
+                  />
+                ))}
+              </View>
             </View>
 
             <View style={styles.footer}>

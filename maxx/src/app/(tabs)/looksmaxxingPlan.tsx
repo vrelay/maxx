@@ -34,7 +34,7 @@ interface PlanType {
 }
 
 const startDayOne = () => {
-  router.push("/mainScreen");
+  // router.push("/mainScreen");
 };
 
 const onUnlock = () => {
@@ -86,7 +86,7 @@ const LooksmaxxingPlanScreen: React.FC = () => {
       );
 
       if (result.success) {
-        const data = result.data.data.advice_json;
+        const data = result.data.analysisResult.advice_json;
         setLooksmaxxingResults(data);
 
         // Organize priorities by plan types

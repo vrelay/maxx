@@ -8,8 +8,6 @@ export default function TabsLayout() {
       <Stack.Screen name="aiResult" />
       <Stack.Screen name="lockedDashboard" />
       <Stack.Screen name="looksmaxxingPlan" />
-      <Stack.Screen name="unlockedLook" />
-      <Stack.Screen name="mainScreen" />
     </Stack>
   );
 }

@@ -1,24 +1,28 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
+import MonthlyProgressBars from "@/src/componants/molecules/MonthlyProgressBars";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Animated,
+  Dimensions,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
-  const { savedImages } = useAuth();
-  const onUnlock = () => {
-    // In a real app, you might navigate to a paywall screen first.
-    // For this example, we'll navigate to the unlocked look.
-    router.push("/(tabs)/paymentSuccess");
-  };
+  const { leftImages,rightImages } = useAuth();
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GridBackgroundImg top={true} />
@@ -31,80 +35,48 @@ const LockedDashboard: React.FC = () => {
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container}>
-            {/* Main content wrapper */}
-            <View>
-              <View style={styles.header}>
-                <Text style={styles.headerTitle}>Maxx.</Text>
-                <TouchableOpacity
-                  onPress={() => router.push("/(tabs)/settings")}
-                >
-                  <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Maxx.</Text>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/settings")}>
+                <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
+              </TouchableOpacity>
+            </View>
 
-              <View style={styles.sliderContainer}>
+            <View style={styles.imageContainer}>
+              <View style={styles.imageWrapper}>
                 <ImageSlider
-                  beforeImage={{ uri: savedImages[0].uri }}
-                  afterImage={{ uri: savedImages[1].uri }}
-                  containerWidth={scale(290)}
-                  containerHeight={scale(300)}
-                  sliderWidth={moderateScale(4)}
-                  knobSize={moderateScale(32)}
+                  beforeImage={{ uri: leftImages[0].uri }}
+                  afterImage={{ uri: rightImages[0].uri }}
+                  lefttext="Pose 1"
+                  righttext="+4 levels"
                 />
-              </View>
-
-              <View style={styles.progressContainer}>
-                <Text style={styles.progressLabel}>
-                  Start Transformation Today
-                </Text>
-                <Text style={styles.progressValue}>0/180</Text>
-              </View>
-
-              {/* Visual Progress Bar */}
-              <View style={styles.progressBarBackground}>
-                <View style={styles.progressBarFill}></View>
-              </View>
-
-              <View style={styles.listContainer}>
-                <TouchableOpacity style={styles.lockedItem}>
-                  <FontAwesome
-                    name="calendar"
-                    style={styles.itemIcon}
-                    color="orange"
-                  />
-                  {/* Calendar Icon */}
-                  <View style={styles.itemTextContainer}>
-                    <Text style={styles.lockedItemTitle}>Your Plan</Text>
-                    <Text style={styles.lockedItemSub}>View Daily Task</Text>
-                  </View>
-                  <FontAwesome
-                    name="lock"
-                    style={styles.itemIcon}
-                    color="grey"
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.lockedItem}>
-                  <FontAwesome
-                    name="bar-chart-o"
-                    style={styles.itemIcon}
-                    color="orange"
-                  />
-                  {/* Chart Icon */}
-                  <View style={styles.itemTextContainer}>
-                    <Text style={styles.lockedItemTitle}>Analysis</Text>
-                    <Text style={styles.lockedItemSub}>See Breakdown</Text>
-                  </View>
-                  <FontAwesome
-                    name="lock"
-                    style={styles.itemIcon}
-                    color="grey"
-                  />
-                </TouchableOpacity>
               </View>
             </View>
 
-            {/* Footer button */}
-            <ButtonStart text="Unlock at $9.99/week" handlepress={onUnlock} />
+            <MonthlyProgressBars currentDays={0} />
+
+            <View style={styles.navigationContainer}>
+              <View style={styles.navCard}>
+                <View style={styles.navCardIcon}>
+                  <FontAwesome name="lock" size={24} color="white" />
+                </View>
+                <Text style={styles.navCardTitle}>Your Plan</Text>
+                <Text style={styles.navCardSubtitle}>View Daily Task</Text>
+              </View>
+
+              <View style={styles.navCard}>
+                <View style={styles.navCardIcon}>
+                  <FontAwesome name="lock" size={24} color="white" />
+                </View>
+                <Text style={styles.navCardTitle}>Analysis</Text>
+                <Text style={styles.navCardSubtitle}>See Breakdown</Text>
+              </View>
+            </View>
+
+            <ButtonStart
+              text="Unlock at $9.99/week"
+              handlepress={() => router.push("/(tabs)/paymentSuccess")}
+            />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -120,9 +92,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "space-between", // Pushes button to bottom
     paddingHorizontal: scale(15),
-    paddingBottom: verticalScale(20), // Padding for the button
+    paddingBottom: verticalScale(20),
+    justifyContent: "space-between",
   },
   header: {
     flexDirection: "row",
@@ -140,86 +112,135 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: moderateScale(24),
   },
-  sliderContainer: {
-    alignItems: "center",
-    marginTop: verticalScale(20),
-  },
-  progressContainer: {
+  notificationBanner: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: moderateScale(12),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
+    marginTop: verticalScale(15),
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
-    marginTop: verticalScale(25),
-    paddingHorizontal: scale(5),
+    alignItems: "center",
   },
-  progressLabel: {
+  notificationText: {
+    color: "#000",
+    fontSize: moderateScale(14),
+    fontWeight: "500",
+    flex: 1,
+  },
+  notificationClose: {
+    color: "#000",
+    fontSize: moderateScale(20),
+    fontWeight: "bold",
+  },
+  loadingCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: moderateScale(16),
+    paddingVertical: verticalScale(20),
+    paddingHorizontal: scale(20),
+    marginTop: verticalScale(20),
+    alignItems: "center",
+  },
+  loadingTitle: {
     color: "#fff",
-    fontSize: moderateScale(14),
-    fontWeight: "500",
+    fontSize: moderateScale(16),
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: verticalScale(8),
   },
-  progressValue: {
-    color: "rgba(255,255,255,0.7)",
+  loadingSubtitle: {
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: moderateScale(14),
-    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: verticalScale(20),
+  },
+  progressBarContainer: {
+    width: "100%",
   },
   progressBarBackground: {
-    height: 4,
+    height: 6,
     width: "100%",
     backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 2,
-    marginTop: verticalScale(8),
-    paddingHorizontal: scale(5),
+    borderRadius: 3,
   },
   progressBarFill: {
     height: "100%",
-    width: "2%", // Represents the start of the progress
     backgroundColor: "#fff",
-    borderRadius: 2,
+    borderRadius: 3,
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  listContainer: {
-    width: "100%",
-    marginTop: verticalScale(30),
+  imageContainer: {
+    alignItems: "center",
+    marginTop: verticalScale(25),
   },
-  lockedItem: {
+  imageWrapper: {
+    position: "relative",
+  },
+  paginationDots: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    marginBottom: verticalScale(12),
-    borderRadius: moderateScale(12),
-    paddingVertical: verticalScale(8),
-    paddingHorizontal: scale(16),
-    alignItems: "center",
+    justifyContent: "center",
+    marginTop: verticalScale(15),
+    gap: scale(8),
   },
-  itemIcon: {
-    fontSize: moderateScale(20),
-    marginRight: scale(12),
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
   },
-  itemTextContainer: {
+  navigationContainer: {
+    marginTop: verticalScale(40),
+    flexDirection: "row",
+    gap: scale(15),
+  },
+  navCard: {
     flex: 1,
-  },
-  lockedItemTitle: {
-    color: "#000",
-    fontWeight: "600",
-    fontSize: moderateScale(15),
-  },
-  lockedItemSub: {
-    color: "#888",
-    fontSize: moderateScale(12),
-    marginTop: verticalScale(2),
-  },
-  lockIcon: {
-    fontSize: moderateScale(20),
-  },
-  unlockBtn: {
+    backgroundColor: "rgba(255, 255, 255, 0.11)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, .5)",
+    borderRadius: moderateScale(15),
+    paddingVertical: verticalScale(30),
+    paddingHorizontal: scale(20),
     width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: moderateScale(14),
-    paddingVertical: verticalScale(16),
+    height: verticalScale(100),
     alignItems: "center",
-    marginTop: verticalScale(20), // Space from content above
+    justifyContent: "center",
   },
-  unlockBtnText: {
-    color: "#2D1B69",
+  navCardIcon: {
+    marginBottom: verticalScale(10),
+  },
+  navCardTitle: {
+    color: "#fff",
+    fontSize: moderateScale(15),
     fontWeight: "700",
-    fontSize: moderateScale(16),
+    marginBottom: verticalScale(8),
+    textAlign: "center",
+  },
+  navCardSubtitle: {
+    color: "rgb(255, 255, 255)",
+    fontSize: moderateScale(14),
+    textAlign: "center",
+  },
+  confettiContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: "none",
+    zIndex: 1000,
+  },
+  paperPiece: {
+    position: "absolute",
+    shadowColor: "#000",
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
   },
 });
 export default LockedDashboard;

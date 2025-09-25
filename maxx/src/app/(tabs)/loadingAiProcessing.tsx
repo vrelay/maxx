@@ -19,21 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const STEP_TEXTS = [
-  [
-    "Analysing your features",
-    "Calculating looksmax potential",
-    "Generating your transformation",
-  ],
-  [
-    "Analysing your features",
-    "Calculating looksmax potential",
-    "Generating your transformation",
-  ],
-  [
-    "Analysing your features",
-    "Calculating looksmax potential",
-    "Generating your transformation",
-  ],
+  "Analysing your features",
+  "Calculating looksmax potential",
+  "Generating your transformation",
 ];
 
 const LoadingScreen: React.FC = () => {
@@ -60,14 +48,14 @@ const LoadingScreen: React.FC = () => {
       console.log("firesbase image upload result", uploadResult);
       if (uploadResult.success) {
         const result = await looksmaxxingService.processLooksmaxxing(
+          false,
           user?.uid as string,
           uploadResult.frontPhotoUrl,
           uploadResult.sidePhotoUrl,
-          uploadResult.fullBodyPhotoUrl || ""
+          uploadResult.fullBodyPhotoUrl || "",
+          setStep
         );
-        // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=9a260ef3-641f-40e1-8ad2-988dd200d593",
-        // "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=2fa6117d-39e4-429a-9305-47f6f81446e4",
-        // ""
+        // "frontPhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhotoUrl": undefined, "sidePhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"
         if (result.success) {
           router.replace("/(tabs)/aiResult");
         } else {
@@ -146,10 +134,10 @@ const LoadingScreen: React.FC = () => {
   // Step auto advance
   useEffect(() => {
     if (step < STEP_TEXTS.length - 1) {
-      const t = setTimeout(() => setStep((prev) => prev + 1), 1400);
+      const t = setTimeout(() => setStep((prev) => prev + 1), 10000);
       return () => clearTimeout(t);
     }
-  }, [step]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -164,7 +152,7 @@ const LoadingScreen: React.FC = () => {
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.textContainer}>
-            {STEP_TEXTS[step].map((line, i) => (
+            {STEP_TEXTS.map((line, i) => (
               <View
                 key={i}
                 style={{

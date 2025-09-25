@@ -21,7 +21,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const GenerateOtherThreeImgs: React.FC = () => {
-  const { savedImages, subscriptionDays } = useAuth();
+  const { leftImages,rightImages, subscriptionDays } = useAuth();
+  const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
+  
   const [isApiCallInProgress, setIsApiCallInProgress] = useState(false);
   const [apiProgress, setApiProgress] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -51,16 +53,20 @@ const GenerateOtherThreeImgs: React.FC = () => {
     }, 100);
   };
 
+  const onLeftNavigation = () => {
+    setCurrentPoseIndex((prev) => (prev === 0 ? 3 : prev - 1));
+  };
+
+  const onRightNavigation = () => {
+    setCurrentPoseIndex((prev) => (prev === 3 ? 0 : prev + 1));
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       simulateApiCall();
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  const onUnlock = () => {
-    router.push("/(tabs)/unlockedLook");
-  };
 
   const renderNotificationBanner = () => {
     if (isApiCallInProgress) {
@@ -213,16 +219,12 @@ const GenerateOtherThreeImgs: React.FC = () => {
             <View style={styles.imageContainer}>
               <View style={styles.imageWrapper}>
                 <ImageSlider
-                  beforeImage={img.before_img_grey}
-                  afterImage={img.after_img}
-                  containerWidth={scale(290)}
-                  containerHeight={scale(300)}
-                  sliderWidth={moderateScale(4)}
-                  knobSize={moderateScale(32)}
+                  beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
+                  afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
                   lefttext="Pose 1"
                   righttext="+4 levels"
-                  leftnavigation={true}
-                  rightnavigation={true}
+                  onleftnavigation={onLeftNavigation}
+                  onrightnavigation={onRightNavigation}
                 />
 
                 <View style={styles.paginationDots}>
@@ -249,7 +251,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
 
               <TouchableOpacity
                 style={styles.navCard}
-                onPress={() => router.push("/(tabs)/aiResult")}
+                onPress={() => router.push("/(tabs)/analysis")}
               >
                 <View style={styles.navCardIcon}>
                   <FontAwesome name="bar-chart-o" size={24} color="orange" />

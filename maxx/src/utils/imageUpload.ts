@@ -36,23 +36,19 @@ export const uploadImageToStorage = async (
   folder: string = "user-images"
 ): Promise<UploadResult> => {
   try {
-    console.log("Starting image upload...");
-    console.log("Image URI:", imageUri);
+    console.log("Starting image upload..Image URI:", imageUri);
 
     const timestamp = Date.now();
     const finalFileName = fileName || `image_${timestamp}.jpg`;
 
     const storageRef = ref(storage, `${folder}/${finalFileName}`);
-    console.log("Storage path:", `${folder}/${finalFileName}`);
 
     const blob = await uriToBlob(imageUri);
-    console.log("Blob size:", blob.size, "bytes");
 
     const uploadResult = await uploadBytes(storageRef, blob);
-    console.log("Upload completed");
 
     const downloadURL = await getDownloadURL(uploadResult.ref);
-    console.log("Download URL:", downloadURL);
+    console.log("Upload completed.....Download URL:", downloadURL);
 
     return {
       success: true,
