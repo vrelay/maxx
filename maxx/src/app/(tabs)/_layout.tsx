@@ -8,6 +8,14 @@ export default function TabsLayout() {
       <Stack.Screen name="aiResult" />
       <Stack.Screen name="lockedDashboard" />
       <Stack.Screen name="looksmaxxingPlan" />
+      <Stack.Screen name="paymentSuccess" />
+      <Stack.Screen 
+        name="generateOtherThreeImgs" 
+        options={{
+          gestureEnabled: false,
+          headerBackVisible: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 const index = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const imagesGenerated = true;
-  const isSubscriptionActive = true;
+  const isSubscriptionActive = false;
   
   if (isLoading) {
     return (

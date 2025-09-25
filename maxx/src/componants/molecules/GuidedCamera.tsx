@@ -11,8 +11,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  launchImageLibrary,
+  ImagePickerResponse,
+  MediaType,
+} from "react-native-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import Svg, { Ellipse, Rect, Mask, Defs } from "react-native-svg";
 import ButtonStart from "../atoms/startbutton";
 
 type PhotoResult = {
@@ -72,7 +78,11 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
 
   const handleCapture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 1,
+        skipProcessing: false,
+        exif: false,
+      });
       setPhotoUri(photo.uri);
       if (step === "front-position") setStep("front-preview");
       else if (step === "side-position") setStep("side-preview");
@@ -116,6 +126,23 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
       fullBodyPhoto: null,
     });
     onClose();
+  };
+
+  const handleGallerySelect = () => {
+    const options = {
+      mediaType: "photo" as MediaType,
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+      quality: 1 as const,
+    };
+
+    launchImageLibrary(options, (response: ImagePickerResponse) => {
+      if (response.assets && response.assets[0]) {
+        setPhotoUri(response.assets[0].uri || null);
+        setStep("full-body-preview");
+      }
+    });
   };
 
   // Updated, more user-friendly instructions
@@ -175,7 +202,14 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
         </View>
         {photoUri ? (
           <View style={styles.previewContainer}>
-            <Image source={{ uri: photoUri }} style={styles.previewImage} />
+            <Image
+              source={{ uri: photoUri }}
+              style={[
+                styles.previewImage,
+                (step === "front-preview" || step === "side-preview") &&
+                  styles.flippedImage,
+              ]}
+            />
             <LinearGradient
               colors={["transparent", "rgba(0,0,0,0.7)"]}
               style={styles.gradientOverlay}
@@ -196,18 +230,69 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                 ref={cameraRef}
                 style={styles.camera}
                 facing={cameraFacing}
+                mode="picture"
+                enableTorch={false}
               />
             )}
             {(step === "front-position" || step === "side-position") && (
-              <View style={styles.ovalOverlay} />
+              <View style={styles.ovalOverlayContainer}>
+                <Svg
+                  width="100%"
+                  height="100%"
+                  style={styles.ovalOverlay}
+                >
+                  <Defs>
+                    <Mask id="ellipseMask">
+                      <Rect width="100%" height="100%" fill="white" />
+                      <Ellipse
+                        cx="50%"
+                        cy="35%"
+                        rx="40%"
+                        ry="30%"
+                        fill="black"
+                      />
+                    </Mask>
+                  </Defs>
+                  <Rect
+                    width="100%"
+                    height="100%"
+                    fill="rgba(0, 0, 0, 0.5)"
+                    mask="url(#ellipseMask)"
+                  />
+                  <Ellipse
+                    cx="50%"
+                    cy="35%"
+                    rx="40%"
+                    ry="30%"
+                    stroke="rgba(255,255,255,0.7)"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </Svg>
+              </View>
             )}
             <View style={styles.captureBar}>
+              {step === "full-body-position" && (
+                <TouchableOpacity
+                  style={styles.galleryButton}
+                  onPress={handleGallerySelect}
+                >
+                  <Feather name="image" size={24} color="#fff" />
+                </TouchableOpacity>
+              )}
+
+              {step != "full-body-position" && (
+                <View style={styles.placeholder} />
+              )}
+
               <TouchableOpacity
                 style={styles.captureButton}
                 onPress={handleCapture}
               >
                 <View style={styles.captureCircle} />
               </TouchableOpacity>
+
+              <View style={styles.placeholder} />
             </View>
           </View>
         )}
@@ -249,24 +334,30 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
   },
+  ovalOverlayContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   ovalOverlay: {
     position: "absolute",
-    top: "15%",
-    alignSelf: "center",
-    width: scale(220),
-    height: verticalScale(300),
-    borderRadius: scale(120), // Large radius creates an ellipse on a rectangle
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.7)",
-    backgroundColor: "transparent", // No fill color
-    zIndex: 2,
+    width: "100%",
+    height: "100%",
   },
   captureBar: {
     position: "absolute",
     bottom: verticalScale(40),
     left: 0,
     right: 0,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: scale(40),
     zIndex: 3,
   },
   captureButton: {
@@ -282,6 +373,17 @@ const styles = StyleSheet.create({
     borderWidth: 5,
     borderColor: "rgba(255,255,255,0.8)",
   },
+  galleryButton: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 30,
+    padding: 12,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.5)",
+  },
+  placeholder: {
+    width: 54,
+    height: 54,
+  },
   previewContainer: {
     flex: 1,
     justifyContent: "center",
@@ -291,6 +393,9 @@ const styles = StyleSheet.create({
   previewImage: {
     ...StyleSheet.absoluteFillObject,
     resizeMode: "cover",
+  },
+  flippedImage: {
+    transform: [{ scaleX: -1 }],
   },
   gradientOverlay: {
     position: "absolute",

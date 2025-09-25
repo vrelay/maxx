@@ -13,7 +13,9 @@ const HomeScreen: React.FC = () => {
   const { setProcessImgsGenrationForNextStep } = useAuth();
   
   const handlePaymentSuccess = () => {
-    setProcessImgsGenrationForNextStep("next3");
+    // setProcessImgsGenrationForNextStep("next3");
+    // Clear entire navigation stack and go to generateOtherThreeImgs
+    router.dismissAll();
     router.replace("/(tabs)/generateOtherThreeImgs");
   };
 

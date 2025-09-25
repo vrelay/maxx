@@ -10,6 +10,7 @@ import {
   SavedImage,
 } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -65,13 +66,19 @@ const PreviewMultiplePoses = ({
               return (
                 <View key={idx} style={styles.gridItem}>
                   <Image source={images[idx - 1]} style={styles.gridImage} />
-                  <View style={styles.lockOverlay}>
-                    <FontAwesome
-                      name="lock"
-                      style={styles.lockText}
-                      color="#fff"
-                    />
-                  </View>
+                  <BlurView 
+                    intensity={100} 
+                    tint="dark" 
+                    style={styles.lockOverlay}
+                  >
+                    <View style={styles.lockContent}>
+                      <FontAwesome
+                        name="lock"
+                        style={styles.lockText}
+                        color="#fff"
+                      />
+                    </View>
+                  </BlurView>
                 </View>
               );
             }
@@ -554,12 +561,20 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     position: "absolute",
-    backgroundColor: "rgba(0, 0, 0, 0.67)",
-    width: "100%",
-    height: "100%",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 15,
+    overflow: "hidden",
+  },
+  lockContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 50,
+    padding: 10,
   },
   lockText: {
     color: "#fff",

@@ -7,6 +7,7 @@ import ApiProgressComponent from "@/src/componants/molecules/ApiProgressComponen
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { useApiProgress } from "@/src/hooks/useApiProgress";
+import { useDoublePressBack } from "@/src/hooks/useDoublePressBack";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { getSavedImages, GetSavedImagesResult } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
@@ -41,6 +42,9 @@ const GenerateOtherThreeImgs: React.FC = () => {
   const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
   const [everythingDone, setEverythingDone] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Double press back functionality
+  useDoublePressBack("Press back again to exit");
   const {
     isApiCallInProgress,
     apiProgress,
@@ -112,6 +116,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
       setEverythingDone(true);
     }
   }, [processImgsGenrationForNextStep]);
+
 
   // TESTING useEffect - Uncomment this to test progress without real API calls
   // useEffect(() => {
@@ -276,7 +281,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
             <View style={styles.navigationContainer}>
               <TouchableOpacity
                 style={styles.navCard}
-                onPress={() => router.push("/(tabs)/looksmaxxingPlan")}
+                onPress={() => everythingDone && router.push("/(tabs)/looksmaxxingPlan")}
               >
                 <View style={styles.navCardIcon}>
                   <FontAwesome name="calendar" size={24} color="orange" />
@@ -287,7 +292,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
 
               <TouchableOpacity
                 style={styles.navCard}
-                onPress={() => router.push("/(tabs)/analysis")}
+                onPress={() => everythingDone && router.push("/(tabs)/analysis")}
               >
                 <View style={styles.navCardIcon}>
                   <FontAwesome name="bar-chart-o" size={24} color="orange" />
