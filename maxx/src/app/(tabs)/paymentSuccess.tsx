@@ -1,6 +1,7 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
@@ -9,6 +10,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { scale, verticalScale } from "react-native-size-matters";
 
 const HomeScreen: React.FC = () => {
+  const { setProcessImgsGenrationForNextStep } = useAuth();
+  
+  const handlePaymentSuccess = () => {
+    setProcessImgsGenrationForNextStep("next3");
+    router.replace("/(tabs)/generateOtherThreeImgs");
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
@@ -29,7 +37,7 @@ const HomeScreen: React.FC = () => {
           />
           <ButtonStart
             text="Begin My Scan"
-            handlepress={() => router.replace("/(tabs)/generateOtherThreeImgs")}
+            handlepress={handlePaymentSuccess}
           />
         </SafeAreaView>
       </LinearGradient>

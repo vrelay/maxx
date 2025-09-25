@@ -27,7 +27,7 @@ const STEP_TEXTS = [
 const LoadingScreen: React.FC = () => {
   const [step, setStep] = useState(0);
   const { frontPhoto, sidePhoto, fullBodyPhoto } = useLocalSearchParams();
-  const { user } = useAuth();
+  const { user, processImgsGenrationForNextStep } = useAuth();
 
   const callAllAPIs = async (
     frontPhoto: string,
@@ -47,18 +47,33 @@ const LoadingScreen: React.FC = () => {
       );
       console.log("firesbase image upload result", uploadResult);
       if (uploadResult.success) {
-        const result = await looksmaxxingService.processLooksmaxxing(
-          false,
-          user?.uid as string,
-          uploadResult.frontPhotoUrl,
-          uploadResult.sidePhotoUrl,
-          uploadResult.fullBodyPhotoUrl || "",
-          setStep
-        );
-        // "frontPhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhotoUrl": undefined, "sidePhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"
-        if (result.success) {
-          router.replace("/(tabs)/aiResult");
+        let result = null;
+        if (processImgsGenrationForNextStep === "nextmonthsiteration") {
+          result = await looksmaxxingService.processLooksmaxxingComplete(
+            user?.uid as string,
+            uploadResult.frontPhotoUrl,
+            uploadResult.sidePhotoUrl,
+            uploadResult.fullBodyPhotoUrl || "",
+            setStep
+          );
+          if (result.success) {
+            router.replace("/(tabs)/generateOtherThreeImgs");
+          }
         } else {
+          result = await looksmaxxingService.processLooksmaxxingBasic(
+            user?.uid as string,
+            uploadResult.frontPhotoUrl,
+            uploadResult.sidePhotoUrl,
+            uploadResult.fullBodyPhotoUrl || "",
+            setStep
+          );
+          if (result.success) {
+            router.replace("/(tabs)/aiResult");
+          }
+        }
+
+        // "frontPhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhotoUrl": undefined, "sidePhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"
+        if (!result.success) {
           Alert.alert(
             "API Error",
             result.error || "Failed to call APIs. Check console for details.",

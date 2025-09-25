@@ -26,6 +26,8 @@ interface AuthContextType extends AuthState {
   setRightImages: (images: SavedImage[]) => void;
   looksmaxxingResults: any;
   setLooksmaxxingResults: (results: any) => void;
+  processImgsGenrationForNextStep: "next3" | "nextmonthsiteration" | "";
+  setProcessImgsGenrationForNextStep: (agree: "next3" | "nextmonthsiteration" | "") => void;
   signIn: (credentials: LoginCredentials) => Promise<boolean>;
   signUp: (credentials: SignupCredentials) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -88,6 +90,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [leftImages, setLeftImages] = useState<SavedImage[]>([]);
   const [rightImages, setRightImages] = useState<SavedImage[]>([]);
   const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
+  //it will be three type string "false", "true", "pending"
+  const [processImgsGenrationForNextStep, setProcessImgsGenrationForNextStep] = useState<"next3" | "nextmonthsiteration" | "">("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -233,6 +237,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setRightImages,
         looksmaxxingResults,
         setLooksmaxxingResults,
+        processImgsGenrationForNextStep,
+        setProcessImgsGenrationForNextStep,
         signIn,
         signUp,
         signOut,

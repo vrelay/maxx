@@ -1,6 +1,13 @@
 import img from "@/src/constants/img";
 import React from "react";
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -87,7 +94,7 @@ const ImageSlider = ({
       {/* Before Image (Left side) - FIXED position, only container width changes */}
       <Animated.View style={[styles.beforeContainer, beforeContainerStyle]}>
         <Image
-          source={beforeImage}
+          source={beforeImage.uri=== "" ? img.default_profile_img : beforeImage}
           style={[
             styles.image,
             { width: containerWidth, height: containerHeight },
@@ -142,13 +149,19 @@ const ImageSlider = ({
       </GestureDetector>
 
       {onleftnavigation && (
-        <TouchableOpacity onPress={onleftnavigation} style={styles.leftArrowbtn}>
+        <TouchableOpacity
+          onPress={onleftnavigation}
+          style={styles.leftArrowbtn}
+        >
           <Text style={styles.arrowText}>{`<`}</Text>
         </TouchableOpacity>
       )}
 
       {onrightnavigation && (
-        <TouchableOpacity onPress={onrightnavigation} style={styles.rightArrowbtn}>
+        <TouchableOpacity
+          onPress={onrightnavigation}
+          style={styles.rightArrowbtn}
+        >
           <Text style={styles.arrowText}>{`>`}</Text>
         </TouchableOpacity>
       )}

@@ -15,6 +15,7 @@ const TabsIndex = () => {
   const { user, isAuthenticated } = useAuth();
 
   const handleContinue = () => {
+
     if (isAuthenticated) {
       if (user && user.emailVerified) {
         router.push("/(tabs)");

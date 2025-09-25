@@ -1,9 +1,14 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
+import ConfettiBurst from "@/src/componants/atoms/ConfettiBurst";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import MonthlyProgressBars from "@/src/componants/molecules/MonthlyProgressBars";
+import ApiProgressComponent from "@/src/componants/molecules/ApiProgressComponent";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
+import { useApiProgress } from "@/src/hooks/useApiProgress";
+import looksmaxxingService from "@/src/services/looksmaxxingService";
+import { getSavedImages, GetSavedImagesResult } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -21,37 +26,174 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const GenerateOtherThreeImgs: React.FC = () => {
-  const { leftImages,rightImages, subscriptionDays } = useAuth();
+  const {
+    user,
+    leftImages,
+    rightImages,
+    subscriptionDays,
+    looksmaxxingResults,
+    setLooksmaxxingResults,
+    setLeftImages,
+    setRightImages,
+    processImgsGenrationForNextStep,
+    setProcessImgsGenrationForNextStep,
+  } = useAuth();
   const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
-  
-  const [isApiCallInProgress, setIsApiCallInProgress] = useState(false);
-  const [apiProgress, setApiProgress] = useState(0);
+  const [everythingDone, setEverythingDone] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const confettiAnimation = new Animated.Value(0);
+  const {
+    isApiCallInProgress,
+    apiProgress,
+    step,
+    startApiCall,
+    handleApiProgress,
+    completeApiCall,
+  } = useApiProgress();
 
-  const simulateApiCall = () => {
-    setIsApiCallInProgress(true);
-    setApiProgress(0);
+  // Trigger confetti when API call completes
+  useEffect(() => {
+    if (step === 6 && apiProgress === 100) {
+      setTimeout(() => {
+        setProcessImgsGenrationForNextStep("");
+        setShowConfetti(true);
+      }, 500);
+    }
+  }, [step, apiProgress]);
 
-    const progressInterval = setInterval(() => {
-      setApiProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setTimeout(() => {
-            setIsApiCallInProgress(false);
-            setShowConfetti(true);
-            Animated.timing(confettiAnimation, {
-              toValue: 1,
-              duration: 2000,
-              useNativeDriver: true,
-            }).start();
-          }, 500);
-          return 100;
-        }
-        return prev + 2;
+  const loadSavedImages = async (): Promise<void> => {
+    const result: GetSavedImagesResult = await getSavedImages();
+    if (result.success) {
+      const filteredleftImages = result.images.filter((image) => {
+        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+        return ["front_before", "side_before", "fullbody_before"].includes(
+          nameWithoutExtension
+        );
       });
-    }, 100);
+      const filteredrightImages = result.images.filter((image) => {
+        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+        return [
+          "front_after",
+          "side_after",
+          "physique_after",
+          "lifestyle_after",
+        ].includes(nameWithoutExtension);
+      });
+      console.log("filteredImages", filteredleftImages);
+      console.log("filteredImages", filteredrightImages);
+
+      const dummyImages = {
+        modificationTime: new Date(),
+        name: "",
+        path: "",
+        size: 0,
+        uri: "",
+      };
+      //push dummyimages and make total of four images so first count the length of filteredleftImages and then push the dummyimages to the array
+      const totalImages = filteredleftImages.length;
+      if (totalImages < 4) {
+        for (let i = 0; i < 4 - totalImages; i++) {
+          filteredleftImages.push(dummyImages);
+        }
+      }
+      setLeftImages(filteredleftImages);
+      setRightImages(filteredrightImages);
+      const looksmaxxingResults =
+        await looksmaxxingService.getJsonFromFirestore(
+          user?.uid as string,
+          "looksmaxxing_results"
+        );
+
+      setLooksmaxxingResults(looksmaxxingResults.data);
+    }
   };
+  useEffect(() => {
+    if (processImgsGenrationForNextStep === "") {
+      loadSavedImages();
+      setEverythingDone(true);
+    }
+  }, [processImgsGenrationForNextStep]);
+
+  // TESTING useEffect - Uncomment this to test progress without real API calls
+  // useEffect(() => {
+  //   const testApiCall = async () => {
+  //     startApiCall();
+
+  //     // Simulate API call steps with delays and smooth progress
+  //     const steps = [
+  //       { step: 1, delay: 100, message: "Starting API call..." },
+  //       { step: 2, delay: 200, message: "Analyzing images..." },
+  //       { step: 3, delay: 300, message: "Generating side profile..." },
+  //       { step: 4, delay: 300, message: "Generating physique..." },
+  //       { step: 5, delay: 300, message: "Generating lifestyle..." },
+  //       { step: 6, delay: 100, message: "Finalizing results..." },
+  //     ];
+
+  //     for (const { step, delay, message } of steps) {
+  //       console.log(`Testing step ${step}: ${message}`);
+  //       handleApiProgress(step);
+
+  //       // Add some intermediate progress updates for smoother animation
+  //       if (step < 6) {
+  //         const intermediateSteps = 3;
+  //         const stepDelay = delay / (intermediateSteps + 1);
+
+  //         for (let i = 1; i <= intermediateSteps; i++) {
+  //           await new Promise((resolve) => setTimeout(resolve, stepDelay));
+  //           // Don't change the step, just let the smooth animation continue
+  //         }
+
+  //         await new Promise((resolve) => setTimeout(resolve, stepDelay));
+  //       } else {
+  //         // For the final step, just wait the full delay
+  //         await new Promise((resolve) => setTimeout(resolve, delay));
+  //       }
+  //     }
+  //     setEverythingDone(true);
+  //     console.log("Test API call completed!");
+  //   };
+
+  //   testApiCall();
+  // }, []);
+
+  // REAL API CALL useEffect - Uncomment this for production
+  useEffect(() => {
+    handleApiProgress(0);
+    const call = async () => {
+      startApiCall();
+
+      try {
+        // Show that we're starting the API call
+        handleApiProgress(1);
+
+        const result = await looksmaxxingService.upgradeToCompleteResults(
+          user?.uid as string,
+          looksmaxxingResults?.id,
+          handleApiProgress
+        );
+
+        if (!result.success) {
+          console.error("API call failed:", result.error);
+          completeApiCall();
+          return;
+        }
+
+        console.log("API call successful:", result);
+      } catch (error) {
+        console.error("API call error:", error);
+        completeApiCall();
+        return;
+      }
+
+      await loadSavedImages();
+      handleApiProgress(6); // Final step
+      setEverythingDone(true);
+    };
+    if (processImgsGenrationForNextStep === "next3") {
+      call();
+    } else if (processImgsGenrationForNextStep === "nextmonthsiteration") {
+      // call();
+    }
+  }, []);
 
   const onLeftNavigation = () => {
     setCurrentPoseIndex((prev) => (prev === 0 ? 3 : prev - 1));
@@ -59,119 +201,6 @@ const GenerateOtherThreeImgs: React.FC = () => {
 
   const onRightNavigation = () => {
     setCurrentPoseIndex((prev) => (prev === 3 ? 0 : prev + 1));
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      simulateApiCall();
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const renderNotificationBanner = () => {
-    if (isApiCallInProgress) {
-      return (
-        <View style={styles.notificationBanner}>
-          <Text style={styles.notificationText}>
-            Processing in progress... hang tight till then!
-          </Text>
-          <TouchableOpacity onPress={() => setIsApiCallInProgress(false)}>
-            <Text style={styles.notificationClose}>×</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return null;
-  };
-
-  const renderConfetti = () => {
-    if (!showConfetti) return null;
-
-    const screenWidth = Dimensions.get("window").width;
-    const screenHeight = Dimensions.get("window").height;
-
-    const burstY = 50;
-    const burstX = screenWidth / 2;
-    const paperPieces = [
-      { color: "#FFD700", size: 12, shape: "square" },
-      { color: "#FF6B6B", size: 8, shape: "circle" },
-      { color: "#4ECDC4", size: 15, shape: "rectangle" },
-      { color: "#45B7D1", size: 10, shape: "triangle" },
-      { color: "#96CEB4", size: 14, shape: "square" },
-      { color: "#FFEAA7", size: 6, shape: "circle" },
-      { color: "#DDA0DD", size: 11, shape: "rectangle" },
-      { color: "#98D8C8", size: 9, shape: "triangle" },
-      { color: "#FF9F43", size: 13, shape: "square" },
-      { color: "#6C5CE7", size: 7, shape: "circle" },
-      { color: "#A29BFE", size: 16, shape: "rectangle" },
-      { color: "#FD79A8", size: 5, shape: "triangle" },
-    ];
-
-    return (
-      <View style={styles.confettiContainer}>
-        {[...Array(60)].map((_, i) => {
-          const piece = paperPieces[i % paperPieces.length];
-
-          const randomAngle = Math.random() * 2 * Math.PI;
-          const randomDistance = 100 + Math.random() * 200;
-
-          const endX = burstX + Math.cos(randomAngle) * randomDistance;
-          const endY = burstY + Math.sin(randomAngle) * randomDistance;
-
-          const extraRandomX = (Math.random() - 0.5) * 80;
-          const extraRandomY = (Math.random() - 0.5) * 80;
-          const finalEndX = endX + extraRandomX;
-          const finalEndY = endY + extraRandomY;
-
-          return (
-            <Animated.View
-              key={i}
-              style={[
-                styles.paperPiece,
-                {
-                  left: burstX - piece.size / 2,
-                  top: burstY - piece.size / 2,
-                  width: piece.size,
-                  height: piece.size,
-                  backgroundColor: piece.color,
-                  borderRadius: piece.shape === "circle" ? piece.size / 2 : 2,
-                  transform: [
-                    {
-                      translateX: confettiAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, finalEndX - burstX],
-                      }),
-                    },
-                    {
-                      translateY: confettiAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, finalEndY - burstY],
-                      }),
-                    },
-                    {
-                      rotate: confettiAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ["0deg", "720deg"],
-                      }),
-                    },
-                    {
-                      scale: confettiAnimation.interpolate({
-                        inputRange: [0, 0.1, 0.8, 1],
-                        outputRange: [0, 1.2, 1, 0.3],
-                      }),
-                    },
-                  ],
-                  opacity: confettiAnimation.interpolate({
-                    inputRange: [0, 0.1, 0.7, 1],
-                    outputRange: [0, 1, 1, 0],
-                  }),
-                },
-              ]}
-            />
-          );
-        })}
-      </View>
-    );
   };
 
   return (
@@ -193,39 +222,40 @@ const GenerateOtherThreeImgs: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            {/* {renderNotificationBanner()} */}
+            <ApiProgressComponent
+              isVisible={isApiCallInProgress}
+              progress={apiProgress}
+              step={step}
+            />
 
-            {isApiCallInProgress && (
-              <View style={styles.loadingCard}>
-                <Text style={styles.loadingTitle}>
-                  Your plan and images are on the way...
-                </Text>
-                <Text style={styles.loadingSubtitle}>
-                  Just about few minutes to go.
-                </Text>
-                <View style={styles.progressBarContainer}>
-                  <View style={styles.progressBarBackground}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        { width: `${apiProgress}%` },
-                      ]}
-                    />
-                  </View>
-                </View>
-              </View>
-            )}
+            <ConfettiBurst
+              isVisible={showConfetti}
+              onComplete={() => {
+                setShowConfetti(false);
+                completeApiCall();
+              }}
+            />
 
             <View style={styles.imageContainer}>
               <View style={styles.imageWrapper}>
-                <ImageSlider
-                  beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
-                  afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
-                  lefttext="Pose 1"
-                  righttext="+4 levels"
-                  onleftnavigation={onLeftNavigation}
-                  onrightnavigation={onRightNavigation}
-                />
+                {everythingDone && (
+                  <ImageSlider
+                    beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
+                    afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
+                    lefttext="Pose 1"
+                    righttext="+4 levels"
+                    onleftnavigation={onLeftNavigation}
+                    onrightnavigation={onRightNavigation}
+                  />
+                )}
+                {!everythingDone && (
+                  <ImageSlider
+                    beforeImage={{ uri: leftImages[0]?.uri }}
+                    afterImage={{ uri: rightImages[0]?.uri }}
+                    lefttext="Pose 1"
+                    righttext="+4 levels"
+                  />
+                )}
 
                 <View style={styles.paginationDots}>
                   <View style={styles.dot} />
@@ -260,8 +290,6 @@ const GenerateOtherThreeImgs: React.FC = () => {
                 <Text style={styles.navCardSubtitle}>See Breakdown</Text>
               </TouchableOpacity>
             </View>
-
-            {renderConfetti()}
           </View>
         </SafeAreaView>
       </LinearGradient>

@@ -150,68 +150,6 @@ class LooksmaxxingService {
     }
   }
 
-  private hasStructuredAnalysis(analysisResult: any): boolean {
-    return (
-      analysisResult &&
-      analysisResult.advice_json &&
-      typeof analysisResult.advice_json === "object"
-    );
-  }
-
-  getStructuredAnalysis(
-    analysisResult: any
-  ): StructuredAnalysisResponse | null {
-    if (this.hasStructuredAnalysis(analysisResult)) {
-      return analysisResult.advice_json;
-    }
-    return null;
-  }
-
-  getPriorityRecommendations(analysisResult: any): AnalysisPriority[] {
-    const structured = this.getStructuredAnalysis(analysisResult);
-    if (structured) {
-      return structured.priorities.sort((a, b) => {
-        const impactOrder = { high: 3, med: 2, low: 1 };
-        return impactOrder[b.impact] - impactOrder[a.impact];
-      });
-    }
-    return [];
-  }
-
-  getRecommendationsByCategory(
-    analysisResult: any,
-    category: keyof AnalysisRecommendations
-  ): string[] {
-    const structured = this.getStructuredAnalysis(analysisResult);
-    if (structured && structured.recommendations[category]) {
-      return structured.recommendations[category];
-    }
-    return [];
-  }
-
-  getAnalysisScore(analysisResult: any): AnalysisScore | null {
-    const structured = this.getStructuredAnalysis(analysisResult);
-    return structured ? structured.score : null;
-  }
-
-  getQuickWins(analysisResult: any): AnalysisPriority[] {
-    const structured = this.getStructuredAnalysis(analysisResult);
-    if (structured) {
-      return structured.priorities.filter(
-        (p) => p.impact === "high" && p.difficulty === "low"
-      );
-    }
-    return [];
-  }
-
-  getImmediateActions(analysisResult: any): AnalysisPriority[] {
-    const structured = this.getStructuredAnalysis(analysisResult);
-    if (structured) {
-      return structured.priorities.filter((p) => p.time_horizon === "now");
-    }
-    return [];
-  }
-
   async testConnection(): Promise<void> {
     try {
       console.log("Testing API server connection...");
@@ -232,21 +170,22 @@ class LooksmaxxingService {
   }
 
   /**
-   * Process complete looksmaxxing pipeline with Gemini 2.5 models
+   * Process basic looksmaxxing pipeline for non-subscribed users (analysis + front image only)
+   * @param userId - User ID for database operations
    * @param frontPhoto - URL or base64 of front-facing photo
    * @param sidePhoto - URL or base64 of side profile photo
    * @param fullBodyPhoto - URL or base64 of full body photo
-   * @param userStylePrefs - Optional style preference (e.g., "menswear streetwear", "business casual")
+   * @param setStep - Function to update progress steps
+   * @param userStylePrefs - Optional style preference
    * @param targetIntensity - Enhancement intensity level: S1 (subtle), S2 (balanced), S3 (maximum natural)
-   * @returns Promise<LooksmaxxingResult> with structured analysis
+   * @returns Promise<LooksmaxxingResult> with analysis and front image only
    */
-  async processLooksmaxxing(
-    subscribed: boolean,
+  async processLooksmaxxingBasic(
     userId: string,
     frontPhoto: string,
     sidePhoto: string,
     fullBodyPhoto: string,
-    setStep: (step: number) => void,
+    setStep?: (step: number) => void,
     userStylePrefs?: string,
     targetIntensity?: "S1" | "S2" | "S3"
   ): Promise<LooksmaxxingResult> {
@@ -281,16 +220,12 @@ class LooksmaxxingService {
 
       console.log("Step 1: Calling analyze API...");
 
-      const analysisResult = await this.makeApiRequest(
-        "/analyze",
-        {
-          frontImageUrl: frontPhoto,
-          sideImageUrl: sidePhoto,
-          fullBodyImageUrl: fullBodyPhoto,
-          userStylePrefs: userStylePrefs,
-          targetIntensity: targetIntensity || "S2",
-        },
-        120000
+      const analysisResult = await this.analyzeLooksmaxxing(
+        frontPhoto,
+        sidePhoto,
+        fullBodyPhoto,
+        userStylePrefs,
+        targetIntensity
       );
       console.log("Analysis Result:", analysisResult);
 
@@ -314,92 +249,114 @@ class LooksmaxxingService {
         );
       }
 
-      setStep(1);
+      setStep?.(1);
 
       console.log("Step 2: Calling generate/front API...");
-      const enhancedFrontResult = await this.makeApiRequest(
-        "/generate/front",
-        {
-          frontImageUrl: frontPhoto,
-          sideImageUrl: sidePhoto,
-          advice: JSON.stringify(analysisResult.advice_json),
-          targetIntensity: targetIntensity || "S2",
-        },
-        300000
+      const enhancedFrontResult = await this.generateEnhancedFront(
+        frontPhoto,
+        sidePhoto,
+        fullBodyPhoto,
+        analysisResult.advice_json,
+        targetIntensity
       );
-      setStep(2);
+      setStep?.(2);
       console.log("Enhanced Front Result:", enhancedFrontResult);
       await saveImageToAppStorage(enhancedFrontResult.imagePath, "front_after");
 
-      if (!subscribed) {
-        // Third database update: Generated images for non-subscribed users
-        const finalUpdateData = {
-          generatedImages: {
-            enhancedFrontResult: enhancedFrontResult,
-          },
-          status: "complete",
-        };
-
-        const finalUpdateResult = await this.updateDocumentInFirestore(
-          userId,
-          documentId,
-          finalUpdateData,
-          "looksmaxxing_results"
-        );
-
-        if (!finalUpdateResult.success) {
-          console.error(
-            "Failed to update final result:",
-            finalUpdateResult.error
-          );
-        }
-
-        return {
-          success: true,
-          analysisResult: analysisResult,
+      // Third database update: Generated images for non-subscribed users
+      const finalUpdateData = {
+        generatedImages: {
           enhancedFrontResult: enhancedFrontResult,
-        };
+        },
+        status: "complete",
+      };
+
+      const finalUpdateResult = await this.updateDocumentInFirestore(
+        userId,
+        documentId,
+        finalUpdateData,
+        "looksmaxxing_results"
+      );
+
+      if (!finalUpdateResult.success) {
+        console.error(
+          "Failed to update final result:",
+          finalUpdateResult.error
+        );
       }
 
+      return {
+        success: true,
+        analysisResult: analysisResult,
+        enhancedFrontResult: enhancedFrontResult,
+      };
+    } catch (error: any) {
+      console.error("API call error:", error);
+      console.error("Error details:", {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack,
+      });
+
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
+   * Generate additional images for subscribed users using existing analysis and front image
+   * @param userId - User ID for database operations
+   * @param documentId - Existing document ID to update
+   * @param analysisResult - Already generated analysis result
+   * @param enhancedFrontResult - Already generated front image result
+   * @param setStep - Function to update progress steps
+   * @returns Promise<LooksmaxxingResult> with all generated images
+   */
+  async generateAdditionalImages(
+    userId: string,
+    documentId: string,
+    analysisResult: any,
+    enhancedFrontResult: any,
+    setStep?: (step: number) => void
+  ): Promise<LooksmaxxingResult> {
+    try {
+      console.log(
+        "Starting additional image generation for subscribed user..."
+      );
+
       console.log("Step 3: Calling generate/side API...");
-      const sideProfileResult = await this.makeApiRequest(
-        "/generate/side",
-        {
-          enhancedFrontImagePath: enhancedFrontResult.imagePath,
-          advice: JSON.stringify(analysisResult.advice_json),
-        },
-        300000
+      const sideProfileResult = await this.generateSideProfile(
+        enhancedFrontResult.imagePath,
+        analysisResult.advice_json
       );
       console.log("Side Profile Result:", sideProfileResult);
       await saveImageToAppStorage(sideProfileResult.imagePath, "side_after");
+      setStep?.(3);
 
       console.log("Step 4: Calling generate/physique API...");
-      const physiqueResult = await this.makeApiRequest(
-        "/generate/physique",
-        {
-          enhancedFrontImagePath: enhancedFrontResult.imagePath,
-          advice: JSON.stringify(analysisResult.advice_json),
-        },
-        300000
+      const physiqueResult = await this.generatePhysique(
+        enhancedFrontResult.imagePath,
+        analysisResult.advice_json
       );
       console.log("Physique Result:", physiqueResult);
       await saveImageToAppStorage(physiqueResult.imagePath, "physique_after");
+      setStep?.(4);
 
       console.log("Step 5: Calling generate/lifestyle API...");
-      const lifestyleResult = await this.makeApiRequest(
-        "/generate/lifestyle",
-        {
-          enhancedFrontImagePath: enhancedFrontResult.imagePath,
-          advice: JSON.stringify(analysisResult.advice_json),
-        },
-        300000
+      const lifestyleResult = await this.generateLifestyle(
+        enhancedFrontResult.imagePath,
+        analysisResult.advice_json
       );
       console.log("Lifestyle Result:", lifestyleResult);
       await saveImageToAppStorage(lifestyleResult.imagePath, "lifestyle_after");
+      setStep?.(5);
 
-      console.log("All API calls completed successfully!");
+      console.log("All additional API calls completed successfully!");
 
-      // Third database update: All generated images for subscribed users
+      // Update database with all generated images
       const finalUpdateData = {
         generatedImages: {
           enhancedFrontResult: enhancedFrontResult,
@@ -433,6 +390,124 @@ class LooksmaxxingService {
         lifestyleResult: lifestyleResult,
       };
     } catch (error: any) {
+      console.error("Additional image generation error:", error);
+      console.error("Error details:", {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack,
+      });
+
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
+   * Process complete looksmaxxing pipeline for subscribed users (all images)
+   * @param userId - User ID for database operations
+   * @param frontPhoto - URL or base64 of front-facing photo
+   * @param sidePhoto - URL or base64 of side profile photo
+   * @param fullBodyPhoto - URL or base64 of full body photo
+   * @param setStep - Function to update progress steps
+   * @param userStylePrefs - Optional style preference
+   * @param targetIntensity - Enhancement intensity level: S1 (subtle), S2 (balanced), S3 (maximum natural)
+   * @returns Promise<LooksmaxxingResult> with all generated images
+   */
+  async processLooksmaxxingComplete(
+    userId: string,
+    frontPhoto: string,
+    sidePhoto: string,
+    fullBodyPhoto: string,
+    setStep?: (step: number) => void,
+    userStylePrefs?: string,
+    targetIntensity?: "S1" | "S2" | "S3"
+  ): Promise<LooksmaxxingResult> {
+    try {
+      console.log("Starting complete API calls with URLs...");
+
+      // First database save: Initial photo URLs
+      const initialData = {
+        userId: userId,
+        inputPhotos: {
+          frontPhoto: frontPhoto,
+          sidePhoto: sidePhoto,
+          fullBodyPhoto: fullBodyPhoto,
+        },
+        userStylePrefs: userStylePrefs || "",
+        targetIntensity: targetIntensity || "S2",
+        status: "processing",
+      };
+
+      const initialSaveResult = await this.uploadJsonToFirestore(
+        userId,
+        initialData,
+        "looksmaxxing_results"
+      );
+
+      if (!initialSaveResult.success || !initialSaveResult.documentId) {
+        console.error("Failed to save initial data:", initialSaveResult.error);
+        throw new Error("Failed to create initial document in database");
+      }
+
+      const documentId = initialSaveResult.documentId;
+
+      console.log("Step 1: Calling analyze API...");
+
+      const analysisResult = await this.analyzeLooksmaxxing(
+        frontPhoto,
+        sidePhoto,
+        fullBodyPhoto,
+        userStylePrefs,
+        targetIntensity
+      );
+      console.log("Analysis Result:", analysisResult);
+
+      // Second database update: Analysis result JSON
+      const analysisUpdateData = {
+        analysisResult: analysisResult,
+        status: "analysis_complete",
+      };
+
+      const analysisUpdateResult = await this.updateDocumentInFirestore(
+        userId,
+        documentId,
+        analysisUpdateData,
+        "looksmaxxing_results"
+      );
+
+      if (!analysisUpdateResult.success) {
+        console.error(
+          "Failed to update analysis result:",
+          analysisUpdateResult.error
+        );
+      }
+
+      setStep?.(1);
+
+      console.log("Step 2: Calling generate/front API...");
+      const enhancedFrontResult = await this.generateEnhancedFront(
+        frontPhoto,
+        sidePhoto,
+        fullBodyPhoto,
+        analysisResult.advice_json,
+        targetIntensity
+      );
+      setStep?.(2);
+      console.log("Enhanced Front Result:", enhancedFrontResult);
+      await saveImageToAppStorage(enhancedFrontResult.imagePath, "front_after");
+
+      // Generate additional images using the existing analysis and front image
+      return await this.generateAdditionalImages(
+        userId,
+        documentId,
+        analysisResult,
+        enhancedFrontResult,
+        setStep
+      );
+    } catch (error: any) {
       console.error("API call error:", error);
       console.error("Error details:", {
         name: error?.name,
@@ -440,6 +515,65 @@ class LooksmaxxingService {
         stack: error?.stack,
       });
 
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
+   * Upgrade existing basic results to complete results after subscription
+   * @param userId - User ID for database operations
+   * @param documentId - Existing document ID to update
+   * @param setStep - Function to update progress steps
+   * @returns Promise<LooksmaxxingResult> with all generated images
+   */
+  async upgradeToCompleteResults(
+    userId: string,
+    documentId?: string,
+    setStep?: (step: number) => void
+  ): Promise<LooksmaxxingResult> {
+    try {
+      // Get existing data from database
+      const existingData = await this.getJsonFromFirestore(
+        userId,
+        "looksmaxxing_results",
+        documentId
+      );
+
+      if (!existingData.success || !existingData.data) {
+        throw new Error("Failed to retrieve existing data from database");
+      }
+
+      const data = existingData.data;
+      const analysisResult = data.analysisResult;
+      const enhancedFrontResult = data.generatedImages?.enhancedFrontResult;
+
+      if (!analysisResult || !enhancedFrontResult) {
+        throw new Error("Missing required data for upgrade");
+      }
+
+      // Get the actual document ID from the response
+      const actualDocumentId = documentId || existingData.data.id;
+
+      if (!actualDocumentId) {
+        throw new Error("No document ID available for update");
+      }
+
+      console.log("Upgrading existing results to complete results...");
+
+      // Generate additional images using existing analysis and front image
+      return await this.generateAdditionalImages(
+        userId,
+        actualDocumentId,
+        analysisResult,
+        enhancedFrontResult,
+        setStep
+      );
+    } catch (error: any) {
+      console.error("Upgrade to complete results error:", error);
       return {
         success: false,
         error:
@@ -483,6 +617,7 @@ class LooksmaxxingService {
         {
           frontImageUrl: frontPhoto,
           sideImageUrl: sidePhoto,
+          fullBodyImageUrl: fullBodyPhoto,
           advice: JSON.stringify(advice_json),
           targetIntensity: targetIntensity || "S2",
         },

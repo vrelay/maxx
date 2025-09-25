@@ -110,7 +110,7 @@ const Analysis: React.FC = () => {
   const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
   const tabs = ["Month 1-2", "Month 3-4", "Month 5-6"];
 
-  const onUnlock = () => {
+  const onScan = () => {
     return;
   };
 
@@ -130,7 +130,7 @@ const Analysis: React.FC = () => {
         user?.uid as string,
         "looksmaxxing_results"
       );
-      setLooksmaxxingResults(result.data.analysisResult.advice_json);
+      setLooksmaxxingResults(result.data);
     } catch (error) {
       console.error("Error fetching looksmaxxing data:", error);
     } finally {
@@ -166,7 +166,10 @@ const Analysis: React.FC = () => {
               </View>
             ) : (
               <FlatList
-                data={looksmaxxingResults?.priorities || []}
+                data={
+                  looksmaxxingResults?.analysisResult.advice_json.priorities ||
+                  []
+                }
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item, index) => `${item.area}-${index}`}
@@ -257,7 +260,7 @@ const Analysis: React.FC = () => {
             {subscriptionDays &&
               subscriptionDays >= 60 &&
               activeTab != "Month 1-2" && (
-                <ButtonStart text="Scan Progress" handlepress={onUnlock} />
+                <ButtonStart text="Scan Progress" handlepress={onScan} />
               )}
           </View>
         </SafeAreaView>

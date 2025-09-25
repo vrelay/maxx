@@ -2,17 +2,26 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import GuidedCamera from "@/src/componants/molecules/GuidedCamera";
 import img from "@/src/constants/img";
+import { useAuth } from "@/src/context/AuthContext";
 import { saveImageToAppStorage } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { Image, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const HomeScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
+  const { nextmonthsiterationScan } = useLocalSearchParams();
+  const { setProcessImgsGenrationForNextStep } = useAuth();
+
+  useEffect(() => {
+    if (nextmonthsiterationScan === "true") {
+      setShowCamera(true);
+    }
+  }, [nextmonthsiterationScan]);
 
   const handleAllPhotosComplete = async ({
     frontPhoto,
@@ -24,34 +33,46 @@ const HomeScreen: React.FC = () => {
     fullBodyPhoto: string | null;
   }) => {
     setShowCamera(false);
-    
+
     try {
+      if (nextmonthsiterationScan) {
+        setProcessImgsGenrationForNextStep("nextmonthsiteration");
+      }
       // Save all images to app storage and wait for completion
-      const frontResult = await saveImageToAppStorage(frontPhoto, "front_before");
+      const frontResult = await saveImageToAppStorage(
+        frontPhoto,
+        "front_before"
+      );
       console.log("Front image saved to app storage", frontResult);
-      
+
       const sideResult = await saveImageToAppStorage(sidePhoto, "side_before");
       console.log("Side image saved to app storage", sideResult);
-      
+
       let fullBodyResult = null;
       if (fullBodyPhoto) {
-        fullBodyResult = await saveImageToAppStorage(fullBodyPhoto, "fullbody_before");
+        fullBodyResult = await saveImageToAppStorage(
+          fullBodyPhoto,
+          "fullbody_before"
+        );
         console.log("Full body image saved to app storage", fullBodyResult);
       }
 
       // Use the saved app storage paths for navigation
-      const savedFrontPhoto = frontResult.success ? frontResult.uri : frontPhoto;
+      const savedFrontPhoto = frontResult.success
+        ? frontResult.uri
+        : frontPhoto;
       const savedSidePhoto = sideResult.success ? sideResult.uri : sidePhoto;
-      const savedFullBodyPhoto = fullBodyResult?.success ? fullBodyResult.uri : fullBodyPhoto;
+      const savedFullBodyPhoto = fullBodyResult?.success
+        ? fullBodyResult.uri
+        : fullBodyPhoto;
 
-      
       router.replace({
         pathname: "/(tabs)/loadingAiProcessing",
         params: {
           frontPhoto: savedFrontPhoto,
           sidePhoto: savedSidePhoto,
           fullBodyPhoto: savedFullBodyPhoto || undefined,
-        }
+        },
       });
     } catch (error) {
       console.error("Error saving images to app storage:", error);
@@ -62,7 +83,7 @@ const HomeScreen: React.FC = () => {
           frontPhoto,
           sidePhoto,
           fullBodyPhoto: fullBodyPhoto || undefined,
-        }
+        },
       });
     }
   };

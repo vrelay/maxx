@@ -301,39 +301,14 @@ const DummySliderScreen: React.FC = () => {
     if (result.success) {
       const filteredleftImages = result.images.filter((image) => {
         const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
-        return [
-          "front_before",
-          // "side_before",
-          // "physique_before",
-          // "front_after",
-          // "side_after",
-          // "physique_after",
-          // "lifestyle_after",
-        ].includes(nameWithoutExtension);
+        return ["front_before"].includes(nameWithoutExtension);
       });
       const filteredrightImages = result.images.filter((image) => {
         const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
-        return [
-          "front_after",
-          // "side_after",
-          // "physique_after",
-          // "lifestyle_after",
-        ].includes(nameWithoutExtension);
+        return ["front_after"].includes(nameWithoutExtension);
       });
       console.log("filteredImages", filteredleftImages);
       console.log("filteredImages", filteredrightImages);
-      // {"modificationTime": 2025-09-23T05:18:57.177Z,
-      //    "name": "front_before.jpg",
-      //     "path": "/data/user/0/com.vbochliya.maxx/files/front_before.jpg",
-      //      "size": 1376920,
-      //       "uri": "file:///data/user/0/com.vbochliya.maxx/files/front_before.jpg"}
-      // const dummyImages = {
-      //   modificationTime: new Date(),
-      //   name: "",
-      //   path: "",
-      //   size: 0,
-      //   uri: "",
-      // };
       setLeftImages(filteredleftImages);
       setRightImages(filteredrightImages);
       const looksmaxxingResults =
@@ -341,10 +316,8 @@ const DummySliderScreen: React.FC = () => {
           user?.uid as string,
           "looksmaxxing_results"
         );
-
-      setLooksmaxxingResults(
-        looksmaxxingResults.data.analysisResult.advice_json
-      );
+      // {"ai_analysis": {"inputPhotos": {"frontPhoto": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhoto": "", "sidePhoto": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"}, "status": "processing", "targetIntensity": "S2", "userId": "fz8hHVaJURZYh2s8tfvm8oCfUK22", "userStylePrefs": ""}, "analysisResult": {"advice_json": {"edit_brief_front": [Array], "lighting": "soft key / natural contrast", "negative": [Array], "notes": "Full body photo was not provided; therefore, 'physique', 'posture', and overall 'style' recommendations are generalized.", "priorities": [Array], "recommendations": [Object], "score": [Object], "tone": "natural"}, "success": true, "timestamp": "2025-09-25T05:25:41.692Z"}, "createdAt": {"nanoseconds": 862000000, "seconds": 1758777905, "type": "firestore/timestamp/1.0"}, "generatedImages": {"enhancedFrontResult": {"imagePath": "generated-images/fz8hHVaJURZYh2s8tfvm8oCfUK22/lm_front-1758777952148.jpg", "success": true, "timestamp": "2025-09-25T05:25:52.560Z"}}, "id": "fz8hHVaJURZYh2s8tfvm8oCfUK22_1758777902426", "status": "complete", "updatedAt": {"nanoseconds": 254000000, "seconds": 1758777969, "type": "firestore/timestamp/1.0"}, "userId": "fz8hHVaJURZYh2s8tfvm8oCfUK22"}
+      setLooksmaxxingResults(looksmaxxingResults.data);
       setLoading(false);
     }
   };
@@ -385,12 +358,16 @@ const DummySliderScreen: React.FC = () => {
     <PreviewYourRatings
       key="1"
       title="Discover Your Ratings"
-      priorities={looksmaxxingResults?.priorities || []}
+      priorities={
+        looksmaxxingResults?.analysisResult.advice_json.priorities || []
+      }
     />,
     <StartTransformationToday
       key="2"
       title="Start Transformation Today"
-      priorities={looksmaxxingResults?.priorities || []}
+      priorities={
+        looksmaxxingResults?.analysisResult.advice_json.priorities || []
+      }
     />,
   ];
 

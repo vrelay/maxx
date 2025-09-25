@@ -2,6 +2,7 @@ export default {
   before_img: require("@/src/assets/const/before_img.png"),
   before_img_grey: require("@/src/assets/const/before_img_grey.png"),
   after_img: require("@/src/assets/const/after_img.png"),
+  default_profile_img: require("@/src/assets/const/default_profile_img.jpeg"),
 
   frontbody: require("@/src/assets/const/frontbody.png"),
   sideface: require("@/src/assets/const/sideface.png"),

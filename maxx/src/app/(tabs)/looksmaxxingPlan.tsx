@@ -37,7 +37,14 @@ const startDayOne = () => {
   // router.push("/mainScreen");
 };
 
-const onUnlock = () => {
+const onScan = () => {
+  //push witha state value in the navigation
+  router.push({
+    pathname: "/(tabs)",
+    params: {
+      nextmonthsiterationScan: "true",
+    },
+  });
   return;
 };
 
@@ -69,9 +76,8 @@ const TaskCard = ({ item }: { item: Task }) => (
 );
 
 const LooksmaxxingPlanScreen: React.FC = () => {
-  const { user, subscriptionDays } = useAuth();
+  const { user, subscriptionDays, looksmaxxingResults } = useAuth();
   const [activeTab, setActiveTab] = useState("Month 1-2");
-  const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [planData, setPlanData] = useState<{ [key: string]: PlanType }>({});
   const tabs = ["Month 1-2", "Month 3-4", "Month 5-6"];
@@ -80,19 +86,12 @@ const LooksmaxxingPlanScreen: React.FC = () => {
   const fetchAndOrganizeData = async () => {
     try {
       setLoading(true);
-      const result = await looksmaxxingService.getJsonFromFirestore(
-        user?.uid as string,
-        "looksmaxxing_results"
+
+      // Organize priorities by plan types
+      const organizedData = organizeDataByPlanTypes(
+        looksmaxxingResults.analysisResult.advice_json
       );
-
-      if (result.success) {
-        const data = result.data.analysisResult.advice_json;
-        setLooksmaxxingResults(data);
-
-        // Organize priorities by plan types
-        const organizedData = organizeDataByPlanTypes(data);
-        setPlanData(organizedData);
-      }
+      setPlanData(organizedData);
     } catch (error) {
       console.error("Error fetching looksmaxxing data:", error);
     } finally {
@@ -233,7 +232,7 @@ const LooksmaxxingPlanScreen: React.FC = () => {
             {subscriptionDays &&
               subscriptionDays >= 60 &&
               activeTab != "Month 1-2" && (
-                <ButtonStart text="Scan Progress" handlepress={onUnlock} />
+                <ButtonStart text="Scan Progress" handlepress={onScan} />
               )}
           </View>
         </SafeAreaView>
