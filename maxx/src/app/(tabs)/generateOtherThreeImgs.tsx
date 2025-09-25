@@ -42,7 +42,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
   const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
   const [everythingDone, setEverythingDone] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  
+
   // Double press back functionality
   useDoublePressBack("Press back again to exit");
   const {
@@ -67,23 +67,39 @@ const GenerateOtherThreeImgs: React.FC = () => {
   const loadSavedImages = async (): Promise<void> => {
     const result: GetSavedImagesResult = await getSavedImages();
     if (result.success) {
-      const filteredleftImages = result.images.filter((image) => {
-        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
-        return ["front_before", "side_before", "fullbody_before"].includes(
-          nameWithoutExtension
-        );
-      });
-      const filteredrightImages = result.images.filter((image) => {
-        const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
-        return [
-          "front_after",
-          "side_after",
-          "physique_after",
-          "lifestyle_after",
-        ].includes(nameWithoutExtension);
-      });
-      console.log("filteredImages", filteredleftImages);
-      console.log("filteredImages", filteredrightImages);
+      const leftImageOrder = ["front_before", "side_before", "fullbody_before"];
+      const rightImageOrder = [
+        "front_after",
+        "side_after",
+        "physique_after",
+        "lifestyle_after",
+      ];
+
+      const filteredleftImages = result.images
+        .filter((image) => {
+          const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+          return leftImageOrder.includes(nameWithoutExtension);
+        })
+        .sort((a, b) => {
+          const nameA = a.name.replace(/\.[^/.]+$/, "");
+          const nameB = b.name.replace(/\.[^/.]+$/, "");
+          return leftImageOrder.indexOf(nameA) - leftImageOrder.indexOf(nameB);
+        });
+
+      const filteredrightImages = result.images
+        .filter((image) => {
+          const nameWithoutExtension = image.name.replace(/\.[^/.]+$/, "");
+          return rightImageOrder.includes(nameWithoutExtension);
+        })
+        .sort((a, b) => {
+          const nameA = a.name.replace(/\.[^/.]+$/, "");
+          const nameB = b.name.replace(/\.[^/.]+$/, "");
+          return (
+            rightImageOrder.indexOf(nameA) - rightImageOrder.indexOf(nameB)
+          );
+        });
+      console.log("filteredleftImages", filteredleftImages);
+      console.log("filteredrightImages", filteredrightImages);
 
       const dummyImages = {
         modificationTime: new Date(),
@@ -116,7 +132,6 @@ const GenerateOtherThreeImgs: React.FC = () => {
       setEverythingDone(true);
     }
   }, [processImgsGenrationForNextStep]);
-
 
   // TESTING useEffect - Uncomment this to test progress without real API calls
   // useEffect(() => {
@@ -281,7 +296,9 @@ const GenerateOtherThreeImgs: React.FC = () => {
             <View style={styles.navigationContainer}>
               <TouchableOpacity
                 style={styles.navCard}
-                onPress={() => everythingDone && router.push("/(tabs)/looksmaxxingPlan")}
+                onPress={() =>
+                  everythingDone && router.push("/(tabs)/looksmaxxingPlan")
+                }
               >
                 <View style={styles.navCardIcon}>
                   <FontAwesome name="calendar" size={24} color="orange" />
@@ -292,7 +309,9 @@ const GenerateOtherThreeImgs: React.FC = () => {
 
               <TouchableOpacity
                 style={styles.navCard}
-                onPress={() => everythingDone && router.push("/(tabs)/analysis")}
+                onPress={() =>
+                  everythingDone && router.push("/(tabs)/analysis")
+                }
               >
                 <View style={styles.navCardIcon}>
                   <FontAwesome name="bar-chart-o" size={24} color="orange" />
