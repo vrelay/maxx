@@ -17,7 +17,7 @@ const LockedDashboard: React.FC = () => {
   const onUnlock = () => {
     // In a real app, you might navigate to a paywall screen first.
     // For this example, we'll navigate to the unlocked look.
-    router.push("/(tabs)/unlockedLook");
+    router.push("/(tabs)/paymentSuccess");
   };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

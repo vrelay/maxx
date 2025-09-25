@@ -12,4 +12,5 @@ export default {
   laurelWreath: require("@/src/assets/ui/laurelWreath.png"),
   decor_bar: require("@/src/assets/ui/decor_bar.png"),
   nextplan_islocked: require("@/src/assets/ui/nextplan_islocked.png"),
+  payment_success: require("@/src/assets/ui/payment_success.png"),
 };

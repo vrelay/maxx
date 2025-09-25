@@ -1,8 +1,7 @@
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Image,
   Modal,
   ScrollView,
   StyleSheet,

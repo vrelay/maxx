@@ -102,7 +102,7 @@ const LoadingScreen: React.FC = () => {
         (fullBodyPhoto as string) || undefined
       );
     if (frontPhoto && sidePhoto) {
-      // call();
+      call();
     }
   }, [frontPhoto, sidePhoto, fullBodyPhoto]);
 

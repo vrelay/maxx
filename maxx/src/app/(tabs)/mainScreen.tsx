@@ -1,6 +1,5 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ImageSlider from "@/src/componants/molecules/imgslider";
-import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
