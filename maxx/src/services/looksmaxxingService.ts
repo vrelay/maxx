@@ -216,16 +216,31 @@ class LooksmaxxingService {
     try {
       console.log("Testing API server connection...");
       
-      const response = await fetch(`${this.apiBaseUrl.replace('/api', '')}/health`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`${this.apiBaseUrl.replace('/api', '')}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
       const data = await response.json();
       
       if (response.ok && data.status === 'healthy') {
         console.log("API server connection successful:", data);
       } else {
-        throw new Error('API server health check failed');
+        throw new Error(`API server health check failed: ${response.status}`);
       }
     } catch (error) {
       console.error("Connection test failed:", error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error("Connection timeout - server may be unreachable");
+      }
+      throw error;
     }
   }
 

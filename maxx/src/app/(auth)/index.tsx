@@ -15,16 +15,22 @@ const TabsIndex = () => {
   const { user, isAuthenticated } = useAuth();
 
   const handleContinue = () => {
+    console.log("handleContinue called");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("user:", user);
+    
     if (isAuthenticated) {
       if (user && user.emailVerified) {
+        console.log("Navigating to tabs");
         router.push("/(tabs)");
-        // router.push("/(tabs)/aiResult");
         return;
       } else if (user && !user.emailVerified) {
+        console.log("Navigating to verify email");
         router.push("/(auth)/verifyEmailScreen");
         return;
       }
     } else {
+      console.log("Navigating to auth screen");
       router.push("/(auth)/authScreen");
     }
   };
@@ -45,7 +51,7 @@ const TabsIndex = () => {
           end={{ x: 0, y: 1 }}
           style={styles.gradient}
         >
-          <SafeAreaView style={styles.safeArea}>
+          <SafeAreaView style={[styles.safeArea, { zIndex: 10 }]}>
             <View style={styles.textContainer}>
               <Text style={styles.heading}>
                 From today's{"\n"}

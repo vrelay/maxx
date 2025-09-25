@@ -4,11 +4,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
+  Keyboard,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -50,19 +52,24 @@ const ReferralScreen = () => {
     router.push("/(tabs)");
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
-        <GridBackgroundImg top={true} />
-        <LinearGradient
-          colors={["#171840", "#6D37D4"]}
-          locations={[0, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.gradient}
-        >
-          <SafeAreaView style={styles.safeArea}>
+      <TouchableWithoutFeedback onPress={dismissKeyboard}>
+        <View style={styles.container}>
+          <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
+          <GridBackgroundImg top={true} />
+          <LinearGradient
+            colors={["#171840", "#6D37D4"]}
+            locations={[0, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.gradient}
+          >
+            <SafeAreaView style={styles.safeArea}>
             <View style={styles.contentContainer}>
               <Text style={styles.title}>Enter your referral code</Text>
               <Text style={styles.subtitle}>
@@ -87,6 +94,7 @@ const ReferralScreen = () => {
                     textAlign="center"
                     selectionColor="#FFFFFF"
                     autoFocus={index === 0}
+                    onPressIn={(e) => e.stopPropagation()}
                   />
                 ))}
               </View>
@@ -95,10 +103,13 @@ const ReferralScreen = () => {
               </Text>
             </View>
             <View style={styles.bottomContainer}>
-              <ButtonStart text="Continue" handlepress={handleContinue} />
+              <View onStartShouldSetResponder={() => true}>
+                <ButtonStart text="Continue" handlepress={handleContinue} />
+              </View>
               <TouchableOpacity
                 onPress={handleNoCode}
                 style={styles.noCodeButton}
+                onPressIn={(e) => e.stopPropagation()}
               >
                 <Text style={styles.noCodeText}>
                   I don't have referral code
@@ -107,7 +118,8 @@ const ReferralScreen = () => {
             </View>
           </SafeAreaView>
         </LinearGradient>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );
 };

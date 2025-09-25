@@ -9,9 +9,18 @@ const ButtonStart = ({
   text: string;
   handlepress: () => void;
 }) => {
+  const handlePress = () => {
+    console.log("Button pressed:", text);
+    handlepress();
+  };
+
   return (
     <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.continueButton} onPress={handlepress}>
+      <TouchableOpacity 
+        style={styles.continueButton} 
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
         <Text style={styles.buttonText}>{text}</Text>
       </TouchableOpacity>
     </View>
@@ -21,12 +30,13 @@ const ButtonStart = ({
 const styles = StyleSheet.create({
   buttonContainer: {
     paddingTop: verticalScale(20),
-    zIndex: 100,
+    zIndex: 1000,
+    elevation: 10,
   },
   continueButton: {
     width: "100%",
     minWidth: scale(320),
-    height: verticalScale(40),
+    height: verticalScale(50),
     backgroundColor: "#FFFFFF",
     borderRadius: moderateScale(8),
     paddingHorizontal: scale(16),
@@ -36,6 +46,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: moderateScale(8),
     elevation: moderateScale(8),
+    minHeight: 44, // iOS minimum touch target
+    zIndex: 1001,
+    // Debug border to ensure button is visible
   },
   buttonText: {
     color: "#2D1B69",

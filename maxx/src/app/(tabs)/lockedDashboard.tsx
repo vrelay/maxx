@@ -1,12 +1,13 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
+import Paywall from "@/src/componants/molecules/Paywall";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,10 +15,10 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
   const { savedImages } = useAuth();
+  const [showPaywall, setShowPaywall] = useState(false);
+  
   const onUnlock = () => {
-    // In a real app, you might navigate to a paywall screen first.
-    // For this example, we'll navigate to the unlocked look.
-    router.push("/(tabs)/unlockedLook");
+    setShowPaywall(true);
   };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -102,7 +103,16 @@ const LockedDashboard: React.FC = () => {
                 </TouchableOpacity>
               </View>
             </View>
-
+      
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <Paywall
+          onPurchaseSuccess={() => {
+            setShowPaywall(false);
+            // Optionally refresh the screen or navigate
+          }}
+        />
+      )}
             {/* Footer button */}
             <ButtonStart text="Unlock at $9.99/week" handlepress={onUnlock} />
           </View>

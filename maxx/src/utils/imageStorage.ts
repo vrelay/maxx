@@ -68,11 +68,18 @@ export const saveImageToAppStorage = async (
       : "jpg";
 
     const fileName: string = customFileName
-      ? `${customFileName}.${fileExtension}`
+      ? `${customFileName}_${Date.now()}.${fileExtension}`
       : `${Date.now()}_${originalFileName}`;
 
     // Use DocumentDirectoryPath - this is private to your app and won't show in gallery
     const localFilePath: string = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+    // Check if file already exists and delete it if it does
+    const fileExists = await RNFS.exists(localFilePath);
+    if (fileExists) {
+      console.log("File already exists, removing old file:", fileName);
+      await RNFS.unlink(localFilePath);
+    }
 
     // Download the file to app's private storage
     const downloadResult: RNFS.DownloadResult = await RNFS.downloadFile({
@@ -130,11 +137,18 @@ const copyLocalImageToAppStorage = async (
       : "jpg";
 
     const fileName: string = customFileName
-      ? `${customFileName}.${fileExtension}`
+      ? `${customFileName}_${Date.now()}.${fileExtension}`
       : `${Date.now()}_${originalFileName}`;
 
     // Destination path in app's private storage
     const localFilePath: string = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+    // Check if file already exists and delete it if it does
+    const fileExists = await RNFS.exists(localFilePath);
+    if (fileExists) {
+      console.log("File already exists, removing old file:", fileName);
+      await RNFS.unlink(localFilePath);
+    }
 
     // Copy the file
     await RNFS.copyFile(sourcePath, localFilePath);

@@ -58,7 +58,17 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   const [fullBodyPhoto, setFullBodyPhoto] = useState<string | null>(null);
 
   useEffect(() => {
-    if (visible && !permission?.granted) requestPermission();
+    if (visible && !permission?.granted) {
+      console.log('Requesting camera permission...');
+      requestPermission().then((result) => {
+        console.log('Camera permission result:', result);
+        if (!result.granted) {
+          console.error('Camera permission denied');
+        }
+      }).catch((error) => {
+        console.error('Error requesting camera permission:', error);
+      });
+    }
   }, [visible]);
 
   // Effect to switch camera based on the step
@@ -71,12 +81,20 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   }, [step]);
 
   const handleCapture = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-      setPhotoUri(photo.uri);
-      if (step === "front-position") setStep("front-preview");
-      else if (step === "side-position") setStep("side-preview");
-      else if (step === "full-body-position") setStep("full-body-preview");
+    try {
+      if (cameraRef.current) {
+        console.log('Taking picture...');
+        const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
+        console.log('Picture taken:', photo.uri);
+        setPhotoUri(photo.uri);
+        if (step === "front-position") setStep("front-preview");
+        else if (step === "side-position") setStep("side-preview");
+        else if (step === "full-body-position") setStep("full-body-preview");
+      } else {
+        console.error('Camera ref is null');
+      }
+    } catch (error) {
+      console.error('Error taking picture:', error);
     }
   };
 
@@ -191,24 +209,40 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
           </View>
         ) : (
           <View style={styles.cameraContainer}>
-            {permission?.granted && (
-              <CameraView
-                ref={cameraRef}
-                style={styles.camera}
-                facing={cameraFacing}
-              />
+            {permission?.granted ? (
+              <>
+                <CameraView
+                  ref={cameraRef}
+                  style={styles.camera}
+                  facing={cameraFacing}
+                />
+                {(step === "front-position" || step === "side-position") && (
+                  <View style={styles.ovalOverlay} />
+                )}
+                <View style={styles.captureBar}>
+                  <TouchableOpacity
+                    style={styles.captureButton}
+                    onPress={handleCapture}
+                  >
+                    <View style={styles.captureCircle} />
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>
+                  Camera permission is required to take photos
+                </Text>
+                <TouchableOpacity
+                  style={styles.permissionButton}
+                  onPress={() => requestPermission()}
+                >
+                  <Text style={styles.permissionButtonText}>
+                    Grant Permission
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
-            {(step === "front-position" || step === "side-position") && (
-              <View style={styles.ovalOverlay} />
-            )}
-            <View style={styles.captureBar}>
-              <TouchableOpacity
-                style={styles.captureButton}
-                onPress={handleCapture}
-              >
-                <View style={styles.captureCircle} />
-              </TouchableOpacity>
-            </View>
           </View>
         )}
       </SafeAreaView>
@@ -360,6 +394,31 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     opacity: 0.85,
+  },
+  // Permission styles
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: scale(20),
+    backgroundColor: "#000",
+  },
+  permissionText: {
+    color: "#fff",
+    fontSize: moderateScale(18),
+    textAlign: "center",
+    marginBottom: verticalScale(20),
+  },
+  permissionButton: {
+    backgroundColor: "#20186e",
+    paddingHorizontal: scale(20),
+    paddingVertical: verticalScale(12),
+    borderRadius: moderateScale(8),
+  },
+  permissionButtonText: {
+    color: "#fff",
+    fontSize: moderateScale(16),
+    fontWeight: "500",
   },
 });
 
