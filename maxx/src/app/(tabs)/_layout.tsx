@@ -9,6 +9,10 @@ export default function TabsLayout() {
       <Stack.Screen name="lockedDashboard" />
       <Stack.Screen name="looksmaxxingPlan" />
       <Stack.Screen name="paymentSuccess" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="analysis" />
+      <Stack.Screen name="privacyPolicy" />
+      <Stack.Screen name="termsOfService" />
       <Stack.Screen 
         name="generateOtherThreeImgs" 
         options={{

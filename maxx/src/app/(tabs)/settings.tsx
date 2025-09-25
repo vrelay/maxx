@@ -110,8 +110,14 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handleLegalItem = (item: string) => {
-    // Dummy legal items - nothing happens
-    console.log(`${item} pressed`);
+    if (item === "Privacy Policy") {
+      router.push("/(tabs)/privacyPolicy");
+    } else if (item === "Terms of Service") {
+      router.push("/(tabs)/termsOfService");
+    } else {
+      // Dummy legal items - nothing happens for other items
+      console.log(`${item} pressed`);
+    }
   };
 
   return (
