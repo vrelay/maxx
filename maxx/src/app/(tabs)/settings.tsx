@@ -2,8 +2,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,178 +14,120 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 import { useAuth } from "@/src/context/AuthContext";
 import { authService } from "@/src/services/authService";
-import referralService from '../../services/referralService';
+import referralService from "../../services/referralService";
+import NotificationModal from "../../componants/atoms/NotificationModal";
+import NPSModal from "../../componants/atoms/NPSModal";
+import InviteFriendsModal from "../../componants/atoms/InviteFriendsModal";
 
-// Notification Modal Component
-const NotificationModal = ({
-  visible,
-  onClose,
-}: {
-  visible: boolean;
-  onClose: () => void;
-}) => (
-  <Modal visible={visible} transparent animationType="slide">
-    <SafeAreaView style={styles.modalOverlay}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>Never miss a step</Text>
-        <Text style={styles.modalDescription}>
-          Turn on notifications to stay updated on your tasks, progress, and
-          important tips for your transformation journey.
-        </Text>
-
-        <View style={styles.bellContainer}>
-          <FontAwesome name="bell" size={60} color="#FFD700" />
-          <View style={styles.notificationBadge}>
-            <Text style={styles.badgeText}>1</Text>
-          </View>
-        </View>
-
-        <View style={styles.modalButtons}>
-          <TouchableOpacity style={styles.primaryButton} onPress={onClose}>
-            <Text style={styles.primaryButtonText}>Turn On Notifications</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton} onPress={onClose}>
-            <Text style={styles.secondaryButtonText}>Skip For Now</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
-  </Modal>
-);
-
-// NPS Rating Modal Component
-const NPSModal = ({
-  visible,
-  onClose,
-}: {
-  visible: boolean;
-  onClose: () => void;
-}) => (
-  <Modal visible={visible} transparent animationType="slide">
-    <SafeAreaView style={styles.modalOverlay}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>Enjoying your experience</Text>
-        <Text style={styles.modalDescription}>
-          Tap to leave rating and make our day!
-        </Text>
-
-        <View style={styles.starsContainer}>
-          <View style={styles.speechBubble}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <FontAwesome
-                key={star}
-                name={star <= 4 ? "star" : "star-half-o"}
-                size={24}
-                color="#FFD700"
-                style={styles.star}
-              />
-            ))}
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.primaryButton} onPress={onClose}>
-          <Text style={styles.primaryButtonText}>Rate Us</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  </Modal>
-);
 
 const SettingsScreen: React.FC = () => {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showNPSModal, setShowNPSModal] = useState(false);
+  const [showInviteFriendsModal, setShowInviteFriendsModal] = useState(false);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] =
     useState(false);
   const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const result = await authService.signOut();
-              if (result.success) {
-                await signOut();
-                router.replace("/(auth)");
-              } else {
-                Alert.alert("Error", result.error || "Logout failed");
-              }
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert("Error", "Logout failed. Please try again.");
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const result = await authService.signOut();
+            if (result.success) {
+              await signOut();
+              router.replace("/(auth)");
+            } else {
+              Alert.alert("Error", result.error || "Logout failed");
             }
-          },
+          } catch (error) {
+            console.error("Logout error:", error);
+            Alert.alert("Error", "Logout failed. Please try again.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleInviteFriends = async () => {
-    console.log("🔗 DEBUG: Invite friends pressed");
-    
+    console.log(" DEBUG: Invite friends pressed");
+
     try {
       // Check if user is authenticated
       if (!user) {
-        console.log("❌ DEBUG: User not authenticated");
+        console.log(" DEBUG: User not authenticated");
         Alert.alert("Error", "Please sign in to invite friends");
         return;
       }
 
-      console.log("✅ DEBUG: User authenticated:", user.uid);
+      console.log(" DEBUG: User authenticated:", user.uid);
 
       // Get or generate referral code
-      console.log("🔄 DEBUG: Getting referral info...");
+      console.log(" DEBUG: Getting referral info...");
       const referralResult = await referralService.getReferralInfo();
-      
+
       if (referralResult.success && referralResult.data) {
-        console.log("✅ DEBUG: Referral info loaded:", referralResult.data);
-        
+        console.log("DEBUG: Referral info loaded:", referralResult.data);
+
         // Generate share message (no URL)
-        const message = referralService.generateShareMessage(referralResult.data.code);
-        
-        console.log("📤 DEBUG: Sharing with message:", message);
-        
+        const message = referralService.generateShareMessage(
+          referralResult.data.code
+        );
+
+        console.log(" DEBUG: Sharing with message:", message);
+
         // Use React Native Share
-        const Share = require('react-native').Share;
+        const Share = require("react-native").Share;
         await Share.share({
           message: message,
-          title: 'Join Maxx with my referral code!'
+          title: "Join Maxx with my referral code!",
         });
-        
-        console.log("✅ DEBUG: Share dialog opened successfully");
+
+        console.log(" DEBUG: Share dialog opened successfully");
       } else {
-        console.log("❌ DEBUG: Failed to get referral info:", referralResult.error);
-        
+        console.log(
+          " DEBUG: Failed to get referral info:",
+          referralResult.error
+        );
+
         // Try to generate a new referral code
         console.log("🔄 DEBUG: Attempting to generate new referral code...");
         const generateResult = await referralService.generateReferralCode();
-        
+
         if (generateResult.success && generateResult.data) {
-          console.log("✅ DEBUG: New referral code generated:", generateResult.data);
-          
-          const message = referralService.generateShareMessage(generateResult.data.code);
-          
-          const Share = require('react-native').Share;
+          console.log(
+            " DEBUG: New referral code generated:",
+            generateResult.data
+          );
+
+          const message = referralService.generateShareMessage(
+            generateResult.data.code
+          );
+
+          const Share = require("react-native").Share;
           await Share.share({
             message: message,
-            title: 'Join Maxx with my referral code!'
+            title: "Join Maxx with my referral code!",
           });
         } else {
-          console.log("❌ DEBUG: Failed to generate referral code:", generateResult.error);
-          Alert.alert("Error", "Failed to generate referral code. Please try again.");
+          console.log(
+            " DEBUG: Failed to generate referral code:",
+            generateResult.error
+          );
+          Alert.alert(
+            "Error",
+            "Failed to generate referral code. Please try again."
+          );
         }
       }
     } catch (error) {
-      console.error("❌ DEBUG: Error in handleInviteFriends:", error);
+      console.error(" DEBUG: Error in handleInviteFriends:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     }
   };
@@ -331,16 +271,22 @@ const SettingsScreen: React.FC = () => {
               ))}
             </View>
 
-            {/* Modal Trigger Buttons */}
-            <View style={styles.modalTriggersSection}>
+              {/* Modal Trigger Buttons */}
+              <View style={styles.modalTriggersSection}>
+                <TouchableOpacity
+                  style={styles.modalTriggerButton}
+                  onPress={() => setShowInviteFriendsModal(true)}
+                >
+                  <Text style={styles.modalTriggerText}>Invite Friends</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.modalTriggerButton}
-                onPress={() => setShowNPSModal(true)}
-              >
-                <Text style={styles.modalTriggerText}>Rate Us</Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={styles.modalTriggerButton}
+                  onPress={() => setShowNPSModal(true)}
+                >
+                  <Text style={styles.modalTriggerText}>Rate Us</Text>
+                </TouchableOpacity>
+              </View>
 
             {/* Logout Button */}
             <TouchableOpacity
@@ -353,18 +299,10 @@ const SettingsScreen: React.FC = () => {
             {/* Social Icons */}
             <View style={styles.socialContainer}>
               <TouchableOpacity style={styles.socialIcon}>
-                <FontAwesome
-                  name="instagram"
-                  size={24}
-                  color="black"
-                />
+                <FontAwesome name="instagram" size={24} color="black" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialIcon}>
-                <FontAwesome
-                  name="twitter"
-                  size={24}
-                  color="black"
-                />
+                <FontAwesome name="twitter" size={24} color="black" />
               </TouchableOpacity>
             </View>
 
@@ -381,6 +319,10 @@ const SettingsScreen: React.FC = () => {
         <NPSModal
           visible={showNPSModal}
           onClose={() => setShowNPSModal(false)}
+        />
+        <InviteFriendsModal
+          visible={showInviteFriendsModal}
+          onClose={() => setShowInviteFriendsModal(false)}
         />
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -573,99 +515,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     textAlign: "center",
     marginBottom: verticalScale(20),
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: moderateScale(24),
-    borderTopRightRadius: moderateScale(24),
-    padding: scale(24),
-    paddingBottom: verticalScale(40),
-    alignItems: "center",
-  },
-  modalTitle: {
-    color: "#2D1B69",
-    fontSize: moderateScale(20),
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: verticalScale(8),
-  },
-  modalDescription: {
-    color: "rgba(45, 27, 105, 0.7)",
-    fontSize: moderateScale(14),
-    textAlign: "center",
-    marginBottom: verticalScale(24),
-    lineHeight: moderateScale(20),
-  },
-  bellContainer: {
-    position: "relative",
-    marginBottom: verticalScale(32),
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "#FF4444",
-    borderRadius: moderateScale(10),
-    width: scale(20),
-    height: scale(20),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: moderateScale(12),
-    fontWeight: "700",
-  },
-  starsContainer: {
-    marginBottom: verticalScale(32),
-  },
-  speechBubble: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    paddingHorizontal: scale(20),
-    paddingVertical: verticalScale(12),
-    borderRadius: moderateScale(20),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  star: {
-    marginHorizontal: scale(2),
-  },
-  modalButtons: {
-    width: "100%",
-    gap: verticalScale(12),
-  },
-  primaryButton: {
-    backgroundColor: "#2D1B69",
-    borderRadius: moderateScale(12),
-    paddingVertical: verticalScale(16),
-    alignItems: "center",
-    width: "100%",
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: moderateScale(16),
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    backgroundColor: "transparent",
-    borderRadius: moderateScale(12),
-    paddingVertical: verticalScale(16),
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: "#2D1B69",
-    fontSize: moderateScale(16),
-    fontWeight: "600",
   },
 });
 

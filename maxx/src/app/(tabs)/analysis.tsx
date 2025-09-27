@@ -153,22 +153,22 @@ const Analysis: React.FC = () => {
               <ImageSlider
                 beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
                 afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
-                lefttext={`Pose ${currentPoseIndex + 1}`}
-                righttext={`Pose ${currentPoseIndex + 2}`}
+                lefttext="Pose 1"
+                righttext="+4 levels"
                 onleftnavigation={onLeftNavigation}
                 onrightnavigation={onRightNavigation}
               />
-                          <View style={styles.paginationDots}>
-              {[0, 1, 2, 3].map((_, idx) => (
-                <View
-                  key={idx}
-                  style={[
-                    styles.dot,
-                    currentPoseIndex === idx ? styles.dotActive : null,
-                  ]}
-                />
-              ))}
-            </View>
+              <View style={styles.paginationDots}>
+                {[0, 1, 2, 3].map((_, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.dot,
+                      currentPoseIndex === idx ? styles.dotActive : null,
+                    ]}
+                  />
+                ))}
+              </View>
             </View>
 
             {loading ? (
@@ -202,7 +202,6 @@ const Analysis: React.FC = () => {
                 )}
               />
             )}
-
           </View>
         );
       case "Month 3-4":
