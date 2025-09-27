@@ -8,6 +8,7 @@ import {
   Image,
   Linking,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,7 +19,7 @@ import {
   ImagePickerResponse,
   MediaType,
 } from "react-native-image-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 import Svg, { Ellipse, Rect, Mask, Defs } from "react-native-svg";
 import ButtonStart from "../atoms/startbutton";
@@ -48,6 +49,7 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
 }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<
     | "front-position"
@@ -213,8 +215,9 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   if (step === "full-body-intro") {
     return (
       <Modal visible={visible} animationType="slide">
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#2D1B69" }}>
-          <View style={styles.fullBodyContainer}>
+        <View style={{ flex: 1, backgroundColor: "#2D1B69" }}>
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.fullBodyContainer}>
             <Text style={styles.fullBodyTitle}>
               Show your full self for the best results
             </Text>
@@ -241,20 +244,22 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                 handlepress={() => setStep("full-body-position")}
               />
             </View>
-          </View>
-        </SafeAreaView>
+            </View>
+          </SafeAreaView>
+        </View>
       </Modal>
     );
   }
 
   return (
     <Modal visible={visible} animationType="slide">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <View style={styles.topBar}>
-          <BackArrow onPress={onClose} />
-          <Text style={styles.instruction}>{instructions[step]}</Text>
-          <View style={{ width: 32 }} />
-        </View>
+      <View style={{ flex: 1, backgroundColor: "#20186e" }}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={[styles.topBar, Platform.OS === 'ios' && { paddingTop: Math.max(insets.top - 20, 10) }]}>
+            <BackArrow onPress={onClose} />
+            <Text style={styles.instruction}>{instructions[step]}</Text>
+            <View style={{ width: 32 }} />
+          </View>
         {photoUri ? (
           <View style={styles.previewContainer}>
             <Image
@@ -365,19 +370,22 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
             </View>
           </View>
         )}
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   topBar: {
-    height: verticalScale(60),
+    minHeight: verticalScale(60),
     backgroundColor: "#20186e",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: scale(16),
+    paddingTop: verticalScale(10), // Add padding for better iOS spacing
+    paddingBottom: verticalScale(10),
   },
   backArrow: {
     padding: 4,

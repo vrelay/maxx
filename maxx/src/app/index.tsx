@@ -23,6 +23,10 @@ const index = () => {
         setRoutingLoading(false);
         return;
       }
+      //temp redirect here
+      // setRoutingDecision("/(tabs)/mainScreen");
+      // setRoutingLoading(false);
+      // return;
 
       try {
         // Get the latest AI result document from Firebase

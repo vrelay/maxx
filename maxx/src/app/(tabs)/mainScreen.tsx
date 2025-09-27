@@ -4,7 +4,6 @@ import ConfettiBurst from "@/src/componants/atoms/ConfettiBurst";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import MonthlyProgressBars from "@/src/componants/molecules/MonthlyProgressBars";
 import ApiProgressComponent from "@/src/componants/molecules/ApiProgressComponent";
-import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { useApiProgress } from "@/src/hooks/useApiProgress";
 import { useDoublePressBack } from "@/src/hooks/useDoublePressBack";
@@ -19,8 +18,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Animated,
-  Dimensions,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -122,8 +119,8 @@ const GenerateOtherThreeImgs: React.FC = () => {
           user?.uid as string,
           "looksmaxxing_results"
         );
-
-      setLooksmaxxingResults(looksmaxxingResults.data);
+      
+       setLooksmaxxingResults(looksmaxxingResults.data);
     }
   };
   useEffect(() => {

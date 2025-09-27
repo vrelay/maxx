@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,7 +27,7 @@ const NotificationModal = ({
   onClose: () => void;
 }) => (
   <Modal visible={visible} transparent animationType="slide">
-    <View style={styles.modalOverlay}>
+    <SafeAreaView style={styles.modalOverlay}>
       <View style={styles.modalContainer}>
         <Text style={styles.modalTitle}>Never miss a step</Text>
         <Text style={styles.modalDescription}>
@@ -50,7 +51,7 @@ const NotificationModal = ({
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   </Modal>
 );
 
@@ -63,7 +64,7 @@ const NPSModal = ({
   onClose: () => void;
 }) => (
   <Modal visible={visible} transparent animationType="slide">
-    <View style={styles.modalOverlay}>
+    <SafeAreaView style={styles.modalOverlay}>
       <View style={styles.modalContainer}>
         <Text style={styles.modalTitle}>Enjoying your experience</Text>
         <Text style={styles.modalDescription}>
@@ -88,7 +89,7 @@ const NPSModal = ({
           <Text style={styles.primaryButtonText}>Rate Us</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   </Modal>
 );
 
