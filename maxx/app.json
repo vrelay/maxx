@@ -7,9 +7,19 @@
     "icon": "./src/assets/images/icon.png",
     "scheme": "maxx",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.look.maxx",
+      "associatedDomains": ["applinks:lookai.me", "applinks:www.lookai.me"],
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "NSCameraUsageDescription": "This app needs access to camera to take photos for analysis",
+        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for analysis",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +30,32 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.vbochliya.maxx"
+      "package": "com.look.maxx",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "lookai.me"
+            },
+            {
+              "scheme": "https",
+              "host": "www.lookai.me"
+            },
+            {
+              "scheme": "maxx"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -28,6 +63,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "This app needs access to camera to take photos for analysis",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -43,7 +85,13 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2301dbaf-d730-4f50-b119-7e4d8a1531d4"
+      }
     }
   }
 }

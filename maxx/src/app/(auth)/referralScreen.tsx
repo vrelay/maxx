@@ -10,16 +10,21 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import referralService from "../../services/referralService";
 
 const ReferralScreen = () => {
   const [referralCode, setReferralCode] = useState(["", "", "", ""]);
-  const inputRefs = useRef([]);
+  const [loading, setLoading] = useState(false);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const handleCodeChange = (index, value) => {
+  const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1 && /^[0-9]*$/.test(value)) {
       const newCode = [...referralCode];
       newCode[index] = value;
@@ -31,18 +36,39 @@ const ReferralScreen = () => {
     }
   };
 
-  const handleKeyPress = (index, key) => {
+  const handleKeyPress = (index: number, key: string) => {
     if (key === "Backspace" && !referralCode[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const codeString = referralCode.join("");
-    if (codeString.length === 4) {
-      router.push("/(tabs)");
-    } else {
-      console.log("Please enter complete referral code");
+    if (codeString.length !== 4) {
+      Alert.alert('Error', 'Please enter complete referral code');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('🔄 DEBUG: Claiming referral code:', codeString);
+      const result = await referralService.claimReferralCode(codeString);
+      console.log('📊 DEBUG: Claim result:', result);
+      
+      if (result.success) {
+        Alert.alert(
+          'Success!', 
+          'Referral code claimed successfully! You\'ll get rewards when you subscribe.',
+          [{ text: 'OK', onPress: () => router.push("/(tabs)") }]
+        );
+      } else {
+        Alert.alert('Error', result.error || 'Failed to claim referral code');
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Error claiming referral:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,65 +76,83 @@ const ReferralScreen = () => {
     router.push("/(tabs)");
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
+  const focusInput = (index: number) => {
+    inputRefs.current[index]?.focus();
+  };
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
-        <GridBackgroundImg top={true} />
-        <LinearGradient
-          colors={["#171840", "#6D37D4"]}
-          locations={[0, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.gradient}
-        >
-          <SafeAreaView style={styles.safeArea}>
-            <View style={styles.contentContainer}>
-              <Text style={styles.title}>Enter your referral code</Text>
-              <Text style={styles.subtitle}>
-                Enter the 4 digit referral code
-              </Text>
-              <View style={styles.codeInputContainer}>
-                {referralCode.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    ref={(ref) => (inputRefs.current[index] = ref)}
-                    style={[
-                      styles.codeInput,
-                      digit ? styles.codeInputFilled : styles.codeInputEmpty,
-                    ]}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    onChangeText={(val) => handleCodeChange(index, val)}
-                    onKeyPress={({ nativeEvent }) =>
-                      handleKeyPress(index, nativeEvent.key)
-                    }
-                    value={digit}
-                    textAlign="center"
-                    selectionColor="#FFFFFF"
-                    autoFocus={index === 0}
-                  />
-                ))}
-              </View>
-              <Text style={styles.helperText}>
-                Don't have referral code? Ask your{"\n"}friend to share it
-              </Text>
-            </View>
-            <View style={styles.bottomContainer}>
-              <ButtonStart text="Continue" handlepress={handleContinue} />
-              <TouchableOpacity
-                onPress={handleNoCode}
-                style={styles.noCodeButton}
-              >
-                <Text style={styles.noCodeText}>
-                  I don't have referral code
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.container}>
+          <StatusBar barStyle="light-content" backgroundColor="#2D1B69" />
+          <GridBackgroundImg top={true} />
+          <LinearGradient
+            colors={["#171840", "#6D37D4"]}
+            locations={[0, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.gradient}
+          >
+            <SafeAreaView style={styles.safeArea}>
+              <View style={styles.contentContainer}>
+                <Text style={styles.title}>Enter your referral code</Text>
+                <Text style={styles.subtitle}>
+                  Enter the 4 digit referral code
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </LinearGradient>
-      </View>
-    </GestureHandlerRootView>
+                <TouchableWithoutFeedback onPress={() => focusInput(0)}>
+                  <View style={styles.codeInputContainer}>
+                    {referralCode.map((digit, index) => (
+                      <TextInput
+                        key={index}
+                        ref={(ref) => {
+                          inputRefs.current[index] = ref;
+                        }}
+                        style={[
+                          styles.codeInput,
+                          digit ? styles.codeInputFilled : styles.codeInputEmpty,
+                        ]}
+                        keyboardType="number-pad"
+                        maxLength={1}
+                        onChangeText={(val) => handleCodeChange(index, val)}
+                        onKeyPress={({ nativeEvent }) =>
+                          handleKeyPress(index, nativeEvent.key)
+                        }
+                        value={digit}
+                        textAlign="center"
+                        selectionColor="#FFFFFF"
+                        autoFocus={index === 0}
+                        editable={!loading}
+                      />
+                    ))}
+                  </View>
+                </TouchableWithoutFeedback>
+                <Text style={styles.helperText}>
+                  Don't have referral code? Ask your{"\n"}friend to share it
+                </Text>
+              </View>
+              <View style={styles.bottomContainer}>
+                <ButtonStart 
+                  text={loading ? "Processing..." : "Continue"} 
+                  handlepress={loading ? () => {} : handleContinue}
+                />
+                <TouchableOpacity
+                  onPress={loading ? () => {} : handleNoCode}
+                  style={[styles.noCodeButton, loading && { opacity: 0.5 }]}
+                >
+                  <Text style={styles.noCodeText}>
+                    I don't have referral code
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+          </LinearGradient>
+        </View>
+      </GestureHandlerRootView>
+    </TouchableWithoutFeedback>
   );
 };
 

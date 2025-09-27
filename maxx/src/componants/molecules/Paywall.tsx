@@ -57,7 +57,7 @@ const Paywall: React.FC<PaywallProps> = ({ onPurchaseSuccess }) => {
         setCustomerInfo(result.customerInfo);
         Alert.alert('Success!', 'Welcome to Maxx Premium!');
         onPurchaseSuccess?.();
-        router.back();
+       
       } else {
         Alert.alert('Purchase Failed', result.error || 'Something went wrong');
       }
@@ -77,7 +77,7 @@ const Paywall: React.FC<PaywallProps> = ({ onPurchaseSuccess }) => {
         if (revenueCatService.isPremiumUser(result.customerInfo)) {
           Alert.alert('Success!', 'Your purchases have been restored!');
           onPurchaseSuccess?.();
-          router.back();
+       
         } else {
           Alert.alert('No Purchases Found', 'No previous purchases found to restore.');
         }

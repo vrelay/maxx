@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     fontWeight: "500",
     letterSpacing: moderateScale(-1),
+   
   },
 });
 

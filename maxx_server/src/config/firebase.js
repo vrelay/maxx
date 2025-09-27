@@ -31,5 +31,6 @@ const initializeFirebase = () => {
 };
 
 export const firebaseAdmin = initializeFirebase();
+export const db = firebaseAdmin.firestore();
 export const bucket = firebaseAdmin.storage().bucket();
 export const auth = firebaseAdmin.auth();
