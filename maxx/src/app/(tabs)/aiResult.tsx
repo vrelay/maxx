@@ -71,13 +71,11 @@ const PreviewMultiplePoses = ({
                     blurType="light"
                     style={styles.lockOverlay}
                   >
-                    <View style={styles.lockContent}>
-                      <FontAwesome
-                        name="lock"
-                        style={styles.lockText}
-                        color="#fff"
-                      />
-                    </View>
+                    <FontAwesome
+                      name="lock"
+                      size={moderateScale(32)}
+                      color="#fff"
+                    />
                   </BlurView>
                 </View>
               );
@@ -625,16 +623,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 15,
     overflow: "hidden",
-  },
-  lockContent: {
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 50,
-    padding: 10,
-  },
-  lockText: {
-    color: "#fff",
-    fontSize: moderateScale(32),
   },
   ratingsRow: {
     flexDirection: "row",

@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     justifyContent: "space-between",
-    paddingHorizontal: scale(24),
+    paddingHorizontal: scale(15),
     paddingBottom: verticalScale(10),
     fontFamily: "Plush-Trial",
     zIndex: 2,
@@ -215,6 +215,7 @@ const styles = StyleSheet.create({
     height: scale(170),
     borderRadius: moderateScale(10),
     overflow: "hidden",
+    borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.9)",
     marginBottom: verticalScale(12),
   },

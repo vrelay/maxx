@@ -19,7 +19,10 @@ import {
   ImagePickerResponse,
   MediaType,
 } from "react-native-image-picker";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 import Svg, { Ellipse, Rect, Mask, Defs } from "react-native-svg";
 import ButtonStart from "../atoms/startbutton";
@@ -72,21 +75,21 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     try {
       setPermissionError(null);
       const result = await requestPermission();
-      
+
       if (!result.granted) {
-        setPermissionError('Camera permission denied');
+        setPermissionError("Camera permission denied");
         Alert.alert(
           "Camera Access Required",
           "This app needs camera access to take photos for analysis. Please enable it in Settings.",
           [
             { text: "Cancel", onPress: onClose },
-            { text: "Open Settings", onPress: () => Linking.openSettings() }
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
           ]
         );
       }
     } catch (error) {
-      console.error('Permission request failed:', error);
-      setPermissionError('Failed to request camera permission');
+      console.error("Permission request failed:", error);
+      setPermissionError("Failed to request camera permission");
       Alert.alert(
         "Permission Error",
         "Failed to request camera permission. Please try again.",
@@ -113,11 +116,11 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   const handleCapture = async () => {
     try {
       if (!cameraRef.current) {
-        throw new Error('Camera not ready');
+        throw new Error("Camera not ready");
       }
-      
+
       if (!permission?.granted) {
-        throw new Error('Camera permission not granted');
+        throw new Error("Camera permission not granted");
       }
 
       const photo = await cameraRef.current.takePictureAsync({
@@ -125,20 +128,20 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
         skipProcessing: false,
         exif: false,
       });
-      
+
       if (!photo?.uri) {
-        throw new Error('Failed to capture photo');
+        throw new Error("Failed to capture photo");
       }
-      
+
       setPhotoUri(photo.uri);
       setPermissionError(null);
-      
+
       if (step === "front-position") setStep("front-preview");
       else if (step === "side-position") setStep("side-preview");
       else if (step === "full-body-position") setStep("full-body-preview");
     } catch (error) {
-      console.error('Camera capture error:', error);
-      setPermissionError('Failed to capture photo. Please try again.');
+      console.error("Camera capture error:", error);
+      setPermissionError("Failed to capture photo. Please try again.");
       Alert.alert(
         "Capture Error",
         "Failed to capture photo. Please try again.",
@@ -218,32 +221,32 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
         <View style={{ flex: 1, backgroundColor: "#2D1B69" }}>
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.fullBodyContainer}>
-            <Text style={styles.fullBodyTitle}>
-              Show your full self for the best results
-            </Text>
-            <Text style={styles.fullBodySubtitle}>
-              A full-body photo helps us assess your transformation potential
-              and suggest body-specific improvements.
-            </Text>
-            <View style={styles.fullBodyImageFrame}>
-              <Image
-                source={img.fullbodydummy}
-                style={styles.fullBodyImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.fullBodyActions}>
-              <TouchableOpacity
-                onPress={handleFullBodySkip}
-                style={styles.skipButton}
-              >
-                <Text style={styles.skipText}>Skip for now</Text>
-              </TouchableOpacity>
-              <ButtonStart
-                text="Continue"
-                handlepress={() => setStep("full-body-position")}
-              />
-            </View>
+              <Text style={styles.fullBodyTitle}>
+                Show your full self for the best results
+              </Text>
+              <Text style={styles.fullBodySubtitle}>
+                A full-body photo helps us assess your transformation potential
+                and suggest body-specific improvements.
+              </Text>
+              <View style={styles.fullBodyImageFrame}>
+                <Image
+                  source={img.fullbodydummy}
+                  style={styles.fullBodyImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.fullBodyActions}>
+                <TouchableOpacity
+                  onPress={handleFullBodySkip}
+                  style={styles.skipButton}
+                >
+                  <Text style={styles.skipText}>Skip for now</Text>
+                </TouchableOpacity>
+                <ButtonStart
+                  text="Continue"
+                  handlepress={() => setStep("full-body-position")}
+                />
+              </View>
             </View>
           </SafeAreaView>
         </View>
@@ -255,121 +258,153 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     <Modal visible={visible} animationType="slide">
       <View style={{ flex: 1, backgroundColor: "#20186e" }}>
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={[styles.topBar, Platform.OS === 'ios' && { paddingTop: Math.max(insets.top - 20, 10) }]}>
-            <BackArrow onPress={onClose} />
-            <Text style={styles.instruction}>{instructions[step]}</Text>
-            <View style={{ width: 32 }} />
-          </View>
-        {photoUri ? (
-          <View style={styles.previewContainer}>
-            <Image
-              source={{ uri: photoUri }}
-              style={[
-                styles.previewImage,
-                (step === "front-preview" || step === "side-preview") &&
-                  styles.flippedImage,
-              ]}
-            />
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.7)"]}
-              style={styles.gradientOverlay}
-            />
-            <View style={styles.photoActions}>
-              <TouchableOpacity onPress={handleReject}>
-                <Feather name="x" style={styles.actionIcon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleAccept}>
-                <Feather name="check" style={styles.actionIcon} />
-              </TouchableOpacity>
+          <View
+            style={[
+              styles.topBar,
+              Platform.OS === "ios" && {
+                paddingTop: Math.max(insets.top - 20, 10),
+              },
+            ]}
+          >
+            <View style={styles.topBarContent}>
+              <View style={styles.topBarHeader}>
+                <BackArrow onPress={onClose} />
+                <View style={{ width: 32 }} />
+              </View>
+              <Text style={styles.instruction}>{instructions[step]}</Text>
+            </View>
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressSegment,
+                    (frontPhoto || step === "front-preview") &&
+                      styles.progressSegmentCompleted,
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressSegment,
+                    (sidePhoto || step === "side-preview") &&
+                      styles.progressSegmentCompleted,
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressSegment,
+                    (fullBodyPhoto || step === "full-body-preview") &&
+                      styles.progressSegmentCompleted,
+                  ]}
+                />
+              </View>
             </View>
           </View>
-        ) : (
-          <View style={styles.cameraContainer}>
-            {permission?.granted ? (
-              <CameraView
-                ref={cameraRef}
-                style={styles.camera}
-                facing={cameraFacing}
-                mode="picture"
-                enableTorch={false}
+          {photoUri ? (
+            <View style={styles.previewContainer}>
+              <Image
+                source={{ uri: photoUri }}
+                style={[
+                  styles.previewImage,
+                  (step === "front-preview" || step === "side-preview") &&
+                    styles.flippedImage,
+                ]}
               />
-            ) : (
-              <View style={styles.permissionContainer}>
-                <Text style={styles.permissionText}>
-                  {permissionError || 'Requesting camera permission...'}
-                </Text>
-                {permissionError && (
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.7)"]}
+                style={styles.gradientOverlay}
+              />
+              <View style={styles.photoActions}>
+                <TouchableOpacity onPress={handleReject}>
+                  <Feather name="x" style={styles.actionIcon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleAccept}>
+                  <Feather name="check" style={styles.actionIcon} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.cameraContainer}>
+              {permission?.granted ? (
+                <CameraView
+                  ref={cameraRef}
+                  style={styles.camera}
+                  facing={cameraFacing}
+                  mode="picture"
+                  enableTorch={false}
+                />
+              ) : (
+                <View style={styles.permissionContainer}>
+                  <Text style={styles.permissionText}>
+                    {permissionError || "Requesting camera permission..."}
+                  </Text>
+                  {permissionError && (
+                    <TouchableOpacity
+                      style={styles.retryButton}
+                      onPress={handlePermissionRequest}
+                    >
+                      <Text style={styles.retryButtonText}>Retry</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+              {(step === "front-position" || step === "side-position") && (
+                <View style={styles.ovalOverlayContainer}>
+                  <Svg width="100%" height="100%" style={styles.ovalOverlay}>
+                    <Defs>
+                      <Mask id="ellipseMask">
+                        <Rect width="100%" height="100%" fill="white" />
+                        <Ellipse
+                          cx="50%"
+                          cy="35%"
+                          rx="40%"
+                          ry="30%"
+                          fill="black"
+                        />
+                      </Mask>
+                    </Defs>
+                    <Rect
+                      width="100%"
+                      height="100%"
+                      fill="rgba(0, 0, 0, 0.5)"
+                      mask="url(#ellipseMask)"
+                    />
+                    <Ellipse
+                      cx="50%"
+                      cy="35%"
+                      rx="40%"
+                      ry="30%"
+                      stroke="rgba(255,255,255,0.7)"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </Svg>
+                </View>
+              )}
+              <View style={styles.captureBar}>
+                {step === "full-body-position" && (
                   <TouchableOpacity
-                    style={styles.retryButton}
-                    onPress={handlePermissionRequest}
+                    style={styles.galleryButton}
+                    onPress={handleGallerySelect}
                   >
-                    <Text style={styles.retryButtonText}>Retry</Text>
+                    <Feather name="image" size={24} color="#fff" />
                   </TouchableOpacity>
                 )}
-              </View>
-            )}
-            {(step === "front-position" || step === "side-position") && (
-              <View style={styles.ovalOverlayContainer}>
-                <Svg
-                  width="100%"
-                  height="100%"
-                  style={styles.ovalOverlay}
-                >
-                  <Defs>
-                    <Mask id="ellipseMask">
-                      <Rect width="100%" height="100%" fill="white" />
-                      <Ellipse
-                        cx="50%"
-                        cy="35%"
-                        rx="40%"
-                        ry="30%"
-                        fill="black"
-                      />
-                    </Mask>
-                  </Defs>
-                  <Rect
-                    width="100%"
-                    height="100%"
-                    fill="rgba(0, 0, 0, 0.5)"
-                    mask="url(#ellipseMask)"
-                  />
-                  <Ellipse
-                    cx="50%"
-                    cy="35%"
-                    rx="40%"
-                    ry="30%"
-                    stroke="rgba(255,255,255,0.7)"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                </Svg>
-              </View>
-            )}
-            <View style={styles.captureBar}>
-              {step === "full-body-position" && (
+
+                {step != "full-body-position" && (
+                  <View style={styles.placeholder} />
+                )}
+
                 <TouchableOpacity
-                  style={styles.galleryButton}
-                  onPress={handleGallerySelect}
+                  style={styles.captureButton}
+                  onPress={handleCapture}
                 >
-                  <Feather name="image" size={24} color="#fff" />
+                  <View style={styles.captureCircle} />
                 </TouchableOpacity>
-              )}
 
-              {step != "full-body-position" && (
                 <View style={styles.placeholder} />
-              )}
-
-              <TouchableOpacity
-                style={styles.captureButton}
-                onPress={handleCapture}
-              >
-                <View style={styles.captureCircle} />
-              </TouchableOpacity>
-
-              <View style={styles.placeholder} />
+              </View>
             </View>
-          </View>
-        )}
+          )}
         </SafeAreaView>
       </View>
     </Modal>
@@ -378,14 +413,44 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
 
 const styles = StyleSheet.create({
   topBar: {
-    minHeight: verticalScale(60),
+    minHeight: verticalScale(120),
     backgroundColor: "#20186e",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  topBarContent: {
+    flex: 1,
+    paddingHorizontal: scale(16),
+    paddingTop: verticalScale(10),
+    gap: verticalScale(20),
+    justifyContent: "space-between",
+    marginBottom: verticalScale(15),
+
+  },
+  topBarHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: scale(16),
-    paddingTop: verticalScale(10), // Add padding for better iOS spacing
-    paddingBottom: verticalScale(10),
+  },
+  progressContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  progressBar: {
+    flexDirection: "row",
+    width: "100%",
+    height: verticalScale(3),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    overflow: "hidden",
+  },
+  progressSegment: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    marginHorizontal: scale(1),
+  },
+  progressSegmentCompleted: {
+    backgroundColor: "rgb(255, 255, 255)",
   },
   backArrow: {
     padding: 4,
@@ -394,11 +459,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   instruction: {
-    flex: 1,
     textAlign: "center",
     color: "#fff",
     fontWeight: "500",
     fontSize: moderateScale(16),
+    width: "100%",
   },
   cameraContainer: {
     flex: 1,
@@ -560,7 +625,6 @@ const styles = StyleSheet.create({
   retryButton: {
     backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: moderateScale(8),
-    paddingVertical: verticalScale(12),
     paddingHorizontal: scale(24),
   },
   retryButtonText: {

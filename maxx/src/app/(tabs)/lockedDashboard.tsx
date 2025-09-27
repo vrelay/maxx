@@ -244,22 +244,5 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     textAlign: "center",
   },
-  confettiContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: "none",
-    zIndex: 1000,
-  },
-  paperPiece: {
-    position: "absolute",
-    shadowColor: "#000",
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
-  },
 });
 export default LockedDashboard;
