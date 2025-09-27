@@ -26,9 +26,9 @@ const index = () => {
         return;
       }
       //temp redirect here
-      setRoutingDecision("/(tabs)/aiResult");
-      setRoutingLoading(false);
-      return;
+      // setRoutingDecision("/(tabs)/aiResult");
+      // setRoutingLoading(false);
+      // return;
 
       try {
         // Get the latest AI result document from Firebase
