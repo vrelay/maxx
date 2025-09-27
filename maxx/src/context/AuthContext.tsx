@@ -314,31 +314,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const calculateCurrentDays = () => {
     const user = state.user;
-    if (!user?.creationTime) {
-      // Fallback to a default start date if user creation time is not available for testing
-      const defaultStartDate = new Date("2024-01-01");
+    if (state.premiumPurchaseDate) {
       const today = new Date();
-      const diffTime = Math.abs(today.getTime() - defaultStartDate.getTime());
+      const diffTime = Math.abs(
+        today.getTime() - state.premiumPurchaseDate.getTime()
+      );
       dispatch({
         type: "SET_SUBSCRIPTION_DAYS",
         payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
       });
       return;
     }
-
-    const startDate = new Date(user?.creationTime || "");
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - startDate.getTime());
     dispatch({
       type: "SET_SUBSCRIPTION_DAYS",
-      payload: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+      payload: 0,
     });
     return;
   };
 
   useEffect(() => {
     calculateCurrentDays();
-  }, [state.user]);
+  }, [state.premiumPurchaseDate]);
 
   return (
     <AuthContext.Provider
