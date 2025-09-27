@@ -628,26 +628,28 @@ create_env_file() {
 
     if [ ! -f ".env" ]; then
         cat > .env << 'EOF'
-# Firebase Configuration (REQUIRED - Replace with your actual values)
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_PRIVATE_KEY_ID=your-private-key-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour-actual-private-key-here\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
-FIREBASE_CLIENT_ID=your-client-id
-FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-FIREBASE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-FIREBASE_CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-service-account%40your-project.iam.gserviceaccount.com
+FIREBASE_PROJECT_ID="distribution-maxx"
+FIREBASE_PRIVATE_KEY_ID= "c964b813eb8d7683c58fb609c8bc508f117059b7"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDZSL96jZlHXXoI\noc4bdEOaZzEEyyDwJz8QgZSWDAK1gHIYPXrIG/um4NiJgmhTLLxOMx16mWqWZlvQ\nQVRzKPbYZGEl5xrOovCq3V7e1vsUm4qDWdNAjSfm8GUynvMnk/16QkHoMqvFWSzT\nKfFJ5fB1nix78XC4BA2ljLLrRYzf68VjPe5dTsYrevM2skeaHpy90ri+If6fkDcj\n6B92BPOgVd+c244T4rxwfIabElMNAHDZ2YSIsu3iAmx2cZJ3Zlw3h7iFlNxTidoD\n4o0NxM99pYxMljfExGftuQhsHH8fAI5vFPZHOdLY82quY6V9J6voezKaNAvgQZ2x\n7SB+a1xnAgMBAAECggEAEtBAOBHLnEjFOLsd1/W0pslZjrMx2mljhf/aSDWpBGMn\nPd8Q4wO9QeFFDn76nn0InvLBEiz3dCdPutP1RnVdDjZ+zOPaR9sG4JyDSuMtYUbo\ncuATsQqn0lCtSnlFz376WxwijcLZaaCDh5Mhn8bnj5+O9XpdyqkbL2Lj2QgwHvEn\nz28C/HW3tzl658UOIxAeme/LYKTk63yp4MSM7UHiOtkUC5dxL66NsJaxZyNd6hyr\n3FmEojleXiPy47wX7gPCaxS4Kf/V/O3lV7Ofb4cccEei/ZwVLcbyeW7bMTc0u0Jv\nkMdtaAlaNYblFZQi98zC4f0lWqFMauNpwagh08im8QKBgQDxG/4eaT+kYJ7UhWUx\nqT4CnKC1qYBXF/DqW2+0lZnS4SZ3V7IkDvtXsWmnLVmJjl6uv9ZbnB+DQSueu3rW\nB6xLxs2Yp6xllq4HYrDQzmKYXlRK2ZUzbMAbRD0KgzMyYwVtrfnvIRXrrLDvS1dh\n6GksJ87PCL64NsVShMnJ/e4fdwKBgQDmtBKRBT0HFmUDRkUJe+4VclCysKV2svkg\n0o599/Q68pny90ASSgfKkACf3tVRw0TkXWVObPKruj8g711XN9JoA5b9+eyGUAx3\nUHbSR281rwCf4m64sZuUCbhqoa5FM6lA9ML08nNK8rwJc9IFArjUN67glukFEJn4\n4pHHJ9dGkQKBgEl75JlULodkw0O2XD8ke7fEEN8NCAaDT3O95m+9YKJ66IRa//op\nbsUtVywSkEVyVL0hzq0hCiGwzSCVtzxgHk0CDEtIXyyfHe82Tvl0zWvu4/XkFqsT\nrAEjbQ81KXdj4pWo/pG5Hbs0aMClz74RXWyNvWQwICB44O7jdbTQZbDFAoGAedAi\n7YfCjXd5ppz33uYc9B4EFhXHiEE/4eDLdB/0SRvHxc5feki0jHQ0oDVclWtxeNMH\npr1H9PzGUHGS63aCFoGuvDO2e8TQkD9gPe+R/NqGjeVVaRf+edAYG9V62vdIKxAR\n0Jwj3DMGrkcFYbfqN8OfBt8n8pCtfAjFyE51EMECgYEA0XNggHLUx8fIU4gxlEQB\nSiZyGyt2cf8BkgoTvEn7LKq0PvqZ8eMZcNF9HKJ+B74ogKdRmZ5SZU13Jfcbi6zo\nxcVDa3lD5POQ7BjoolMI2/ELu2OH8mXhxrt1mD7s3Akax/dymIBCjxPw6cOwxOOP\nTzgMjuVzTJlu/qAFUHwy61M=\n-----END PRIVATE KEY-----\n"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@distribution-maxx.iam.gserviceaccount.com"
+FIREBASE_CLIENT_ID="118041260527569607099"
+FIREBASE_AUTH_URI="https://accounts.google.com/o/oauth2/auth"
+FIREBASE_TOKEN_URI="https://oauth2.googleapis.com/token"
+FIREBASE_AUTH_PROVIDER_X509_CERT_URL="https://www.googleapis.com/oauth2/v1/certs"
+FIREBASE_CLIENT_X509_CERT_URL="https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40distribution-maxx.iam.gserviceaccount.com"
 
-# Gemini AI Configuration (REQUIRED - Replace with your actual API key)
-GEMINI_API_KEY=your-gemini-api-key
+GEMINI_API_KEY=AIzaSyABxmBIww94AOS178H2v6lJqWYGz5hymwI
+
+STRIPE_SECRET_KEY=sk_test_51SAWLuFODJ3LVu2TmPFXbWjDdsHvnrOWXBsJ2DEGKeQPlarGMhkKHuHS3Z6GZlteMq4iyigBIcaRzkLyw1c6RT8L00dJlu2Eyv
+
+REVENUECAT_WEBHOOK_SECRET="Bearer marlomaxing925"
 
 # Server Configuration
 PORT=3000
-NODE_ENV=production
+NODE_ENV=development
 
-# Storage Configuration (REQUIRED - Replace with your bucket name)
-FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+# Storage Configuration (Usually your-project-id.appspot.com)
+FIREBASE_STORAGE_BUCKET="distribution-maxx.firebasestorage.app"
 
 # Rate Limiting
 MAX_REQUESTS_PER_MINUTE=10
@@ -657,8 +659,6 @@ MAX_REQUESTS_PER_HOUR=50
 MAX_IMAGE_SIZE_MB=10
 IMAGE_QUALITY=0.8
 
-# Webhook Configuration (Optional - for webhook signature verification)
-REVENUECAT_WEBHOOK_SECRET=your-revenuecat-webhook-secret
 EOF
         chmod 600 .env
         print_warning "IMPORTANT: Edit the .env file with your actual credentials!"
