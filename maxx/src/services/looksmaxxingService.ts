@@ -88,13 +88,11 @@ export interface LooksmaxxingResult {
 }
 
 // API Configuration
-// const API_BASE_URL = "https://bapi.lookai.me/api";
-// 'http://10.0.2.2:3000/api'  // Android emulator localhost
+const API_BASE_URL = "https://bapi.lookai.me/api";
 
 // API Configuration - Local Development Server
-const API_BASE_URL = "http://10.145.59.184:3000/api";
-// Alternative: Use localhost if testing on simulator
-// const API_BASE_URL = "http://localhost:3000/api";
+// const API_BASE_URL = "http://10.145.59.184:3000/api";
+
 
 // Initialize Firebase Auth
 const auth = getAuth(app);

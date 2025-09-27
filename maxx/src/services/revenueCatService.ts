@@ -150,7 +150,7 @@ class RevenueCatService {
       
       // 🎯 NEW: Check for active referral rewards
       try {
-        const response = await fetch('http://10.145.59.119:3000/api/referral/check-rewards', {
+        const response = await fetch('https://bapi.lookai.me/api/referral/check-rewards', {
           headers: {
             'Authorization': `Bearer ${await this.getAuthToken()}`,
             'Content-Type': 'application/json'

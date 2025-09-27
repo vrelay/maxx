@@ -19,8 +19,7 @@ export interface Reward {
 }
 
 class ReferralService {
-  // private apiBaseUrl = "https://bapi.lookai.me/api";
-  private apiBaseUrl = "http://10.145.59.119:3000/api"; // Match your looksmaxxing service
+  private apiBaseUrl = "https://bapi.lookai.me/api";
 
 
   private async getAuthToken(): Promise<string> {
