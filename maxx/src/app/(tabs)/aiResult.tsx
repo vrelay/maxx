@@ -10,7 +10,7 @@ import {
   SavedImage,
 } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import { BlurView } from "@react-native-community/blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -66,9 +66,9 @@ const PreviewMultiplePoses = ({
               return (
                 <View key={idx} style={styles.gridItem}>
                   <Image source={images[idx - 1]} style={styles.gridImage} />
-                  <BlurView 
-                    intensity={100} 
-                    tint="dark" 
+                  <BlurView
+                    blurAmount={10}
+                    blurType="light"
                     style={styles.lockOverlay}
                   >
                     <View style={styles.lockContent}>
@@ -95,17 +95,22 @@ const CircularProgress = ({
   size = 80,
   strokeWidth = 4,
   showText = true,
+  isLocked = false,
 }: {
   score: number;
   size?: number;
   strokeWidth?: number;
   showText?: boolean;
+  isLocked?: boolean;
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
 
   // For anticlockwise: Use negative stroke-dashoffset calculation
-  const strokeDashoffset = circumference - (circumference * score) / 100;
+  // If locked, don't show any progress
+  const strokeDashoffset = isLocked
+    ? circumference
+    : circumference - (circumference * score) / 100;
 
   return (
     <View
@@ -126,24 +131,26 @@ const CircularProgress = ({
           strokeWidth={strokeWidth}
           fill="rgba(255, 255, 255, 0.08)"
         />
-        {/* Progress Circle - ANTICLOCKWISE */}
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={"#fff"}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(90 ${size / 2} ${
-            size / 2
-          }) scale(-1, 1) translate(-${size}, 0)`}
-        />
+        {/* Progress Circle - ANTICLOCKWISE (only show if not locked) */}
+        {!isLocked && (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={"#fff"}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(90 ${size / 2} ${
+              size / 2
+            }) scale(-1, 1) translate(-${size}, 0)`}
+          />
+        )}
       </Svg>
 
-      {/* Score text in center */}
+      {/* Score text or lock icon in center */}
       {showText && (
         <View
           style={{
@@ -156,7 +163,15 @@ const CircularProgress = ({
             alignItems: "center",
           }}
         >
-          <Text style={styles.newRatingText}>{score}</Text>
+          {isLocked ? (
+            <FontAwesome
+              name="lock"
+              size={size * 0.3}
+              color="rgba(255, 255, 255, 0.6)"
+            />
+          ) : (
+            <Text style={styles.newRatingText}>{score}</Text>
+          )}
         </View>
       )}
     </View>
@@ -167,9 +182,11 @@ const CircularProgress = ({
 const RatingCircleDisplay = ({
   score,
   label,
+  isLocked = false,
 }: {
   score: number;
   label: string;
+  isLocked?: boolean;
 }) => (
   <View style={styles.ratingCircleBox}>
     <CircularProgress
@@ -177,6 +194,7 @@ const RatingCircleDisplay = ({
       size={scale(65)}
       strokeWidth={3}
       showText={true}
+      isLocked={isLocked}
     />
     <Text style={styles.newRatingLabel}>{label}</Text>
   </View>
@@ -207,20 +225,24 @@ const PreviewYourRatings = ({
           <RatingCircleDisplay
             score={topPriorities[0]?.score || 0}
             label={topPriorities[0]?.formattedArea || "Loading..."}
+            isLocked={false}
           />
           <RatingCircleDisplay
             score={topPriorities[1]?.score || 0}
             label={topPriorities[1]?.formattedArea || "Loading..."}
+            isLocked={true}
           />
         </View>
         <View style={styles.ratingsRow}>
           <RatingCircleDisplay
             score={topPriorities[2]?.score || 0}
             label={topPriorities[2]?.formattedArea || "Loading..."}
+            isLocked={true}
           />
           <RatingCircleDisplay
             score={topPriorities[3]?.score || 0}
             label={topPriorities[3]?.formattedArea || "Loading..."}
+            isLocked={true}
           />
         </View>
       </View>
@@ -248,13 +270,42 @@ const StartTransformationToday = ({
   }));
 
   return (
-    <View style={styles.cardWrapper}>
-      <View style={styles.pageContent}>
-        <View style={styles.cardContainer}>
-          <Text style={styles.pageTitle}>{title}</Text>
-          <Image source={img.decor_bar} style={styles.decor_bar} />
-          {topPriorities.map((t, i) => (
-            <View style={styles.cardWrapper} key={i}>
+    <View style={styles.pageContent}>
+      <View style={styles.cardContainer}>
+        <Text style={styles.pageTitle}>{title}</Text>
+        <Image source={img.decor_bar} style={styles.decor_bar} />
+        {/* First card - no blur */}
+        <View style={styles.cardWrapper} key={0}>
+          <View style={styles.taskCard}>
+            <View style={styles.imagePlaceholder} />
+            <View style={styles.taskTextContainer}>
+              <Text style={styles.taskTitle}>{topPriorities[0]?.label}</Text>
+              <Text style={styles.taskDescription}>
+                {topPriorities[0]?.desc}
+              </Text>
+            </View>
+            <View style={styles.levelPill}>
+              <Text style={styles.taskLevel}>
+                +{topPriorities[0]?.level} levels
+              </Text>
+            </View>
+          </View>
+          <LinearGradient
+            colors={[
+              "rgba(255, 255, 255, 0)",
+              "rgba(255, 255, 255, 0.25)",
+              "rgba(255, 255, 255, 0)",
+            ]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.gradientBorder}
+          />
+        </View>
+
+        {/* Combined overlay container for the last two cards */}
+        <View style={styles.combinedCardsContainer}>
+          {topPriorities.slice(1).map((t, i) => (
+            <View style={styles.cardWrapper} key={i + 1}>
               <View style={styles.taskCard}>
                 <View style={styles.imagePlaceholder} />
                 <View style={styles.taskTextContainer}>
@@ -277,6 +328,11 @@ const StartTransformationToday = ({
               />
             </View>
           ))}
+          <BlurView
+            blurAmount={1}
+            blurType="light"
+            style={styles.lockOverlay}
+          ></BlurView>
         </View>
       </View>
     </View>
@@ -465,7 +521,8 @@ const DummySliderScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   cardWrapper: {
-    marginBottom: verticalScale(16),
+    marginVertical: verticalScale(8),
+    marginHorizontal: scale(20),
   },
   gradientBorder: {
     height: 1,
@@ -532,7 +589,6 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 20,
     paddingVertical: verticalScale(20),
-    paddingHorizontal: scale(20),
     width: "100%",
     alignContent: "center",
     justifyContent: "space-between",
@@ -614,6 +670,10 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingBottom: verticalScale(12),
     height: verticalScale(50),
+  },
+  combinedCardsContainer: {
+    position: "relative",
+    overflow: "hidden",
   },
   imagePlaceholder: {
     width: scale(40),
