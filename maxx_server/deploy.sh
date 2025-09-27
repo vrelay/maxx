@@ -21,7 +21,7 @@ print_header() { echo -e "${PURPLE}[MAXX]${NC} $1"; }
 
 # SSL Configuration
 DOMAIN="bapi.lookai.me"
-EMAIL="your-email@example.com"  # Change this to your email
+EMAIL="growth@lookai.me"  # Change this to your email
 DATA_PATH="./certbot"
 STAGING=0  # Set to 1 for testing to avoid rate limits
 

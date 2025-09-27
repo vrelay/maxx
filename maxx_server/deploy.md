@@ -2,7 +2,7 @@
 
 A comprehensive deployment script for the Maxx API server with Docker, Nginx reverse proxy, SSL/TLS encryption, and automated certificate management.
 
-## 🚀 Features
+##  Features
 
 - **Automated Docker deployment** with health checks and logging
 - **HTTPS/SSL support** with Let's Encrypt certificates
@@ -13,7 +13,7 @@ A comprehensive deployment script for the Maxx API server with Docker, Nginx rev
 - **Multi-OS support** (Ubuntu/Debian)
 - **Production-ready** security configuration
 
-## 📋 Prerequisites
+##  Prerequisites
 
 ### System Requirements
 - **OS**: Ubuntu 18.04+ or Debian 10+
@@ -109,6 +109,9 @@ MAX_REQUESTS_PER_HOUR=50
 # Image Processing
 MAX_IMAGE_SIZE_MB=10
 IMAGE_QUALITY=0.8
+
+# Webhook Configuration (Optional - for webhook signature verification)
+REVENUECAT_WEBHOOK_SECRET=your-revenuecat-webhook-secret
 ```
 
 ### Script Configuration
@@ -122,7 +125,7 @@ EMAIL="your-email@example.com"     # Your email for Let's Encrypt
 STAGING=0                          # Set to 1 for testing certificates
 ```
 
-## 📝 Commands Reference
+##  Commands Reference
 
 ### Initial Setup & Deployment
 ```bash
@@ -258,7 +261,7 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 ```
 
-## 📂 Generated File Structure
+##  Generated File Structure
 
 After deployment, your directory will contain:
 
@@ -277,7 +280,7 @@ maxx_server/
 └── monitor-ssl.sh        # SSL monitoring script
 ```
 
-## 🔒 Security Features
+##  Security Features
 
 - **SSL/TLS encryption** with modern cipher suites
 - **HTTP Strict Transport Security (HSTS)** headers
@@ -289,7 +292,7 @@ maxx_server/
 - **Automatic security updates** for the system
 - **Log rotation** to prevent disk space issues
 
-## 📊 Monitoring & Maintenance
+##  Monitoring & Maintenance
 
 ### System Monitoring
 ```bash
@@ -331,7 +334,7 @@ SSL certificates automatically renew via Certbot. Monitor renewal status:
 docker compose run --rm certbot certonly --webroot -w /var/www/certbot --staging --force-renewal -d your-domain.com
 ```
 
-## 🚨 Common Issues & Solutions
+##  CL*j>AK6jTC%39bX<L*j>AK6jTC%39bX<ommon Issues & Solutions
 
 ### 1. "Domain verification failed"
 **Problem**: DNS not properly configured  
@@ -386,7 +389,7 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 ```
 
-## 🔄 Update & Maintenance
+##  Update & Maintenance
 
 ### Application Updates
 ```bash
