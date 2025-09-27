@@ -188,6 +188,41 @@ class RevenueCatService {
   }
 
   /**
+   * Get the purchase date for a premium user
+   */
+  async getPremiumPurchaseDate(): Promise<Date | null> {
+    try {
+      await this.initialize();
+      const customerInfo = await this.getCustomerInfo();
+      
+      if (!customerInfo) {
+        console.log('No customer info available');
+        return null;
+      }
+
+      const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
+      
+      if (!entitlement) {
+        console.log('No active premium entitlement found');
+        return null;
+      }
+
+      // Get the purchase date from the entitlement
+      const purchaseDate = entitlement.originalPurchaseDate;
+      
+      if (purchaseDate) {
+        return new Date(purchaseDate);
+      }
+
+      console.log('No purchase date found in entitlement');
+      return null;
+    } catch (error) {
+      console.error('Error getting premium purchase date:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get Firebase auth token for API requests
    */
   private async getAuthToken(): Promise<string> {

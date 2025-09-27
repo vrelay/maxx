@@ -9,7 +9,9 @@ const index = () => {
     isAuthenticated,
     user,
     isLoading,
+    isPremiumLoading,
     isPremium,
+    premiumPurchaseDate,
     setLooksmaxxingResults,
   } = useAuth();
 
@@ -75,13 +77,14 @@ const index = () => {
       }
     };
 
-    if (!isLoading) {
+    // Only determine routing when both user and premium status are loaded
+    if (!isLoading && !isPremiumLoading) {
       determineRouting();
     }
-  }, [isAuthenticated, user, isLoading, isPremium]);
+  }, []);
 
-  // Show loading while we determine the route
-  if (isLoading || routingLoading) {
+  // Show loading while we determine the route or while premium status is loading
+  if (isLoading || isPremiumLoading || routingLoading) {
     return <LoadingScreen />;
   }
 

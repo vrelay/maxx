@@ -44,7 +44,9 @@ interface AuthContextType extends AuthState {
   // RevenueCat premium status
   customerInfo: CustomerInfo | null;
   isPremium: boolean;
+  premiumPurchaseDate: Date | null;
   refreshCustomerInfo: () => Promise<void>;
+  refreshPremiumStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +55,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case "SET_LOADING":
       return { ...state, isLoading: action.payload };
+    case "SET_PREMIUM_LOADING":
+      return { ...state, isPremiumLoading: action.payload };
     case "SET_USER":
       return {
         ...state,
@@ -63,6 +67,10 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       };
     case "SET_SUBSCRIPTION_DAYS":
       return { ...state, subscriptionDays: action.payload };
+    case "SET_PREMIUM_STATUS":
+      return { ...state, isPremium: action.payload, isPremiumLoading: false };
+    case "SET_PREMIUM_PURCHASE_DATE":
+      return { ...state, premiumPurchaseDate: action.payload };
     case "SET_ERROR":
       return { ...state, error: action.payload, isLoading: false };
     case "SET_SUCCESS":
@@ -75,8 +83,11 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         user: null,
         isLoading: false,
+        isPremiumLoading: false,
         isAuthenticated: false,
         subscriptionDays: null,
+        isPremium: false,
+        premiumPurchaseDate: null,
         error: null,
         success: null,
       };
@@ -88,8 +99,11 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 const initialState: AuthState = {
   user: null,
   isLoading: true,
+  isPremiumLoading: true,
   isAuthenticated: false,
   subscriptionDays: null,
+  isPremium: false,
+  premiumPurchaseDate: null,
   error: null,
   success: null,
 };
@@ -123,6 +137,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         dispatch({ type: "SET_USER", payload: user });
       } else {
         dispatch({ type: "SET_USER", payload: null });
+        // If no user, set premium loading to false since we don't need to check
+        dispatch({ type: "SET_PREMIUM_LOADING", payload: false });
+        dispatch({ type: "SET_PREMIUM_STATUS", payload: false });
+        dispatch({ type: "SET_PREMIUM_PURCHASE_DATE", payload: null });
       }
     });
 
@@ -132,12 +150,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   // Initialize RevenueCat when user is authenticated
   useEffect(() => {
     if (state.user) {
-      refreshCustomerInfo();
+      refreshPremiumStatus();
 
       // Listen for customer info updates
       const listener = revenueCatService.addCustomerInfoUpdateListener(
-        (info) => {
+        async (info) => {
           setCustomerInfo(info);
+          // Update premium status when customer info changes
+          dispatch({ type: "SET_PREMIUM_LOADING", payload: true });
+          const isPremiumUser = revenueCatService.isPremiumUser(info);
+          const purchaseDate = await revenueCatService.getPremiumPurchaseDate();
+          
+          dispatch({ type: "SET_PREMIUM_STATUS", payload: isPremiumUser });
+          dispatch({
+            type: "SET_PREMIUM_PURCHASE_DATE",
+            payload: purchaseDate,
+          });
         }
       );
 
@@ -151,6 +179,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           console.error("Error removing listener:", error);
         }
       };
+    } else {
+      // If no user, premium loading should be false
+      dispatch({ type: "SET_PREMIUM_LOADING", payload: false });
     }
   }, [state.user]);
 
@@ -160,6 +191,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setCustomerInfo(info);
     } catch (error) {
       console.error("Error refreshing customer info:", error);
+    }
+  };
+
+  const refreshPremiumStatus = async () => {
+    try {
+      dispatch({ type: "SET_PREMIUM_LOADING", payload: true });
+      const info = await revenueCatService.getCustomerInfo();
+      const isPremiumUser = revenueCatService.isPremiumUser(info);
+      const purchaseDate = await revenueCatService.getPremiumPurchaseDate();
+      
+      dispatch({ type: "SET_PREMIUM_STATUS", payload: isPremiumUser });
+      dispatch({ type: "SET_PREMIUM_PURCHASE_DATE", payload: purchaseDate });
+      
+      // Also update customer info
+      setCustomerInfo(info);
+    } catch (error) {
+      console.error("Error refreshing premium status:", error);
+      dispatch({ type: "SET_PREMIUM_STATUS", payload: false });
+      dispatch({ type: "SET_PREMIUM_PURCHASE_DATE", payload: null });
     }
   };
 
@@ -260,8 +310,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     dispatch({ type: "CLEAR_ERROR" });
   };
 
-  const isPremium = revenueCatService.isPremiumUser(customerInfo);
-
   const calculateCurrentDays = () => {
     const user = state.user;
     if (!user?.creationTime) {
@@ -309,8 +357,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         checkEmailIsEmailVerified,
         clearError,
         customerInfo,
-        isPremium,
+        isPremium: state.isPremium,
+        premiumPurchaseDate: state.premiumPurchaseDate,
         refreshCustomerInfo,
+        refreshPremiumStatus,
       }}
     >
       {children}
