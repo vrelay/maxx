@@ -11,7 +11,7 @@ class ReferralService {
    */
   async generateReferralCode(userId, userEmail) {
     try {
-      console.log('🔄 DEBUG: Generating referral code for user:', userId);
+      console.log('DEBUG: Generating referral code for user:', userId);
       
       // Check if user already has a referral code
       const existingCodesSnapshot = await db.collection(REFERRAL_COLLECTIONS.REFERRAL_CODES)
@@ -20,7 +20,7 @@ class ReferralService {
       
       if (!existingCodesSnapshot.empty) {
         const existingCode = existingCodesSnapshot.docs[0].data();
-        console.log('✅ DEBUG: Existing referral code found:', existingCode.code);
+        console.log('DEBUG: Existing referral code found:', existingCode.code);
         return {
           success: true,
           code: existingCode.code,
@@ -60,9 +60,9 @@ class ReferralService {
         successful_referrals: 0
       };
 
-      console.log('🔄 DEBUG: Creating new referral code:', code);
+      console.log('DEBUG: Creating new referral code:', code);
       const docRef = await db.collection(REFERRAL_COLLECTIONS.REFERRAL_CODES).add(referralCodeData);
-      console.log('✅ DEBUG: Referral code created with ID:', docRef.id);
+      console.log('DEBUG: Referral code created with ID:', docRef.id);
 
       return {
         success: true,
@@ -71,7 +71,7 @@ class ReferralService {
         message: 'Referral code generated successfully'
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error generating referral code:', error);
+      console.error('DEBUG: Error generating referral code:', error);
       return {
         success: false,
         error: error.message
@@ -84,7 +84,7 @@ class ReferralService {
    */
   async claimReferralCode(code, referredUserId, referredUserEmail) {
     try {
-      console.log('🔄 DEBUG: Claiming referral code:', code, 'for user:', referredUserId);
+      console.log('DEBUG: Claiming referral code:', code, 'for user:', referredUserId);
       
       // Validate referral code exists and is active
       const codeSnapshot = await db.collection(REFERRAL_COLLECTIONS.REFERRAL_CODES)
@@ -93,7 +93,7 @@ class ReferralService {
         .get();
       
       if (codeSnapshot.empty) {
-        console.log('❌ DEBUG: Invalid or inactive referral code');
+        console.log('DEBUG: Invalid or inactive referral code');
         return {
           success: false,
           error: 'Invalid or inactive referral code'
@@ -105,7 +105,7 @@ class ReferralService {
 
       // Prevent self-referral
       if (referralCodeData.user_id === referredUserId) {
-        console.log('❌ DEBUG: Self-referral not allowed');
+        console.log('DEBUG: Self-referral not allowed');
         return {
           success: false,
           error: 'Self-referral is not allowed'
@@ -118,7 +118,7 @@ class ReferralService {
         .get();
 
       if (!existingReferralSnapshot.empty) {
-        console.log('❌ DEBUG: User has already been referred');
+        console.log('DEBUG: User has already been referred');
         return {
           success: false,
           error: 'User has already been referred'
@@ -150,14 +150,14 @@ class ReferralService {
       });
 
       await batch.commit();
-      console.log('✅ DEBUG: Referral code claimed successfully');
+      console.log('DEBUG: Referral code claimed successfully');
 
       return {
         success: true,
         message: 'Referral code claimed successfully'
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error claiming referral code:', error);
+      console.error('DEBUG: Error claiming referral code:', error);
       return {
         success: false,
         error: error.message
@@ -170,7 +170,7 @@ class ReferralService {
    */
   async getReferralInfo(userId) {
     try {
-      console.log('🔄 DEBUG: Getting referral info for user:', userId);
+      console.log('DEBUG: Getting referral info for user:', userId);
       
       // Get user's referral code
       const codeSnapshot = await db.collection(REFERRAL_COLLECTIONS.REFERRAL_CODES)
@@ -178,7 +178,7 @@ class ReferralService {
         .get();
       
       if (codeSnapshot.empty) {
-        console.log('❌ DEBUG: No referral code found for user');
+        console.log('DEBUG: No referral code found for user');
         return {
           success: false,
           error: 'No referral code found'
@@ -209,7 +209,7 @@ class ReferralService {
         ...doc.data()
       }));
 
-      console.log('✅ DEBUG: Referral info retrieved successfully');
+      console.log('DEBUG: Referral info retrieved successfully');
 
       return {
         success: true,
@@ -223,7 +223,7 @@ class ReferralService {
         }
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error getting referral info:', error);
+      console.error('DEBUG: Error getting referral info:', error);
       return {
         success: false,
         error: error.message
@@ -236,7 +236,7 @@ class ReferralService {
    */
   async qualifyReferral(referredUserId, purchaseData = {}) {
     try {
-      console.log('🔄 DEBUG: Qualifying referral for user:', referredUserId);
+      console.log('DEBUG: Qualifying referral for user:', referredUserId);
       
       // Find pending referral for this user
       const referralSnapshot = await db.collection(REFERRAL_COLLECTIONS.REFERRALS)
@@ -245,7 +245,7 @@ class ReferralService {
         .get();
 
       if (referralSnapshot.empty) {
-        console.log('❌ DEBUG: No pending referral found for user');
+        console.log('DEBUG: No pending referral found for user');
         return {
           success: false,
           error: 'No pending referral found'
@@ -294,7 +294,7 @@ class ReferralService {
       }
 
       await batch.commit();
-      console.log('✅ DEBUG: Referral qualified successfully');
+      console.log('DEBUG: Referral qualified successfully');
 
       return {
         success: true,
@@ -304,7 +304,7 @@ class ReferralService {
         rewardData: rewardData
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error qualifying referral:', error);
+      console.error('DEBUG: Error qualifying referral:', error);
       return {
         success: false,
         error: error.message
@@ -317,7 +317,7 @@ class ReferralService {
    */
   async getRewards(userId) {
     try {
-      console.log('🔄 DEBUG: Getting rewards for user:', userId);
+      console.log('DEBUG: Getting rewards for user:', userId);
       
       const rewardsSnapshot = await db.collection(REFERRAL_COLLECTIONS.REWARDS)
         .where('user_id', '==', userId)
@@ -329,14 +329,14 @@ class ReferralService {
         ...doc.data()
       }));
 
-      console.log('✅ DEBUG: Rewards retrieved successfully');
+      console.log('DEBUG: Rewards retrieved successfully');
 
       return {
         success: true,
         data: rewards
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error getting rewards:', error);
+      console.error('DEBUG: Error getting rewards:', error);
       return {
         success: false,
         error: error.message
@@ -349,7 +349,7 @@ class ReferralService {
    */
   async checkActiveRewards(userId) {
     try {
-      console.log('🔄 DEBUG: Checking active rewards for user:', userId);
+      console.log('DEBUG: Checking active rewards for user:', userId);
       
       const rewardsSnapshot = await db.collection(REFERRAL_COLLECTIONS.REWARDS)
         .where('user_id', '==', userId)
@@ -361,7 +361,7 @@ class ReferralService {
         ...doc.data()
       }));
 
-      console.log('✅ DEBUG: Active rewards check completed');
+      console.log('DEBUG: Active rewards check completed');
 
       return {
         success: true,
@@ -371,7 +371,7 @@ class ReferralService {
         }
       };
     } catch (error) {
-      console.error('❌ DEBUG: Error checking active rewards:', error);
+      console.error('DEBUG: Error checking active rewards:', error);
       return {
         success: false,
         error: error.message
@@ -384,7 +384,7 @@ class ReferralService {
    */
   async markRewardAsUsed(rewardId) {
     try {
-      console.log('🔄 DEBUG: Marking reward as used:', rewardId);
+      console.log('DEBUG: Marking reward as used:', rewardId);
       
       await db.collection(REFERRAL_COLLECTIONS.REWARDS)
         .doc(rewardId)
@@ -393,10 +393,10 @@ class ReferralService {
           used_at: new Date()
         });
       
-      console.log('✅ DEBUG: Reward marked as used successfully');
+      console.log('DEBUG: Reward marked as used successfully');
       return { success: true };
     } catch (error) {
-      console.error('❌ DEBUG: Error marking reward as used:', error);
+      console.error('DEBUG: Error marking reward as used:', error);
       return { success: false, error: error.message };
     }
   }

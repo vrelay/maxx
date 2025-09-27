@@ -8,8 +8,8 @@ import React, {
   useReducer,
   useState,
 } from "react";
-import { CustomerInfo } from 'react-native-purchases';
-import Purchases from 'react-native-purchases';
+import { CustomerInfo } from "react-native-purchases";
+import Purchases from "react-native-purchases";
 import { auth } from "../config/firebase";
 import { authService } from "../services/authService";
 import revenueCatService from "../services/revenueCatService";
@@ -32,7 +32,9 @@ interface AuthContextType extends AuthState {
   looksmaxxingResults: any;
   setLooksmaxxingResults: (results: any) => void;
   processImgsGenrationForNextStep: "next3" | "nextmonthsiteration" | "";
-  setProcessImgsGenrationForNextStep: (agree: "next3" | "nextmonthsiteration" | "") => void;
+  setProcessImgsGenrationForNextStep: (
+    agree: "next3" | "nextmonthsiteration" | ""
+  ) => void;
   signIn: (credentials: LoginCredentials) => Promise<boolean>;
   signUp: (credentials: SignupCredentials) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -99,10 +101,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [leftImages, setLeftImages] = useState<SavedImage[]>([]);
   const [rightImages, setRightImages] = useState<SavedImage[]>([]);
   const [looksmaxxingResults, setLooksmaxxingResults] = useState<any>(null);
-  //it will be three type string "false", "true", "pending"
-  const [processImgsGenrationForNextStep, setProcessImgsGenrationForNextStep] = useState<"next3" | "nextmonthsiteration" | "">("");
+  const [processImgsGenrationForNextStep, setProcessImgsGenrationForNextStep] =
+    useState<"next3" | "nextmonthsiteration" | "">("");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-  
+
   // Referral link handling
   const { claimPendingReferral } = useReferralLink();
 
@@ -131,20 +133,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     if (state.user) {
       refreshCustomerInfo();
-      
+
       // Listen for customer info updates
-      const listener = revenueCatService.addCustomerInfoUpdateListener((info) => {
-        setCustomerInfo(info);
-      });
+      const listener = revenueCatService.addCustomerInfoUpdateListener(
+        (info) => {
+          setCustomerInfo(info);
+        }
+      );
 
       return () => {
         // Cleanup listener if it has a remove method
         try {
-          if (typeof (listener as any)?.remove === 'function') {
+          if (typeof (listener as any)?.remove === "function") {
             (listener as any).remove();
           }
         } catch (error) {
-          console.error('Error removing listener:', error);
+          console.error("Error removing listener:", error);
         }
       };
     }
@@ -155,7 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const info = await revenueCatService.getCustomerInfo();
       setCustomerInfo(info);
     } catch (error) {
-      console.error('Error refreshing customer info:', error);
+      console.error("Error refreshing customer info:", error);
     }
   };
 
@@ -170,7 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     if (result.success) {
       // Set RevenueCat app user ID
       await revenueCatService.initialize(result.data.uid);
-      
+
       dispatch({ type: "SET_SUCCESS", payload: result.message });
       return true;
     } else {
@@ -188,10 +192,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     if (result.success) {
       // Set RevenueCat app user ID
       await Purchases.logIn(result.data.uid);
-      
+
       // Claim pending referral if exists
       await claimPendingReferral(result.data.uid);
-      
+
       dispatch({ type: "SET_SUCCESS", payload: result.message });
       return true;
     } else {

@@ -79,8 +79,8 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api', looksmaxxingRoutes);
 app.use('/api/referral', referralRoutes);
+app.use('/api', looksmaxxingRoutes);
 app.use('/webhooks', webhookRoutes);
 
 // Root endpoint

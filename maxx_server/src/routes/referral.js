@@ -114,7 +114,7 @@ router.get('/rewards', verifyFirebaseToken, async (req, res) => {
   try {
     const { uid: userId } = req.user;
     
-    const result = await referralService.getUserRewards(userId);
+    const result = await referralService.getRewards(userId);
     
     if (result.success) {
       res.json({
