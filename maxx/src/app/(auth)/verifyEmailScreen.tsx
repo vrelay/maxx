@@ -3,15 +3,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const VerifyEmailScreen = () => {
@@ -32,6 +32,8 @@ const VerifyEmailScreen = () => {
         "Not Verified",
         "Your email is still not verified. Please check your inbox (and spam folder) for the verification link."
       );
+      setIsChecking(false);
+      return;
     }
     // If verified, the root layout will automatically navigate the user.
     setIsChecking(false);

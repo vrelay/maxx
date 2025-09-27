@@ -14,7 +14,7 @@ export default function TabsLayout() {
       <Stack.Screen name="privacyPolicy" />
       <Stack.Screen name="termsOfService" />
       <Stack.Screen 
-        name="generateOtherThreeImgs" 
+        name="mainScreen" 
         options={{
           gestureEnabled: false,
           headerBackVisible: false,

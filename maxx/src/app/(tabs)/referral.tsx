@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
 import ReferralCard from '../../componants/molecules/ReferralCard';
 import ReferralInput from '../../componants/molecules/ReferralInput';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ReferralScreen: React.FC = () => {
   const [referralClaimed, setReferralClaimed] = useState(false);

@@ -1,80 +1,93 @@
 import { Redirect } from "expo-router";
-import React from "react";
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { LinearGradient } from "expo-linear-gradient";
+import LoadingScreen from "@/src/componants/atoms/LoadingScreen";
+import looksmaxxingService from "../services/looksmaxxingService";
 
 const index = () => {
-  const { isAuthenticated, user, isLoading, isPremium, leftImages, rightImages } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={[styles.container]}>
-          <LinearGradient
-            colors={["#171840", "#6D37D4"]}
-            style={styles.gradient}
-          >
-            <View
-              style={{
-                justifyContent: "center",
-                alignItems: "center",
-                flex: 1,
-              }}
-            >
-              <ActivityIndicator size="large" color="#FFFFFF" style={styles.spinner} />
-              <Text style={styles.loadingText}>
-                Loading your potential...
-              </Text>
-            </View>
-          </LinearGradient>
-        </View>
-      </GestureHandlerRootView>
-    );
-  }
-  
-  if (isAuthenticated) {
-    // Check if user has images generated
-    const hasImages = leftImages && leftImages.length > 0 && rightImages && rightImages.length > 0;
-    
-    if (isPremium) {
-      // User has active subscription - show unlocked dashboard
-      if (hasImages) {
-        return <Redirect href="/(tabs)/generateOtherThreeImgs" />;
-      } else {
-        return <Redirect href="/(tabs)" />;
-      }
-    } else {
-      // User doesn't have active subscription - show locked dashboard
-      if (hasImages) {
-        return <Redirect href="/(tabs)/lockedDashboard" />;
-      } else {
-        return <Redirect href="/(tabs)" />;
-      }
-    }
-  } else {
-    return <Redirect href="/(auth)" />;
-  }
-};
+  const {
+    isAuthenticated,
+    user,
+    isLoading,
+    isPremium,
+    setLooksmaxxingResults,
+  } = useAuth();
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-  },
-  spinner: {
-    marginBottom: 20,
-  },
-  loadingText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontFamily: "Matter",
-    fontWeight: "400",
-    textAlign: "center",
-  },
-});
+  const [routingLoading, setRoutingLoading] = useState(true);
+  const [routingDecision, setRoutingDecision] = useState<string | null>(null);
+
+  useEffect(() => {
+    const determineRouting = async () => {
+      if (!isAuthenticated || !user) {
+        setRoutingDecision("/(auth)");
+        setRoutingLoading(false);
+        return;
+      }
+
+      try {
+        // Get the latest AI result document from Firebase
+        const aiResultResponse = await looksmaxxingService.getJsonFromFirestore(
+          user.uid,
+          "looksmaxxing_results"
+        );
+
+        // If no document exists, take user to tabs index (camera flow)
+        if (!aiResultResponse.success || !aiResultResponse.data) {
+          setRoutingDecision("/(tabs)");
+          setRoutingLoading(false);
+          setLooksmaxxingResults(aiResultResponse.data);
+          return;
+        }
+
+        const aiResult = aiResultResponse.data;
+        const generatedImages = aiResult.generatedImages || {};
+
+        // Count the number of generated right images (after images)
+        const rightImageCount = Object.keys(generatedImages).length;
+
+        // Routing logic based on your requirements:
+        if (rightImageCount >= 4) {
+          // User has four right images generated - take to main screen
+          setRoutingDecision("/(tabs)/mainScreen");
+        } else if (rightImageCount === 1) {
+          // Has only one generated image
+          if (isPremium) {
+            // User is premium - take to payment success
+            setRoutingDecision("/(tabs)/paymentSuccess");
+          } else {
+            // User not premium - take to aiResult page
+            setRoutingDecision("/(tabs)/aiResult");
+          }
+        } else {
+          // User has some other number of images (0, 2, 3) - take to index of tabs
+          setRoutingDecision("/(tabs)");
+        }
+      } catch (error) {
+        console.error("Error determining routing:", error);
+        // On error, default to tabs index
+        setRoutingDecision("/(tabs)");
+      } finally {
+        setRoutingLoading(false);
+      }
+    };
+
+    if (!isLoading) {
+      determineRouting();
+    }
+  }, [isAuthenticated, user, isLoading, isPremium]);
+
+  // Show loading while we determine the route
+  if (isLoading || routingLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Redirect based on our routing decision
+  if (routingDecision) {
+    return <Redirect href={routingDecision as any} />;
+  }
+
+  // Fallback (shouldn't reach here)
+  return <LoadingScreen />;
+};
 
 export default index;

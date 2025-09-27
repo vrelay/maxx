@@ -14,9 +14,9 @@ const HomeScreen: React.FC = () => {
   
   const handlePaymentSuccess = () => {
     setProcessImgsGenrationForNextStep("next3");
-    // Clear entire navigation stack and go to generateOtherThreeImgs
+    // Clear entire navigation stack and go to mainScreen
     router.dismissAll();
-    router.replace("/(tabs)/generateOtherThreeImgs");
+    router.replace("/(tabs)/mainScreen");
   };
 
   return (
