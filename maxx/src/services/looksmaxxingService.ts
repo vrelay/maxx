@@ -28,22 +28,6 @@ export interface AnalysisPriority {
   score: number;
   impact: "low" | "med" | "high";
   difficulty: "low" | "med" | "high";
-  time_horizon: "now" | "2-4w" | "1-3m";
-}
-
-export interface AnalysisRecommendations {
-  skin: string[];
-  hair: string[];
-  facial_hair: string[];
-  brows: string[];
-  eyes: string[];
-  teeth: string[];
-  jawline: string[];
-  posture: string[];
-  physique: string[];
-  style: string[];
-  grooming: string[];
-  accessories: string[];
 }
 
 export interface EditBriefItem {
@@ -54,7 +38,6 @@ export interface EditBriefItem {
 export interface StructuredAnalysisResponse {
   score: AnalysisScore;
   priorities: AnalysisPriority[];
-  recommendations: AnalysisRecommendations;
   edit_brief_front: EditBriefItem[];
   tone: "natural" | "editorial" | "studio";
   lighting: string;

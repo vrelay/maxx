@@ -102,7 +102,6 @@ const LooksmaxxingPlanScreen: React.FC = () => {
   // Function to organize data by plan types
   const organizeDataByPlanTypes = (data: any) => {
     const priorities = data.priorities || [];
-    const recommendations = data.recommendations || {};
 
     const organized: { [key: string]: PlanType } = {
       "Month 1-2": {

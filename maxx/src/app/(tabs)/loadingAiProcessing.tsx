@@ -149,7 +149,7 @@ const LoadingScreen: React.FC = () => {
   // Step auto advance
   useEffect(() => {
     if (step < STEP_TEXTS.length - 1) {
-      const t = setTimeout(() => setStep((prev) => prev + 1), 30000);
+      const t = setTimeout(() => setStep((prev) => prev + 1), 10000);
       return () => clearTimeout(t);
     }
   }, []);
