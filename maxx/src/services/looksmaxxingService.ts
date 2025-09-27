@@ -11,18 +11,18 @@ export interface AnalysisScore {
 
 export interface AnalysisPriority {
   area:
-    | "jawline"
-    | "skin"
-    | "hair"
-    | "brows"
-    | "facial_hair"
-    | "eyes"
-    | "teeth"
-    | "posture"
-    | "physique"
-    | "style"
-    | "grooming"
-    | "accessories";
+  | "jawline"
+  | "skin"
+  | "hair"
+  | "brows"
+  | "facial_hair"
+  | "eyes"
+  | "teeth"
+  | "posture"
+  | "physique"
+  | "style"
+  | "grooming"
+  | "accessories";
   why: string;
   exercises: string;
   score: number;
@@ -88,8 +88,13 @@ export interface LooksmaxxingResult {
 }
 
 // API Configuration
-const API_BASE_URL = "http://34.41.142.44/api";
+// const API_BASE_URL = "https://bapi.lookai.me/api";
 // 'http://10.0.2.2:3000/api'  // Android emulator localhost
+
+// API Configuration - Local Development Server
+const API_BASE_URL = "http://10.145.59.119:3000/api";
+// Alternative: Use localhost if testing on simulator
+// const API_BASE_URL = "http://localhost:3000/api";
 
 // Initialize Firebase Auth
 const auth = getAuth(app);
@@ -102,10 +107,20 @@ class LooksmaxxingService {
    */
   private async getAuthToken(): Promise<string> {
     const user = auth.currentUser;
+    console.log("Current user:", user ? user.uid : "No user");
+
     if (!user) {
-      throw new Error("User not authenticated");
+      throw new Error("User not authenticated - please sign in first");
     }
-    return await user.getIdToken();
+
+    try {
+      const token = await user.getIdToken();
+      console.log("Firebase token obtained successfully");
+      return token;
+    } catch (error) {
+      console.error("Failed to get Firebase token:", error);
+      throw new Error("Failed to get authentication token");
+    }
   }
 
   /**
@@ -114,15 +129,25 @@ class LooksmaxxingService {
   private async makeApiRequest(
     endpoint: string,
     data: any,
-    timeout: number = 180000
+    timeout: number = 300000
   ): Promise<any> {
     try {
+      console.log(`Making API request to: ${this.apiBaseUrl}${endpoint}`);
+      console.log("Request data keys:", Object.keys(data));
+
       const token = await this.getAuthToken();
+      console.log("Auth token obtained, making request...");
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const timeoutId = setTimeout(() => {
+        console.log("Request timeout triggered");
+        controller.abort();
+      }, timeout);
 
-      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+      const url = `${this.apiBaseUrl}${endpoint}`;
+      console.log("Full URL:", url);
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,39 +158,78 @@ class LooksmaxxingService {
       });
 
       clearTimeout(timeoutId);
+      console.log(`Response status: ${response.status}`);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error("API error response:", errorData);
+        } catch (parseError) {
+          console.error("Failed to parse error response");
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log("API request successful");
+      return result;
     } catch (error) {
+      console.error("API request failed:", error);
+
       if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("Request timeout");
+        throw new Error("Request timeout - the server took too long to respond");
+      }
+      if (error instanceof Error && error.message.includes("Network request failed")) {
+        throw new Error("Network connection failed - please check your internet connection and try again");
       }
       throw error;
     }
   }
 
-  async testConnection(): Promise<void> {
+  async testConnection(): Promise<{ success: boolean, error?: string }> {
     try {
       console.log("Testing API server connection...");
+      console.log("API Base URL:", this.apiBaseUrl);
 
-      const response = await fetch(
-        `${this.apiBaseUrl.replace("/api", "")}/health`
-      );
+      const healthUrl = `${this.apiBaseUrl.replace("/api", "")}/health`;
+      console.log("Health check URL:", healthUrl);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
 
-      if (response.ok && data.status === "healthy") {
+      if (data.status === "healthy") {
         console.log("API server connection successful:", data);
+        return { success: true };
       } else {
-        throw new Error("API server health check failed");
+        throw new Error("API server health check failed - invalid response");
       }
     } catch (error) {
-      console.error("Connection test failed:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error("Connection test failed:", errorMessage);
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        return { success: false, error: 'Connection timeout - server may be down' };
+      }
+
+      return { success: false, error: `Connection failed: ${errorMessage}` };
     }
   }
 
@@ -191,6 +255,12 @@ class LooksmaxxingService {
   ): Promise<LooksmaxxingResult> {
     try {
       console.log("Starting API calls with URLs...");
+
+      // Test connection first - Temporarily disabled for local development
+      // const connectionTest = await this.testConnection();
+      // if (!connectionTest.success) {
+      //   throw new Error(`API server connection failed: ${connectionTest.error}`);
+      // }
 
       // First database save: Initial photo URLs
       const initialData = {

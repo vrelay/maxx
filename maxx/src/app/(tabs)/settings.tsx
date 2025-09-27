@@ -8,10 +8,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import { useAuth } from "@/src/context/AuthContext";
+import { authService } from "@/src/services/authService";
+import referralService from '../../services/referralService';
 
 // Notification Modal Component
 const NotificationModal = ({
@@ -93,15 +97,98 @@ const SettingsScreen: React.FC = () => {
   const [showNPSModal, setShowNPSModal] = useState(false);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] =
     useState(false);
+  const { signOut, user } = useAuth();
 
-  const handleLogout = () => {
-    // Dummy logout - nothing happens
-    console.log("Logout pressed");
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const result = await authService.signOut();
+              if (result.success) {
+                await signOut();
+                router.replace("/(auth)");
+              } else {
+                Alert.alert("Error", result.error || "Logout failed");
+              }
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Logout failed. Please try again.");
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const handleInviteFriends = () => {
-    // Dummy invite - nothing happens
-    console.log("Invite friends pressed");
+  const handleInviteFriends = async () => {
+    console.log("🔗 DEBUG: Invite friends pressed");
+    
+    try {
+      // Check if user is authenticated
+      if (!user) {
+        console.log("❌ DEBUG: User not authenticated");
+        Alert.alert("Error", "Please sign in to invite friends");
+        return;
+      }
+
+      console.log("✅ DEBUG: User authenticated:", user.uid);
+
+      // Get or generate referral code
+      console.log("🔄 DEBUG: Getting referral info...");
+      const referralResult = await referralService.getReferralInfo();
+      
+      if (referralResult.success && referralResult.data) {
+        console.log("✅ DEBUG: Referral info loaded:", referralResult.data);
+        
+        // Generate share message (no URL)
+        const message = referralService.generateShareMessage(referralResult.data.code);
+        
+        console.log("📤 DEBUG: Sharing with message:", message);
+        
+        // Use React Native Share
+        const Share = require('react-native').Share;
+        await Share.share({
+          message: message,
+          title: 'Join Maxx with my referral code!'
+        });
+        
+        console.log("✅ DEBUG: Share dialog opened successfully");
+      } else {
+        console.log("❌ DEBUG: Failed to get referral info:", referralResult.error);
+        
+        // Try to generate a new referral code
+        console.log("🔄 DEBUG: Attempting to generate new referral code...");
+        const generateResult = await referralService.generateReferralCode();
+        
+        if (generateResult.success && generateResult.data) {
+          console.log("✅ DEBUG: New referral code generated:", generateResult.data);
+          
+          const message = referralService.generateShareMessage(generateResult.data.code);
+          
+          const Share = require('react-native').Share;
+          await Share.share({
+            message: message,
+            title: 'Join Maxx with my referral code!'
+          });
+        } else {
+          console.log("❌ DEBUG: Failed to generate referral code:", generateResult.error);
+          Alert.alert("Error", "Failed to generate referral code. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("❌ DEBUG: Error in handleInviteFriends:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
   };
 
   const handleManagePlan = () => {

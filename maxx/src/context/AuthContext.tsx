@@ -9,9 +9,12 @@ import React, {
   useState,
 } from "react";
 import { CustomerInfo } from 'react-native-purchases';
+import Purchases from 'react-native-purchases';
 import { auth } from "../config/firebase";
 import { authService } from "../services/authService";
 import revenueCatService from "../services/revenueCatService";
+import { useSubscriptionMonitoring } from "../services/subscriptionService";
+import { useReferralLink } from "../hooks/useReferralLink";
 import {
   AuthAction,
   AuthState,
@@ -99,6 +102,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   //it will be three type string "false", "true", "pending"
   const [processImgsGenrationForNextStep, setProcessImgsGenrationForNextStep] = useState<"next3" | "nextmonthsiteration" | "">("");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  
+  // Referral link handling
+  const { claimPendingReferral } = useReferralLink();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -132,8 +138,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
 
       return () => {
-        if (listener && listener.remove) {
-          listener.remove();
+        // Cleanup listener if it has a remove method
+        try {
+          if (typeof (listener as any)?.remove === 'function') {
+            (listener as any).remove();
+          }
+        } catch (error) {
+          console.error('Error removing listener:', error);
         }
       };
     }
@@ -148,12 +159,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  // Add subscription monitoring after refreshCustomerInfo is defined
+  useSubscriptionMonitoring(refreshCustomerInfo);
+
   const signIn = async (credentials: LoginCredentials) => {
     dispatch({ type: "SET_LOADING", payload: true });
     dispatch({ type: "CLEAR_ERROR" });
 
     const result = await authService.signInWithEmail(credentials);
     if (result.success) {
+      // Set RevenueCat app user ID
+      await revenueCatService.initialize(result.data.uid);
+      
       dispatch({ type: "SET_SUCCESS", payload: result.message });
       return true;
     } else {
@@ -169,6 +186,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const result = await authService.signUpWithEmail(credentials);
 
     if (result.success) {
+      // Set RevenueCat app user ID
+      await Purchases.logIn(result.data.uid);
+      
+      // Claim pending referral if exists
+      await claimPendingReferral(result.data.uid);
+      
       dispatch({ type: "SET_SUCCESS", payload: result.message });
       return true;
     } else {

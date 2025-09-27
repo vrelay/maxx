@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import config from './config/config.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import looksmaxxingRoutes from './routes/looksmaxxing.js';
+import referralRoutes from './routes/referral.js';
+import webhookRoutes from './routes/webhooks.js';
 
 const app = express();
 
@@ -78,6 +80,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api', looksmaxxingRoutes);
+app.use('/api/referral', referralRoutes);
+app.use('/webhooks', webhookRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

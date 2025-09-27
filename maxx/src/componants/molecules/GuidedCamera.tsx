@@ -4,7 +4,9 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Image,
+  Linking,
   Modal,
   StyleSheet,
   Text,
@@ -62,10 +64,40 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   const [frontPhoto, setFrontPhoto] = useState<string | null>(null);
   const [sidePhoto, setSidePhoto] = useState<string | null>(null);
   const [fullBodyPhoto, setFullBodyPhoto] = useState<string | null>(null);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
+
+  const handlePermissionRequest = async () => {
+    try {
+      setPermissionError(null);
+      const result = await requestPermission();
+      
+      if (!result.granted) {
+        setPermissionError('Camera permission denied');
+        Alert.alert(
+          "Camera Access Required",
+          "This app needs camera access to take photos for analysis. Please enable it in Settings.",
+          [
+            { text: "Cancel", onPress: onClose },
+            { text: "Open Settings", onPress: () => Linking.openSettings() }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Permission request failed:', error);
+      setPermissionError('Failed to request camera permission');
+      Alert.alert(
+        "Permission Error",
+        "Failed to request camera permission. Please try again.",
+        [{ text: "OK", onPress: onClose }]
+      );
+    }
+  };
 
   useEffect(() => {
-    if (visible && !permission?.granted) requestPermission();
-  }, [visible]);
+    if (visible && !permission?.granted) {
+      handlePermissionRequest();
+    }
+  }, [visible, permission]);
 
   // Effect to switch camera based on the step
   useEffect(() => {
@@ -77,16 +109,39 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
   }, [step]);
 
   const handleCapture = async () => {
-    if (cameraRef.current) {
+    try {
+      if (!cameraRef.current) {
+        throw new Error('Camera not ready');
+      }
+      
+      if (!permission?.granted) {
+        throw new Error('Camera permission not granted');
+      }
+
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1,
         skipProcessing: false,
         exif: false,
       });
+      
+      if (!photo?.uri) {
+        throw new Error('Failed to capture photo');
+      }
+      
       setPhotoUri(photo.uri);
+      setPermissionError(null);
+      
       if (step === "front-position") setStep("front-preview");
       else if (step === "side-position") setStep("side-preview");
       else if (step === "full-body-position") setStep("full-body-preview");
+    } catch (error) {
+      console.error('Camera capture error:', error);
+      setPermissionError('Failed to capture photo. Please try again.');
+      Alert.alert(
+        "Capture Error",
+        "Failed to capture photo. Please try again.",
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -225,7 +280,7 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
           </View>
         ) : (
           <View style={styles.cameraContainer}>
-            {permission?.granted && (
+            {permission?.granted ? (
               <CameraView
                 ref={cameraRef}
                 style={styles.camera}
@@ -233,6 +288,20 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                 mode="picture"
                 enableTorch={false}
               />
+            ) : (
+              <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>
+                  {permissionError || 'Requesting camera permission...'}
+                </Text>
+                {permissionError && (
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={handlePermissionRequest}
+                  >
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
             {(step === "front-position" || step === "side-position") && (
               <View style={styles.ovalOverlayContainer}>
@@ -465,6 +534,31 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     opacity: 0.85,
+  },
+  // Permission handling styles
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+    paddingHorizontal: scale(20),
+  },
+  permissionText: {
+    color: "#fff",
+    fontSize: moderateScale(18),
+    textAlign: "center",
+    marginBottom: verticalScale(20),
+  },
+  retryButton: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: moderateScale(8),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(24),
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: moderateScale(16),
+    fontWeight: "600",
   },
 });
 

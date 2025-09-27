@@ -6,9 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 
 const index = () => {
-  const { isAuthenticated, user, isLoading } = useAuth();
-  const imagesGenerated = true;
-  const isSubscriptionActive = false;
+  const { isAuthenticated, user, isLoading, isPremium, leftImages, rightImages } = useAuth();
   
   if (isLoading) {
     return (
@@ -37,12 +35,23 @@ const index = () => {
   }
   
   if (isAuthenticated) {
-    if (isSubscriptionActive) {
-      return <Redirect href="/(tabs)/generateOtherThreeImgs" />;
-    } else if (imagesGenerated) {
-      return <Redirect href="/(tabs)/aiResult" />;
-    } else if (user?.emailVerified) {
-      return <Redirect href="/(tabs)" />;
+    // Check if user has images generated
+    const hasImages = leftImages && leftImages.length > 0 && rightImages && rightImages.length > 0;
+    
+    if (isPremium) {
+      // User has active subscription - show unlocked dashboard
+      if (hasImages) {
+        return <Redirect href="/(tabs)/generateOtherThreeImgs" />;
+      } else {
+        return <Redirect href="/(tabs)" />;
+      }
+    } else {
+      // User doesn't have active subscription - show locked dashboard
+      if (hasImages) {
+        return <Redirect href="/(tabs)/lockedDashboard" />;
+      } else {
+        return <Redirect href="/(tabs)" />;
+      }
     }
   } else {
     return <Redirect href="/(auth)" />;

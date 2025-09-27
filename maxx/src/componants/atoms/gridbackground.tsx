@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: verticalScale(150),
     width: "100%",
-    zIndex: 1,
+    zIndex: -1,
   },
   gridImageStyle: {
     resizeMode: "cover",

@@ -2,6 +2,7 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
 import MonthlyProgressBars from "@/src/componants/molecules/MonthlyProgressBars";
+import Paywall from "@/src/componants/molecules/Paywall";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import { FontAwesome } from "@expo/vector-icons";
@@ -15,13 +16,15 @@ import {
   View,
   Animated,
   Dimensions,
+  Modal,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
-  const { leftImages,rightImages } = useAuth();
+  const { leftImages, rightImages, refreshCustomerInfo } = useAuth();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -75,11 +78,27 @@ const LockedDashboard: React.FC = () => {
 
             <ButtonStart
               text="Unlock at $9.99/week"
-              handlepress={() => router.push("/(tabs)/paymentSuccess")}
+              handlepress={() => setShowPaywall(true)}
             />
           </View>
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Paywall Modal */}
+      <Modal
+        visible={showPaywall}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <Paywall
+          onPurchaseSuccess={() => {
+            setShowPaywall(false);
+            refreshCustomerInfo();
+            // Navigate to the unlocked dashboard or next screen
+            router.push("/(tabs)/paymentSuccess");
+          }}
+        />
+      </Modal>
     </GestureHandlerRootView>
   );
 };
