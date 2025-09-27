@@ -81,7 +81,7 @@ const index = () => {
     if (!isLoading && !isPremiumLoading) {
       determineRouting();
     }
-  }, []);
+  }, [isLoading, isPremiumLoading]);
 
   // Show loading while we determine the route or while premium status is loading
   if (isLoading || isPremiumLoading || routingLoading) {

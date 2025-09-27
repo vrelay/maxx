@@ -160,12 +160,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           dispatch({ type: "SET_PREMIUM_LOADING", payload: true });
           const isPremiumUser = revenueCatService.isPremiumUser(info);
           const purchaseDate = await revenueCatService.getPremiumPurchaseDate();
-          
+
           dispatch({ type: "SET_PREMIUM_STATUS", payload: isPremiumUser });
           dispatch({
             type: "SET_PREMIUM_PURCHASE_DATE",
             payload: purchaseDate,
           });
+          dispatch({ type: "SET_PREMIUM_LOADING", payload: false });
         }
       );
 
@@ -200,16 +201,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const info = await revenueCatService.getCustomerInfo();
       const isPremiumUser = revenueCatService.isPremiumUser(info);
       const purchaseDate = await revenueCatService.getPremiumPurchaseDate();
-      
+
       dispatch({ type: "SET_PREMIUM_STATUS", payload: isPremiumUser });
       dispatch({ type: "SET_PREMIUM_PURCHASE_DATE", payload: purchaseDate });
-      
+      dispatch({ type: "SET_PREMIUM_LOADING", payload: false });
       // Also update customer info
       setCustomerInfo(info);
     } catch (error) {
       console.error("Error refreshing premium status:", error);
       dispatch({ type: "SET_PREMIUM_STATUS", payload: false });
       dispatch({ type: "SET_PREMIUM_PURCHASE_DATE", payload: null });
+      dispatch({ type: "SET_PREMIUM_LOADING", payload: false });
     }
   };
 
