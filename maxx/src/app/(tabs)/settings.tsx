@@ -273,12 +273,12 @@ const SettingsScreen: React.FC = () => {
 
               {/* Modal Trigger Buttons */}
               <View style={styles.modalTriggersSection}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.modalTriggerButton}
                   onPress={() => setShowInviteFriendsModal(true)}
                 >
                   <Text style={styles.modalTriggerText}>Invite Friends</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <TouchableOpacity
                   style={styles.modalTriggerButton}

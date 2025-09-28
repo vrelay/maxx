@@ -57,6 +57,11 @@ const VerifyEmailScreen = () => {
     setIsResending(false);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace("/(auth)/authScreen");
+  };
+
   return (
     <LinearGradient
       colors={["#171840", "#6D37D4"]}
@@ -98,7 +103,7 @@ const VerifyEmailScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>Use a different account</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -125,16 +130,22 @@ const styles = StyleSheet.create({
   title: {
     color: "#FFFFFF",
     fontFamily: "Plush-Trial",
-    fontSize: moderateScale(36),
+    fontSize: moderateScale(40),
+    fontWeight: "500",
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     textAlign: "center",
     marginBottom: verticalScale(16),
   },
   subtitle: {
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
     fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
-    lineHeight: verticalScale(24),
     marginBottom: verticalScale(40),
   },
   emailText: {
@@ -163,8 +174,10 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontFamily: "Matter",
-    fontSize: moderateScale(16),
-    fontWeight: "600",
+    fontSize: moderateScale(14),
+    fontWeight: "500",
+    lineHeight: moderateScale(16.8), // 120% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
   },
   signOutButton: {
     padding: scale(10),
@@ -172,7 +185,10 @@ const styles = StyleSheet.create({
   signOutText: {
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
   },
 });
 

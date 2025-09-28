@@ -101,10 +101,11 @@ const styles = StyleSheet.create({
   heading: {
     color: "#FFFFFF",
     fontFamily: "Plush-Trial",
-    fontSize: moderateScale(36),
+    fontSize: moderateScale(40),
     fontWeight: "500",
-    lineHeight: verticalScale(40),
-    letterSpacing: moderateScale(-1),
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     marginBottom: verticalScale(16),
   },
   headingItalic: {
@@ -115,8 +116,9 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
     fontSize: moderateScale(16),
-    lineHeight: verticalScale(22),
     fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
   },
 });
 

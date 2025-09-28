@@ -190,16 +190,23 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#FFFFFF",
-    fontSize: moderateScale(36),
+    fontFamily: "Plush-Trial",
+    fontSize: moderateScale(40),
     fontWeight: "500",
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     textAlign: "left",
   },
   subtitle: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: moderateScale(15),
+    color: "rgba(255, 255, 255, 0.7)",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "left",
     marginTop: verticalScale(16),
-    fontWeight: "400",
     maxWidth: "90%",
   },
   photosContainer: {
@@ -222,8 +229,11 @@ const styles = StyleSheet.create({
   photo: { width: "100%", height: "100%", resizeMode: "cover" },
   photoLabel: {
     color: "rgba(255, 255, 255, 0.9)",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
-    fontWeight: "500",
+    fontWeight: "400",
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
   },
   scoresContainer: {
     flexDirection: "row",
@@ -244,13 +254,19 @@ const styles = StyleSheet.create({
   scoreIcon: { fontSize: moderateScale(16) },
   scoreName: {
     color: "rgba(255, 255, 255, 0.8)",
-    fontSize: moderateScale(14),
-    fontWeight: "500",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
   },
   scoreValue: {
     color: "#FFFFFF",
-    fontSize: moderateScale(14),
-    fontWeight: "600",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "500",
+    lineHeight: moderateScale(19.2), // 120% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
   },
   bottomContainer: {
     paddingVertical: verticalScale(20),
@@ -266,8 +282,11 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     color: "rgba(255, 255, 255, 0.7)",
-    fontSize: moderateScale(10),
+    fontFamily: "Matter",
+    fontSize: moderateScale(11),
     fontWeight: "400",
+    lineHeight: moderateScale(16.8), // 140% of 12px
+    letterSpacing: moderateScale(-0.12), // -1% of 12px
     flex: 1,
   },
 });

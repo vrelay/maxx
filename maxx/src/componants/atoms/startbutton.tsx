@@ -38,11 +38,12 @@ const styles = StyleSheet.create({
     elevation: moderateScale(8),
   },
   buttonText: {
-    color: "#2D1B69",
+    color: "#000000",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
     fontWeight: "500",
-    letterSpacing: moderateScale(-1),
-   
+    lineHeight: moderateScale(16.8), // 120% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
   },
 });
 

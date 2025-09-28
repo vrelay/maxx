@@ -124,8 +124,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
-    fontSize: moderateScale(22),
-    fontWeight: "700",
+    fontFamily: "Matter",
+    fontSize: moderateScale(21),
+    fontWeight: "500",
+    lineHeight: moderateScale(28), // 28px
+    letterSpacing: moderateScale(-0.42), // -2% of 21px
   },
   settingsIcon: {
     color: "#fff",
@@ -234,14 +237,21 @@ const styles = StyleSheet.create({
   },
   navCardTitle: {
     color: "#fff",
-    fontSize: moderateScale(15),
-    fontWeight: "700",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "500",
+    lineHeight: moderateScale(20), // 20px
+    letterSpacing: 0, // 0%
     marginBottom: verticalScale(8),
     textAlign: "center",
   },
   navCardSubtitle: {
-    color: "rgb(255, 255, 255)",
+    color: "rgba(255, 255, 255, 0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
+    fontWeight: "400",
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
     textAlign: "center",
   },
 });

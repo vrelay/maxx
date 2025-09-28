@@ -1,5 +1,4 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
-import ButtonStart from "@/src/componants/atoms/startbutton";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { FontAwesome } from "@expo/vector-icons";
@@ -166,6 +165,7 @@ const LoadingScreen: React.FC = () => {
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
+          <View></View>
           <View style={styles.textContainer}>
             {STEP_TEXTS.map((line, i) => (
               <View
@@ -250,10 +250,14 @@ const styles = StyleSheet.create({
     minHeight: verticalScale(110),
   },
   mainText: {
-    fontSize: moderateScale(18),
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
+    textAlign: "center",
     color: "#fff",
     paddingLeft: 8,
-    letterSpacing: 0.2,
   },
   icon: {
     color: "#fff",

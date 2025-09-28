@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: verticalScale(20),
     paddingBottom: verticalScale(20),
+    gap: verticalScale(170),
   },
   contentContainer: {
     flex: 1,
@@ -178,19 +179,23 @@ const styles = StyleSheet.create({
   title: {
     color: "#FFFFFF",
     fontFamily: "Plush-Trial",
-    fontSize: moderateScale(24),
+    fontSize: moderateScale(28),
     fontWeight: "500",
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     textAlign: "center",
     marginBottom: verticalScale(8),
-    letterSpacing: moderateScale(-0.5),
   },
   subtitle: {
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
     marginBottom: verticalScale(40),
-    fontWeight: "400",
   },
   codeInputContainer: {
     flexDirection: "row",
@@ -218,10 +223,11 @@ const styles = StyleSheet.create({
   helperText: {
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
-    lineHeight: verticalScale(20),
-    fontWeight: "500",
   },
   bottomContainer: {
     paddingBottom: verticalScale(10),
@@ -233,9 +239,11 @@ const styles = StyleSheet.create({
   noCodeText: {
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
-    fontWeight: "500",
   },
 });
 

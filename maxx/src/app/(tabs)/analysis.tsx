@@ -94,7 +94,7 @@ const RatingCircle = ({ score, label }: { score: number; label: string }) => (
   <View style={[styles.ratingBox]}>
     <CircularProgress
       score={score}
-      size={scale(70)}
+      size={scale(60)}
       strokeWidth={4}
       showText={true}
     />
@@ -227,7 +227,7 @@ const Analysis: React.FC = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GridBackgroundImg top={true} />
+      {/* <GridBackgroundImg top={true} /> */}
       <LinearGradient
         colors={["#171840", "#6D37D4"]}
         locations={[0, 1]}
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: scale(16),
+    // paddingHorizontal: scale(16),
     paddingTop: verticalScale(10),
     paddingBottom: verticalScale(20),
   },
@@ -305,8 +305,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
+    fontFamily: "Matter",
     fontSize: moderateScale(18),
-    fontWeight: "600",
+    fontWeight: "500",
+    lineHeight: moderateScale(25.2), // 140% of 18px
+    letterSpacing: moderateScale(-0.18), // -1% of 18px
   },
   content: {
     flex: 1,
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: verticalScale(10),
+    paddingVertical: verticalScale(6),
     borderRadius: moderateScale(10),
     alignItems: "center",
   },
@@ -329,8 +332,12 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
-    fontWeight: "600",
+    fontWeight: "500",
+    lineHeight: moderateScale(20), // 20px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
+    textAlign: "center",
   },
   activeTabText: {
     color: "#2D1B69",
@@ -351,17 +358,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(135, 89, 209, 0.35)",
     width: scale(100),
+    height: verticalScale(100),
     padding: scale(10),
     borderRadius: moderateScale(12),
   },
   ratingCircleText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: moderateScale(24),
+    fontSize: moderateScale(20),
   },
   ratingLabel: {
     color: "rgba(255,255,255,0.85)",
-    fontWeight: "500",
+    fontFamily: "Matter",
+    fontWeight: "400",
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
     fontSize: moderateScale(14),
     marginTop: verticalScale(10),
   },

@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 interface ApiProgressComponentProps {
@@ -17,7 +13,6 @@ const ApiProgressComponent: React.FC<ApiProgressComponentProps> = ({
   progress,
   step,
 }) => {
-
   const getStepText = (currentStep: number): string => {
     const stepTexts: { [key: number]: string } = {
       0: "Initializing...",
@@ -31,7 +26,6 @@ const ApiProgressComponent: React.FC<ApiProgressComponentProps> = ({
     return stepTexts[currentStep] || "Processing...";
   };
 
-
   if (!isVisible) return null;
 
   return (
@@ -39,17 +33,10 @@ const ApiProgressComponent: React.FC<ApiProgressComponentProps> = ({
       <Text style={styles.loadingTitle}>
         Your plan and images are on the way...
       </Text>
-      <Text style={styles.loadingSubtitle}>
-        {getStepText(step)}
-      </Text>
+      <Text style={styles.loadingSubtitle}>Just about few minutes to go.</Text>
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
-          <View
-            style={[
-              styles.progressBarFill,
-              { width: `${progress}%` }
-            ]}
-          />
+          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
         </View>
       </View>
     </View>
@@ -67,14 +54,21 @@ const styles = StyleSheet.create({
   },
   loadingTitle: {
     color: "#fff",
-    fontSize: moderateScale(16),
-    fontWeight: "600",
+    fontFamily: "Matter",
+    fontSize: moderateScale(14),
+    fontWeight: "500",
+    lineHeight: moderateScale(22), // 22px
+    letterSpacing: 0, // 0%
     textAlign: "center",
     marginBottom: verticalScale(8),
   },
   loadingSubtitle: {
     color: "rgba(255, 255, 255, 0.8)",
-    fontSize: moderateScale(14),
+    fontFamily: "Matter",
+    fontSize: moderateScale(12),
+    fontWeight: "400",
+    lineHeight: moderateScale(16), // 16px
+    letterSpacing: moderateScale(-0.12), // -1% of 12px
     textAlign: "center",
     marginBottom: verticalScale(20),
   },

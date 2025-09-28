@@ -172,7 +172,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
   //   testApiCall();
   // }, []);
 
-  // REAL API CALL useEffect - Uncomment this for production
+  // REAL API CALL useEffect - for production
   useEffect(() => {
     handleApiProgress(0);
     const call = async () => {
@@ -344,73 +344,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
-    fontSize: moderateScale(22),
-    fontWeight: "700",
+    fontFamily: "Matter",
+    fontSize: moderateScale(21),
+    fontWeight: "500",
+    lineHeight: moderateScale(28), // 28px
+    letterSpacing: moderateScale(-0.42), // -2% of 21px
   },
   settingsIcon: {
     color: "#fff",
     fontSize: moderateScale(24),
-  },
-  notificationBanner: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: moderateScale(12),
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    marginTop: verticalScale(15),
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  notificationText: {
-    color: "#000",
-    fontSize: moderateScale(14),
-    fontWeight: "500",
-    flex: 1,
-  },
-  notificationClose: {
-    color: "#000",
-    fontSize: moderateScale(20),
-    fontWeight: "bold",
-  },
-  loadingCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: moderateScale(16),
-    paddingVertical: verticalScale(20),
-    paddingHorizontal: scale(20),
-    marginTop: verticalScale(20),
-    alignItems: "center",
-  },
-  loadingTitle: {
-    color: "#fff",
-    fontSize: moderateScale(16),
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: verticalScale(8),
-  },
-  loadingSubtitle: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: moderateScale(14),
-    textAlign: "center",
-    marginBottom: verticalScale(20),
-  },
-  progressBarContainer: {
-    width: "100%",
-  },
-  progressBarBackground: {
-    height: 6,
-    width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 3,
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 3,
-    shadowColor: "#fff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
   },
   imageContainer: {
     alignItems: "center",
@@ -458,14 +400,21 @@ const styles = StyleSheet.create({
   },
   navCardTitle: {
     color: "#fff",
-    fontSize: moderateScale(15),
-    fontWeight: "700",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "500",
+    lineHeight: moderateScale(20), // 20px
+    letterSpacing: 0, // 0%
     marginBottom: verticalScale(8),
     textAlign: "center",
   },
   navCardSubtitle: {
-    color: "rgb(255, 255, 255)",
+    color: "rgba(255, 255, 255, 0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
+    fontWeight: "400",
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
     textAlign: "center",
   },
   confettiContainer: {

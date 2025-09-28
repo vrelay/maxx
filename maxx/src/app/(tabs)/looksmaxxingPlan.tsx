@@ -155,7 +155,7 @@ const LooksmaxxingPlanScreen: React.FC = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GridBackgroundImg top={true} />
+      {/* <GridBackgroundImg top={true} /> */}
       <LinearGradient
         colors={["#171840", "#6D37D4"]}
         locations={[0, 1]}
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: scale(16),
+    // paddingHorizontal: scale(16),
     paddingTop: verticalScale(10),
     paddingBottom: verticalScale(20),
   },
@@ -265,8 +265,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
+    fontFamily: "Matter",
     fontSize: moderateScale(18),
-    fontWeight: "600",
+    fontWeight: "500",
+    lineHeight: moderateScale(25.2), // 140% of 18px
+    letterSpacing: moderateScale(-0.18), // -1% of 18px
   },
   content: {
     flex: 1,
@@ -280,7 +283,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: verticalScale(10),
+    paddingVertical: verticalScale(6),
     borderRadius: moderateScale(10),
     alignItems: "center",
   },
@@ -289,8 +292,12 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
-    fontWeight: "600",
+    fontWeight: "500",
+    lineHeight: moderateScale(20), // 20px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
+    textAlign: "center",
   },
   activeTabText: {
     color: "#2D1B69",
@@ -305,30 +312,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "transparent",
+    width: scale(320),
+    height: verticalScale(64),
+    paddingTop: verticalScale(12),
     paddingBottom: verticalScale(12),
+    paddingHorizontal: scale(8),
+    gap: scale(8),
   },
   gradientBorder: {
     height: 1,
     width: "100%",
   },
   imagePlaceholder: {
-    width: scale(50),
-    height: scale(50),
-    borderRadius: moderateScale(12),
-    backgroundColor: "rgba(255,255,255,0.15)",
-    marginRight: scale(16),
+    width: scale(36),
+    height: scale(36),
+    borderRadius: moderateScale(4),
+    backgroundColor: "#FFFFFF",
   },
   taskTextContainer: {
     flex: 1,
   },
   taskTitle: {
     color: "#fff",
+    fontFamily: "Matter",
     fontSize: moderateScale(16),
-    fontWeight: "700",
+    fontWeight: "500",
+    lineHeight: moderateScale(19.2), // 120% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
   },
   taskDescription: {
     color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(12),
+    fontWeight: "400",
+    height: verticalScale(16.8),
+    lineHeight: moderateScale(16.8), // 140% of 12px
+    letterSpacing: moderateScale(-0.12), // -1% of 12px
     marginTop: verticalScale(2),
   },
   monthText: {
@@ -339,14 +358,24 @@ const styles = StyleSheet.create({
   },
   levelPill: {
     backgroundColor: "#fff",
-    borderRadius: moderateScale(10),
-    paddingVertical: verticalScale(6),
-    paddingHorizontal: scale(12),
+    borderRadius: moderateScale(6),
+    width: scale(63),
+    height: verticalScale(24),
+    paddingTop: verticalScale(6),
+    paddingRight: scale(8),
+    paddingBottom: verticalScale(4),
+    paddingLeft: scale(8),
+    justifyContent: "center",
+    alignItems: "center",
   },
   taskLevel: {
     color: "#2F1C6A",
-    fontWeight: "700",
-    fontSize: moderateScale(13),
+    fontFamily: "Matter",
+    fontWeight: "500",
+    fontSize: moderateScale(12),
+    lineHeight: moderateScale(14.4), // 120% of 12px
+    letterSpacing: 0, // 0%
+    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,

@@ -540,15 +540,21 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: "#fff",
-    fontSize: moderateScale(30),
-    fontWeight: "700",
+    fontFamily: "Plush-Trial",
+    fontSize: moderateScale(32),
+    fontWeight: "500",
+    lineHeight: moderateScale(36.8), // 114.99% of 32px
+    letterSpacing: moderateScale(-0.32), // -1% of 32px
     textAlign: "center",
     marginBottom: verticalScale(2),
   },
   subheading: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: moderateScale(14),
-    fontWeight: "600",
+    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
     marginBottom: verticalScale(8),
   },
@@ -574,10 +580,14 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: "#fff",
-    fontSize: moderateScale(22),
-    marginBottom: verticalScale(20),
-    fontWeight: "600",
+    fontFamily: "Matter",
+    fontSize: moderateScale(20),
+    fontWeight: "500",
+    fontStyle: "italic",
+    lineHeight: moderateScale(20), // 100% of 20px
+    letterSpacing: moderateScale(-0.2), // -1% of 20px
     textAlign: "center",
+    marginBottom: verticalScale(20),
   },
   decor_bar: {
     width: "100%",
@@ -648,8 +658,12 @@ const styles = StyleSheet.create({
   },
   newRatingLabel: {
     color: "rgba(255,255,255,0.85)",
-    fontWeight: "500",
-    fontSize: moderateScale(12),
+    fontFamily: "Matter",
+    fontWeight: "400",
+    fontSize: moderateScale(14),
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
+    textAlign: "center",
     marginTop: verticalScale(10),
   },
   taskCard: {
@@ -675,12 +689,19 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     color: "#fff",
+    fontFamily: "Matter",
     fontSize: moderateScale(16),
-    fontWeight: "700",
+    fontWeight: "500",
+    lineHeight: moderateScale(20), // 20px
+    letterSpacing: 0, // 0%
   },
   taskDescription: {
     color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
     fontSize: moderateScale(12),
+    fontWeight: "400",
+    lineHeight: moderateScale(16), // 16px
+    letterSpacing: moderateScale(-0.12), // -1% of 12px
     marginTop: verticalScale(2),
   },
   levelPill: {
@@ -703,13 +724,21 @@ const styles = StyleSheet.create({
   },
   price: {
     color: "rgba(255,255,255,0.75)",
-    fontSize: moderateScale(15),
+    fontFamily: "Matter",
+    fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
   },
   maybeTxt: {
     color: "#fff",
     opacity: 0.62,
+    fontFamily: "Matter",
     fontSize: moderateScale(14),
+    fontWeight: "400",
+    lineHeight: moderateScale(19.6), // 140% of 14px
+    letterSpacing: moderateScale(-0.14), // -1% of 14px
     textAlign: "center",
     marginBottom: verticalScale(10),
     marginTop: verticalScale(6),

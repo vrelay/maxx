@@ -425,7 +425,6 @@ const styles = StyleSheet.create({
     gap: verticalScale(20),
     justifyContent: "space-between",
     marginBottom: verticalScale(15),
-
   },
   topBarHeader: {
     flexDirection: "row",
@@ -461,8 +460,11 @@ const styles = StyleSheet.create({
   instruction: {
     textAlign: "center",
     color: "#fff",
-    fontWeight: "500",
+    fontFamily: "Matter",
+    fontWeight: "400",
     fontSize: moderateScale(16),
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     width: "100%",
   },
   cameraContainer: {
@@ -570,13 +572,21 @@ const styles = StyleSheet.create({
   },
   fullBodyTitle: {
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: moderateScale(28),
+    fontFamily: "Plush-Trial",
+    fontWeight: "500",
+    fontStyle: "italic",
+    fontSize: moderateScale(40),
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     marginBottom: verticalScale(12),
   },
   fullBodySubtitle: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Matter",
+    fontWeight: "400",
     fontSize: moderateScale(16),
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     marginBottom: verticalScale(20),
   },
   fullBodyImageFrame: {

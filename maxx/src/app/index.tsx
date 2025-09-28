@@ -26,7 +26,7 @@ const index = () => {
         return;
       }
       //temp redirect here
-      // setRoutingDecision("/(tabs)/aiResult");
+      // setRoutingDecision("/(auth)");
       // setRoutingLoading(false);
       // return;
 

@@ -15,7 +15,6 @@ const TabsIndex = () => {
   const { user, isAuthenticated } = useAuth();
 
   const handleContinue = () => {
-
     if (isAuthenticated) {
       if (user && user.emailVerified) {
         router.push("/(tabs)");
@@ -101,16 +100,18 @@ const styles = StyleSheet.create({
     fontFamily: "Plush-Trial",
     fontSize: moderateScale(40),
     fontWeight: "500",
-    lineHeight: verticalScale(40),
-    letterSpacing: moderateScale(-1),
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
   },
   subheading: {
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
     fontSize: moderateScale(16),
-    lineHeight: verticalScale(22),
-    marginTop: verticalScale(16),
     fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
+    marginTop: verticalScale(16),
   },
   sliderContainer: {
     alignItems: "center",

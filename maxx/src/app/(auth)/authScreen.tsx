@@ -193,8 +193,11 @@ const styles = StyleSheet.create({
   title: {
     color: "#FFFFFF",
     fontFamily: "Plush-Trial",
-    fontSize: moderateScale(38),
+    fontSize: moderateScale(40),
     fontWeight: "500",
+    fontStyle: "italic",
+    lineHeight: moderateScale(46), // 114.99% of 40px
+    letterSpacing: moderateScale(-0.4), // -1% of 40px
     textAlign: "center",
     marginBottom: verticalScale(10),
   },
@@ -202,6 +205,9 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.7)",
     fontFamily: "Matter",
     fontSize: moderateScale(16),
+    fontWeight: "400",
+    lineHeight: moderateScale(22.4), // 140% of 16px
+    letterSpacing: moderateScale(-0.16), // -1% of 16px
     textAlign: "center",
     marginBottom: verticalScale(30),
   },

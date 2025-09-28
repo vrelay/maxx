@@ -94,7 +94,9 @@ const ImageSlider = ({
       {/* Before Image (Left side) - FIXED position, only container width changes */}
       <Animated.View style={[styles.beforeContainer, beforeContainerStyle]}>
         <Image
-          source={beforeImage.uri=== "" ? img.default_profile_img : beforeImage}
+          source={
+            beforeImage.uri === "" ? img.default_profile_img : beforeImage
+          }
           style={[
             styles.image,
             { width: containerWidth, height: containerHeight },
@@ -279,8 +281,8 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     fontWeight: "500",
     backgroundColor: "rgba(255,255,255,0.85)",
-    paddingHorizontal: scale(10),
-    paddingVertical: verticalScale(5),
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(7),
     borderRadius: moderateScale(7),
   },
   righttext: {
@@ -288,8 +290,8 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     fontWeight: "500",
     backgroundColor: "rgba(255, 255, 255, 0.85)",
-    paddingHorizontal: scale(10),
-    paddingVertical: verticalScale(5),
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(7),
     borderRadius: moderateScale(7),
   },
   leftArrowbtn: {
