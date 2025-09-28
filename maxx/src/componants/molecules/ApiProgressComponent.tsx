@@ -36,7 +36,11 @@ const ApiProgressComponent: React.FC<ApiProgressComponentProps> = ({
       <Text style={styles.loadingSubtitle}>Just about few minutes to go.</Text>
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+          <View style={[styles.progressBarFill, { width: `${progress}%` }]}>
+            {progress > 0 && (
+              <View style={styles.progressGlow} />
+            )}
+          </View>
         </View>
       </View>
     </View>
@@ -47,10 +51,10 @@ const styles = StyleSheet.create({
   loadingCard: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: moderateScale(16),
-    paddingVertical: verticalScale(20),
-    paddingHorizontal: scale(20),
-    marginTop: verticalScale(20),
-    alignItems: "center",
+    paddingVertical: verticalScale(13),
+    paddingHorizontal: scale(10),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   loadingTitle: {
     color: "#fff",
@@ -59,7 +63,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     lineHeight: moderateScale(22), // 22px
     letterSpacing: 0, // 0%
-    textAlign: "center",
     marginBottom: verticalScale(8),
   },
   loadingSubtitle: {
@@ -69,7 +72,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: moderateScale(16), // 16px
     letterSpacing: moderateScale(-0.12), // -1% of 12px
-    textAlign: "center",
     marginBottom: verticalScale(20),
   },
   progressBarContainer: {
@@ -87,9 +89,23 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     shadowColor: "#fff",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 8,
+    position: "relative",
+  },
+  progressGlow: {
+    position: "absolute",
+    right: -12,
+    top: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 25,
+    elevation: 15,
   },
 });
 

@@ -18,8 +18,8 @@ const TabsIndex = () => {
     if (isAuthenticated) {
       if (user && user.emailVerified) {
         router.push("/(tabs)");
-        // router.push("/(tabs)/aiResult");
         // router.push("/(tabs)/loadingAiProcessing");
+        // router.push("/(tabs)/aiResult");
         // router.push("/(tabs)/mainScreen");
         return;
       } else if (user && !user.emailVerified) {
