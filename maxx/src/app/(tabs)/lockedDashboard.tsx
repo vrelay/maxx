@@ -24,7 +24,7 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
   const { leftImages, rightImages, refreshCustomerInfo } = useAuth();
-  const [showPaywall, setShowPaywall] = useState(false);
+  // const [showPaywall, setShowPaywall] = useState(false);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -76,16 +76,22 @@ const LockedDashboard: React.FC = () => {
               </View>
             </View>
 
-            <ButtonStart
+            {/* <ButtonStart
               text="Unlock at $9.99/week"
               handlepress={() => setShowPaywall(true)}
+            /> */}
+            <ButtonStart
+              text="Unlock at $9.99/week"
+              handlepress={() => {
+                router.push("/(tabs)/paymentSuccess");
+              }}
             />
           </View>
         </SafeAreaView>
       </LinearGradient>
 
       {/* Paywall Modal */}
-      <Modal
+      {/* <Modal
         visible={showPaywall}
         animationType="slide"
         presentationStyle="fullScreen"
@@ -98,7 +104,7 @@ const LockedDashboard: React.FC = () => {
             router.push("/(tabs)/paymentSuccess");
           }}
         />
-      </Modal>
+      </Modal> */}
     </GestureHandlerRootView>
   );
 };
