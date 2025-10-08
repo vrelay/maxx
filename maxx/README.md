@@ -48,3 +48,12 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+clean all
+# Clean and rebuild
+rm -rf node_modules package-lock.json ios/build ios/Pods ios/Podfile.lock
+npm install
+npx expo install expo-apple-authentication
+cd ios && pod install && cd ..
+npx expo run:ios --clear

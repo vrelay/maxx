@@ -74,24 +74,48 @@ const LoadingScreen: React.FC = () => {
         // "frontPhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhotoUrl": undefined, "sidePhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"
         if (!result.success) {
           Alert.alert(
-            "API Error",
-            result.error || "Failed to call APIs. Check console for details.",
-            [{ text: "OK" }]
+            "Processing Error",
+            result.error || "Failed to process your photos. Please try taking new photos.",
+            [
+              { 
+                text: "Retake Photos", 
+                onPress: () => {
+                  // Navigate back to camera screen
+                  router.replace("/(tabs)");
+                }
+              }
+            ]
           );
         }
       } else {
         Alert.alert(
           "Upload Error",
-          uploadResult.error || "Failed to upload images to Firebase",
-          [{ text: "OK" }]
+          uploadResult.error || "Failed to upload images. Please try taking new photos.",
+          [
+            { 
+              text: "Retake Photos", 
+              onPress: () => {
+                // Navigate back to camera screen
+                router.replace("/(tabs)");
+              }
+            }
+          ]
         );
       }
     } catch (error) {
       console.error("API call error:", error);
       Alert.alert(
-        "API Error",
-        "Failed to call APIs. Check console for details.",
-        [{ text: "OK" }]
+        "Processing Error",
+        "Something went wrong while processing your photos. Please try taking new photos.",
+        [
+          { 
+            text: "Retake Photos", 
+            onPress: () => {
+              // Navigate back to camera screen
+              router.replace("/(tabs)");
+            }
+          }
+        ]
       );
     }
   };
@@ -302,3 +326,4 @@ const styles = StyleSheet.create({
 });
 
 export default LoadingScreen;
+

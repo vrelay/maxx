@@ -222,7 +222,8 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.fullBodyContainer}>
               <Text style={styles.fullBodyTitle}>
-                Show your full self for the best results
+                <Text>Show your full self</Text>
+                <Text style={{ fontStyle: "italic" }}> for the best results</Text>
               </Text>
               <Text style={styles.fullBodySubtitle}>
                 A full-body photo helps us assess your transformation potential
@@ -279,21 +280,21 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                   style={[
                     styles.progressSegment,
                     (frontPhoto || step === "front-preview") &&
-                      styles.progressSegmentCompleted,
+                    styles.progressSegmentCompleted,
                   ]}
                 />
                 <View
                   style={[
                     styles.progressSegment,
                     (sidePhoto || step === "side-preview") &&
-                      styles.progressSegmentCompleted,
+                    styles.progressSegmentCompleted,
                   ]}
                 />
                 <View
                   style={[
                     styles.progressSegment,
                     (fullBodyPhoto || step === "full-body-preview") &&
-                      styles.progressSegmentCompleted,
+                    styles.progressSegmentCompleted,
                   ]}
                 />
               </View>
@@ -306,7 +307,7 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                 style={[
                   styles.previewImage,
                   (step === "front-preview" || step === "side-preview") &&
-                    styles.flippedImage,
+                  styles.flippedImage,
                 ]}
               />
               <LinearGradient
@@ -572,9 +573,9 @@ const styles = StyleSheet.create({
   },
   fullBodyTitle: {
     color: "#fff",
-    fontFamily: "Plush-Trial",
-    fontWeight: "500",
-    fontStyle: "italic",
+    fontFamily: "Georgia",
+    fontWeight: "400",
+    // fontStyle: "italic",
     fontSize: moderateScale(40),
     lineHeight: moderateScale(46), // 114.99% of 40px
     letterSpacing: moderateScale(-0.4), // -1% of 40px

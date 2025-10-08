@@ -26,7 +26,7 @@ const index = () => {
         return;
       }
       //temp redirect here
-      // setRoutingDecision("/(auth)");
+      // setRoutingDecision("/(tabs)/aiResult");
       // setRoutingLoading(false);
       // return;
 
@@ -39,7 +39,7 @@ const index = () => {
 
         // If no document exists, take user to tabs index (camera flow)
         if (!aiResultResponse.success || !aiResultResponse.data) {
-          setRoutingDecision("/(tabs)");
+          setRoutingDecision("/(tabs)/index");
           setRoutingLoading(false);
           setLooksmaxxingResults(aiResultResponse.data);
           return;
@@ -66,12 +66,12 @@ const index = () => {
           }
         } else {
           // User has some other number of images (0, 2, 3) - take to index of tabs
-          setRoutingDecision("/(tabs)");
+          setRoutingDecision("/(tabs)/index");
         }
       } catch (error) {
         console.error("Error determining routing:", error);
         // On error, default to tabs index
-        setRoutingDecision("/(tabs)");
+        setRoutingDecision("/(tabs)/index");
       } finally {
         setRoutingLoading(false);
       }

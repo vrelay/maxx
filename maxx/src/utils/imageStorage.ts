@@ -37,6 +37,8 @@ interface DeleteImageResult {
   error?: string;
 }
 
+
+
 export const saveImageToAppStorage = async (
   imagePath: string,
   customFileName: string | null = null
@@ -135,6 +137,13 @@ const copyLocalImageToAppStorage = async (
 
     // Destination path in app's private storage
     const localFilePath: string = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+    // Check if destination file already exists and delete it
+    const destinationExists = await RNFS.exists(localFilePath);
+    if (destinationExists) {
+      console.log("Destination file exists, removing it first:", localFilePath);
+      await RNFS.unlink(localFilePath);
+    }
 
     // Copy the file
     await RNFS.copyFile(sourcePath, localFilePath);
