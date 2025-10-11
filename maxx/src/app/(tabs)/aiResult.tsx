@@ -12,7 +12,7 @@ import {
   SavedImage,
 } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
-import { BlurView } from "@react-native-community/blur";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -69,8 +69,8 @@ const PreviewMultiplePoses = ({
                   <View key={idx} style={styles.gridItem}>
                     <Image source={images[idx - 1]} style={styles.gridImage} />
                     <BlurView
-                      blurAmount={10}
-                      blurType="light"
+                      intensity={80}
+                      tint="light"
                       style={styles.lockOverlay}
                     >
                       <FontAwesome
@@ -427,28 +427,21 @@ const StartTransformationToday = ({
               difficulty: t.difficulty
             });
             
+            // Use different locked task images for each card
+            const lockedImage = i === 0 ? require("@/src/assets/ui/lockedtask1.png") : require("@/src/assets/ui/lockedtask2.png");
+            
             return (
               <View style={styles.cardWrapper} key={i + 1}>
-                {/* The actual task card content (unblurred initially) */}
                 <View style={styles.taskCard}>
-                  <View style={styles.imagePlaceholder} />
-                  <View style={styles.taskTextContainer}>
-                    <Text style={styles.taskTitle}>{t.label}</Text>
-                    <Text style={styles.taskDescription}>{t.desc}</Text>
-                  </View>
-                  <View style={styles.levelPill}>
-                    <Text style={styles.taskLevel}>+{t.level} levels</Text>
-                  </View>
+                  {/* Locked task image */}
+                  <Image 
+                    source={lockedImage} 
+                    style={styles.lockedTaskImage}
+                    resizeMode="stretch"
+                  />
                 </View>
 
-                {/* The blur overlay, positioned over the taskCard */}
-                <BlurView
-                  blurAmount={5}
-                  blurType="light"
-                  style={styles.lockOverlayTasks}
-                />
-
-                {/* The gradient border, positioned over everything else */}
+                {/* The gradient border */}
                 <LinearGradient
                   colors={[
                     "rgba(255, 255, 255, 0)",
@@ -693,6 +686,11 @@ const styles = StyleSheet.create({
   cardWrapper: {
     marginVertical: verticalScale(8),
     marginHorizontal: scale(20),
+    shadowColor: "#FFF",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   gradientBorder: {
     height: 1,
@@ -809,21 +807,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 15,
   },
-  lockOverlayTasks: {
-    position: "absolute",
-    height: 60,
-    opacity: 1,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 15,
-// +   backgroundColor: "rgba(0, 0, 0, 0.25)", // softer overlay
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 255, 255, 0)",
-  },
   lockOverlay: {
     position: "absolute",
   
@@ -875,6 +858,13 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingBottom: verticalScale(10),
     height: verticalScale(50),
+  },
+  lockedTaskImage: {
+    width: "100%",
+    height: verticalScale(50),
+    borderRadius: 15,
+    transform: [{ scaleX: 1.1 }, { scaleY: 1.4 }],
+    
   },
   combinedCardsContainer: {
     position: "relative",

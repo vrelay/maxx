@@ -14,17 +14,21 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.look.maxx",
-      "usesAppleSignIn": true, 
-      "associatedDomains": ["applinks:lookai.me", "applinks:www.lookai.me"],
+      "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:lookai.me",
+        "applinks:www.lookai.me"
+      ],
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-          
         },
         "NSCameraUsageDescription": "This app needs access to camera to take photos for analysis",
         "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for analysis",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -53,7 +57,10 @@
               "scheme": "maxx"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "permissions": [
@@ -88,7 +95,8 @@
           }
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
