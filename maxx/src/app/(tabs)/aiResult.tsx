@@ -1,3 +1,5 @@
+
+
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
@@ -10,7 +12,7 @@ import {
   SavedImage,
 } from "@/src/utils/imageStorage";
 import { FontAwesome } from "@expo/vector-icons";
-import { BlurView } from "@react-native-community/blur";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -40,52 +42,52 @@ const PreviewMultiplePoses = ({
   leftImages: SavedImage[];
   rightImages: SavedImage[];
 }) => (
-  <View style={styles.pageContent}>
-    <View style={styles.cardContainer}>
-      <Text style={styles.pageTitle}>{title}</Text>
-      <Image source={img.decor_bar} style={styles.decor_bar} />
-      <View style={styles.gridContainer}>
-        {(() => {
-          const images = [img.frontbody, img.sideface, img.sidebody];
-          return ["slider", ...images.map((image) => image)].map(
-            (item, idx) => {
-              if (idx === 0) {
-                return (
-                  <View key={idx} style={styles.gridItem}>
-                    <ImageSlider
+    <View style={styles.pageContent}>
+      <View style={styles.cardContainer}>
+        <Text style={styles.pageTitle}>{title}</Text>
+        <Image source={img.decor_bar} style={styles.decor_bar} />
+        <View style={styles.gridContainer}>
+          {(() => {
+            const images = [img.frontbody, img.sideface, img.sidebody];
+            return ["slider", ...images.map((image) => image)].map(
+              (item, idx) => {
+                if (idx === 0) {
+                  return (
+                    <View key={idx} style={styles.gridItem}>
+                      <ImageSlider
                       beforeImage={{ uri: leftImages[0].uri }}
                       afterImage={{ uri: rightImages[0].uri }}
-                      containerWidth={scale(128)}
-                      containerHeight={scale(128)}
-                      sliderWidth={moderateScale(2)}
-                      knobSize={moderateScale(24)}
-                    />
+                        containerWidth={scale(128)}
+                        containerHeight={scale(128)}
+                        sliderWidth={moderateScale(2)}
+                        knobSize={moderateScale(24)}
+                      />
+                    </View>
+                  );
+                }
+                return (
+                  <View key={idx} style={styles.gridItem}>
+                    <Image source={images[idx - 1]} style={styles.gridImage} />
+                    <BlurView
+                      intensity={80}
+                      tint="light"
+                      style={styles.lockOverlay}
+                    >
+                      <FontAwesome
+                        name="lock"
+                        size={moderateScale(32)}
+                        color="#fff"
+                      />
+                    </BlurView>
                   </View>
                 );
               }
-              return (
-                <View key={idx} style={styles.gridItem}>
-                  <Image source={images[idx - 1]} style={styles.gridImage} />
-                  <BlurView
-                    blurAmount={10}
-                    blurType="light"
-                    style={styles.lockOverlay}
-                  >
-                    <FontAwesome
-                      name="lock"
-                      size={moderateScale(32)}
-                      color="#fff"
-                    />
-                  </BlurView>
-                </View>
-              );
-            }
-          );
-        })()}
+            );
+          })()}
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
 
 // SVG-based Circular Progress Component - ANTICLOCKWISE ONLY
 const CircularProgress = ({
@@ -143,7 +145,7 @@ const CircularProgress = ({
             strokeLinecap="round"
             transform={`rotate(90 ${size / 2} ${
               size / 2
-            }) scale(-1, 1) translate(-${size}, 0)`}
+              }) scale(-1, 1) translate(-${size}, 0)`}
           />
         )}
       </Svg>
@@ -205,14 +207,68 @@ const PreviewYourRatings = ({
   title: string;
   priorities: any[];
 }) => {
+  console.log("📊 PreviewYourRatings - Raw priorities received:", priorities);
+  console.log("📊 PreviewYourRatings - Priorities length:", priorities?.length || 0);
+  
+  // Default fallback ratings if not enough priorities
+  const defaultRatings = [
+    {
+      area: "skin",
+      score: 60,
+      impact: "high",
+      difficulty: "low"
+    },
+    {
+      area: "jawline",
+      score: 55,
+      impact: "high",
+      difficulty: "med"
+    },
+    {
+      area: "hair",
+      score: 70,
+      impact: "med",
+      difficulty: "low"
+    },
+    {
+      area: "style",
+      score: 65,
+      impact: "med",
+      difficulty: "low"
+    }
+  ];
+  
+  // Use actual priorities if we have at least 4, otherwise use defaults
+  const ratingsToUse = priorities && priorities.length >= 4 ? priorities : defaultRatings;
+  console.log("📊 Ratings to use (actual or default):", ratingsToUse);
+  console.log("📊 Reason for choice:", priorities && priorities.length >= 4 ? "Using actual priorities (4+)" : "Using default ratings (less than 4 priorities)");
+  
   // Get top 4 priorities and format area names
-  const topPriorities = priorities.slice(0, 4).map((priority) => ({
-    ...priority,
-    formattedArea: priority.area
-      .split("_")
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" "),
-  }));
+  const topPriorities = ratingsToUse.slice(0, 4).map((priority, index) => {
+    console.log(`📊 Processing rating priority ${index}:`, priority);
+    
+    const formatted = {
+      ...priority,
+      formattedArea: priority.area
+        .split("_")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+    };
+    
+    console.log(`✅ Formatted rating priority ${index}:`, formatted);
+    return formatted;
+  });
+  
+  console.log("🎯 Final topPriorities for ratings display:", topPriorities);
+  
+  // Log rating circle details before rendering
+  topPriorities.forEach((priority, index) => {
+    console.log(`📊 Rendering rating circle ${index}:`, {
+      score: priority?.score || 0,
+      label: priority?.formattedArea || "Loading...",
+      isLocked: index > 0
+    });
+  });
 
   return (
     <View style={styles.pageContent}>
@@ -255,17 +311,76 @@ const StartTransformationToday = ({
   title: string;
   priorities: any[];
 }) => {
-  // Get top 4 priorities and format them for display
-  const topPriorities = priorities.slice(0, 3).map((priority) => ({
-    label: priority.area
-      .split("_")
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" "),
-    desc: priority.improvement_habits,
-    level: Math.round((100 - priority.score) / 10), // Convert score to level improvement
-    impact: priority.impact,
-    difficulty: priority.difficulty,
-  }));
+  console.log("🔍 StartTransformationToday - Raw priorities received:", priorities);
+  console.log("🔍 StartTransformationToday - Priorities length:", priorities?.length || 0);
+  
+  // Default fallback tasks if not enough priorities
+  const defaultTasks = [
+    {
+      area: "skin",
+      improvement_habits: "Daily skincare routine and hydration",
+      score: 60,
+      impact: "high",
+      difficulty: "low"
+    },
+    {
+      area: "jawline",
+      improvement_habits: "Mewing exercises and chewing gum",
+      score: 55,
+      impact: "high",
+      difficulty: "med"
+    },
+    {
+      area: "hair",
+      improvement_habits: "Proper styling and grooming routine",
+      score: 70,
+      impact: "med",
+      difficulty: "low"
+    }
+  ];
+  
+  // Use actual priorities if we have at least 3, otherwise use defaults
+  const tasksToUse = priorities && priorities.length >= 3 ? priorities : defaultTasks;
+  console.log("🔍 Tasks to use (actual or default):", tasksToUse);
+  console.log("🔍 Reason for choice:", priorities && priorities.length >= 3 ? "Using actual priorities (3+)" : "Using default tasks (less than 3 priorities)");
+  
+  // Get top 3 priorities and format them for display
+  const topPriorities = tasksToUse.slice(0, 3).map((priority, index) => {
+    console.log(`🔍 Processing priority ${index}:`, priority);
+    
+    const formatted = {
+      label: priority.area
+        .split("_")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      desc: priority.improvement_habits || "Improve this area with targeted exercises",
+      level: Math.round((100 - priority.score) / 10), // Convert score to level improvement
+      impact: priority.impact || "med",
+      difficulty: priority.difficulty || "med",
+    };
+    
+    console.log(`✅ Formatted priority ${index}:`, formatted);
+    return formatted;
+  });
+  
+  console.log("🎯 Final topPriorities for display:", topPriorities);
+  
+  // Log first task details before rendering
+  if (topPriorities[0]) {
+    console.log("🎯 Rendering first task:", {
+      label: topPriorities[0].label,
+      desc: topPriorities[0].desc,
+      level: topPriorities[0].level,
+      impact: topPriorities[0].impact,
+      difficulty: topPriorities[0].difficulty
+    });
+  }
+  
+  // Log task count and availability
+  console.log("🎯 Total tasks available:", topPriorities.length);
+  console.log("🎯 Task 1 available:", !!topPriorities[0]);
+  console.log("🎯 Task 2 available:", !!topPriorities[1]);
+  console.log("🎯 Task 3 available:", !!topPriorities[2]);
 
   return (
     <View style={styles.pageContent}>
@@ -302,35 +417,44 @@ const StartTransformationToday = ({
 
         {/* Combined overlay container for the last two cards */}
         <View style={styles.combinedCardsContainer}>
-          {topPriorities.slice(1).map((t, i) => (
-            <View style={styles.cardWrapper} key={i + 1}>
-              <View style={styles.taskCard}>
-                <View style={styles.imagePlaceholder} />
-                <View style={styles.taskTextContainer}>
-                  <Text style={styles.taskTitle}>{t.label}</Text>
-                  <Text style={styles.taskDescription}>{t.desc}</Text>
+          {topPriorities.slice(1).map((t, i) => {
+            // Log task details before rendering
+            console.log(`🎯 Rendering blurred task ${i + 1}:`, {
+              label: t.label,
+              desc: t.desc,
+              level: t.level,
+              impact: t.impact,
+              difficulty: t.difficulty
+            });
+            
+            // Use different locked task images for each card
+            const lockedImage = i === 0 ? require("@/src/assets/ui/lockedtask1.png") : require("@/src/assets/ui/lockedtask2.png");
+            
+            return (
+              <View style={styles.cardWrapper} key={i + 1}>
+                <View style={styles.taskCard}>
+                  {/* Locked task image */}
+                  <Image 
+                    source={lockedImage} 
+                    style={styles.lockedTaskImage}
+                    resizeMode="stretch"
+                  />
                 </View>
-                <View style={styles.levelPill}>
-                  <Text style={styles.taskLevel}>+{t.level} levels</Text>
-                </View>
+
+                {/* The gradient border */}
+                <LinearGradient
+                  colors={[
+                    "rgba(255, 255, 255, 0)",
+                    "rgba(255, 255, 255, 0.25)",
+                    "rgba(255, 255, 255, 0)",
+                  ]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.gradientBorder}
+                />
               </View>
-              <LinearGradient
-                colors={[
-                  "rgba(255, 255, 255, 0)",
-                  "rgba(255, 255, 255, 0.25)",
-                  "rgba(255, 255, 255, 0)",
-                ]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.gradientBorder}
-              />
-            </View>
-          ))}
-          <BlurView
-            blurAmount={1}
-            blurType="light"
-            style={styles.lockOverlay}
-          ></BlurView>
+            );
+          })}
         </View>
       </View>
     </View>
@@ -340,6 +464,20 @@ const StartTransformationToday = ({
 const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  
+  // Generate random scores only on first render
+  const [scores] = useState(() => {
+    const score1 = Math.round((Math.random() * 5 + 5) * 10) / 10; // 5.0 to 10.0
+    const score2 = Math.round((Math.random() * 5 + 5) * 10) / 10; // 5.0 to 10.0
+    
+    // Ensure score2 is greater than score1
+    if (score1 >= score2) {
+      return [score1, Math.min(10.0, score1 + Math.round((Math.random() * 2 + 0.5) * 10) / 10)];
+    }
+    return [score1, score2];
+  });
+  
+  const [currentScore, targetScore] = scores;
 
   const {
     user,
@@ -377,7 +515,29 @@ const DummySliderScreen: React.FC = () => {
           user?.uid as string,
           "looksmaxxing_results"
         );
-      // {"ai_analysis": {"inputPhotos": {"frontPhoto": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhoto": "", "sidePhoto": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"}, "status": "processing", "targetIntensity": "S2", "userId": "fz8hHVaJURZYh2s8tfvm8oCfUK22", "userStylePrefs": ""}, "analysisResult": {"advice_json": {"edit_brief_front": [Array], "lighting": "soft key / natural contrast", "negative": [Array], "notes": "Full body photo was not provided; therefore, 'physique', 'posture', and overall 'style' recommendations are generalized.", "priorities": [Array], "recommendations": [Object], "score": [Object], "tone": "natural"}, "success": true, "timestamp": "2025-09-25T05:25:41.692Z"}, "createdAt": {"nanoseconds": 862000000, "seconds": 1758777905, "type": "firestore/timestamp/1.0"}, "generatedImages": {"enhancedFrontResult": {"imagePath": "generated-images/fz8hHVaJURZYh2s8tfvm8oCfUK22/lm_front-1758777952148.jpg", "success": true, "timestamp": "2025-09-25T05:25:52.560Z"}}, "id": "fz8hHVaJURZYh2s8tfvm8oCfUK22_1758777902426", "status": "complete", "updatedAt": {"nanoseconds": 254000000, "seconds": 1758777969, "type": "firestore/timestamp/1.0"}, "userId": "fz8hHVaJURZYh2s8tfvm8oCfUK22"}
+      
+      console.log("🗄️ Raw looksmaxxing results from Firestore:", looksmaxxingResults);
+      console.log("🗄️ Looksmaxxing results data:", looksmaxxingResults.data);
+      
+      if (looksmaxxingResults.data?.analysisResult?.advice_json?.priorities) {
+        console.log("🎯 Priorities found in results:", looksmaxxingResults.data.analysisResult.advice_json.priorities);
+        console.log("🎯 Number of priorities:", looksmaxxingResults.data.analysisResult.advice_json.priorities.length);
+        
+        // Log each priority in detail
+        looksmaxxingResults.data.analysisResult.advice_json.priorities.forEach((priority: any, index: number) => {
+          console.log(`🎯 Priority ${index} details:`, {
+            area: priority.area,
+            improvement_habits: priority.improvement_habits,
+            score: priority.score,
+            impact: priority.impact,
+            difficulty: priority.difficulty
+          });
+        });
+      } else {
+        console.log("❌ No priorities found in looksmaxxing results");
+        console.log("❌ Analysis result structure:", looksmaxxingResults.data?.analysisResult);
+      }
+      
       setLooksmaxxingResults(looksmaxxingResults.data);
       setLoading(false);
     }
@@ -409,6 +569,9 @@ const DummySliderScreen: React.FC = () => {
     );
   }
 
+  console.log("📱 Creating pages with looksmaxxingResults:", looksmaxxingResults);
+  console.log("📱 Priorities being passed to components:", looksmaxxingResults?.analysisResult?.advice_json?.priorities || []);
+  
   const pages = [
     <PreviewMultiplePoses
       key="0"
@@ -431,6 +594,8 @@ const DummySliderScreen: React.FC = () => {
       }
     />,
   ];
+  
+  console.log("📱 Pages created successfully:", pages.length);
 
   const handleScroll = (event: any) => {
     const newIndex = Math.round(
@@ -456,7 +621,7 @@ const DummySliderScreen: React.FC = () => {
             <View style={styles.header}>
               <Text style={styles.heading}>Preview Your Potential</Text>
               <Text style={styles.subheading}>
-                Improve your score from 6.7 to 8.8
+                Improve your score from {currentScore} to {targetScore}
               </Text>
             </View>
 
@@ -521,6 +686,11 @@ const styles = StyleSheet.create({
   cardWrapper: {
     marginVertical: verticalScale(8),
     marginHorizontal: scale(20),
+    shadowColor: "#FFF",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   gradientBorder: {
     height: 1,
@@ -535,7 +705,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginTop: verticalScale(30),
-    marginBottom: verticalScale(10),
+    marginBottom: verticalScale(5),
     alignItems: "center",
   },
   heading: {
@@ -543,8 +713,8 @@ const styles = StyleSheet.create({
     fontFamily: "Plush-Trial",
     fontSize: moderateScale(32),
     fontWeight: "500",
-    lineHeight: moderateScale(36.8), // 114.99% of 32px
-    letterSpacing: moderateScale(-0.32), // -1% of 32px
+    lineHeight: moderateScale(36.8),
+    letterSpacing: moderateScale(-0.32),
     textAlign: "center",
     marginBottom: verticalScale(2),
   },
@@ -553,23 +723,30 @@ const styles = StyleSheet.create({
     fontFamily: "Matter",
     fontSize: moderateScale(16),
     fontWeight: "400",
-    lineHeight: moderateScale(22.4), // 140% of 16px
-    letterSpacing: moderateScale(-0.16), // -1% of 16px
+    lineHeight: moderateScale(22.4),
+    letterSpacing: moderateScale(-0.16),
     textAlign: "center",
-    marginBottom: verticalScale(8),
+    marginBottom: verticalScale(0),
   },
   sliderZone: {
     flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
+
+
   },
   sliderContent: {
     alignItems: "center",
     justifyContent: "center",
+
+
+
+
   },
   flatList: {
     flexGrow: 0,
-    maxHeight: verticalScale(450), // Adjusted height
+    maxHeight: verticalScale(450),
+
   },
   pageContent: {
     height: verticalScale(350),
@@ -584,8 +761,8 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(20),
     fontWeight: "500",
     fontStyle: "italic",
-    lineHeight: moderateScale(20), // 100% of 20px
-    letterSpacing: moderateScale(-0.2), // -1% of 20px
+    lineHeight: moderateScale(20),
+    letterSpacing: moderateScale(-0.2),
     textAlign: "center",
     marginBottom: verticalScale(20),
   },
@@ -597,12 +774,19 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 20,
     paddingVertical: verticalScale(20),
+    margin: 12,
+    paddingBottom: 20,
     width: "100%",
     alignContent: "center",
     justifyContent: "space-between",
     flex: 1,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.54)",
+    backgroundColor: "rgba(255, 255, 255, 0.024)",
+    overflow: "visible",
+    borderTopColor: "rgba(255, 255, 255, 0.5)",
+    borderLeftColor: "rgba(255, 255, 255, 0.4)",
+    borderRightColor: "rgba(255, 255, 255, 0.2)",
+    borderBottomColor: "rgba(255, 255, 255, 0.15)",
   },
   gridContainer: {
     flexDirection: "row",
@@ -625,6 +809,7 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     position: "absolute",
+  
     top: 0,
     left: 0,
     right: 0,
@@ -633,23 +818,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 15,
     overflow: "hidden",
+    backgroundColor: "rgba(67, 43, 135, 0.1)",
   },
   ratingsRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "center",
     alignItems: "center",
     width: "100%",
-    marginBottom: verticalScale(15),
+    marginBottom: verticalScale(5),
     gap: scale(10),
   },
   ratingCircleBox: {
     alignItems: "center",
     justifyContent: "center",
-    maxWidth: "100%",
-    height: verticalScale(115),
+    width: scale(128),
+    height: scale(128),
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: scale(10),
-    flex: 1,
+    // flex: 1,
   },
   newRatingText: {
     color: "#fff",
@@ -661,8 +847,8 @@ const styles = StyleSheet.create({
     fontFamily: "Matter",
     fontWeight: "400",
     fontSize: moderateScale(14),
-    lineHeight: moderateScale(19.6), // 140% of 14px
-    letterSpacing: moderateScale(-0.14), // -1% of 14px
+    lineHeight: moderateScale(19.6),
+    letterSpacing: moderateScale(-0.14),
     textAlign: "center",
     marginTop: verticalScale(10),
   },
@@ -670,8 +856,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "transparent",
-    paddingBottom: verticalScale(12),
+    paddingBottom: verticalScale(10),
     height: verticalScale(50),
+  },
+  lockedTaskImage: {
+    width: "100%",
+    height: verticalScale(50),
+    borderRadius: 15,
+    transform: [{ scaleX: 1.1 }, { scaleY: 1.4 }],
+    
   },
   combinedCardsContainer: {
     position: "relative",
@@ -692,16 +885,16 @@ const styles = StyleSheet.create({
     fontFamily: "Matter",
     fontSize: moderateScale(16),
     fontWeight: "500",
-    lineHeight: moderateScale(20), // 20px
-    letterSpacing: 0, // 0%
+    lineHeight: moderateScale(20),
+    letterSpacing: 0,
   },
   taskDescription: {
     color: "rgba(255,255,255,0.7)",
     fontFamily: "Matter",
     fontSize: moderateScale(12),
     fontWeight: "400",
-    lineHeight: moderateScale(16), // 16px
-    letterSpacing: moderateScale(-0.12), // -1% of 12px
+    lineHeight: moderateScale(16),
+    letterSpacing: moderateScale(-0.12),
     marginTop: verticalScale(2),
   },
   levelPill: {
@@ -721,14 +914,15 @@ const styles = StyleSheet.create({
     height: verticalScale(150),
     alignItems: "center",
     backgroundColor: "transparent",
+
   },
   price: {
     color: "rgba(255,255,255,0.75)",
     fontFamily: "Matter",
     fontSize: moderateScale(16),
     fontWeight: "400",
-    lineHeight: moderateScale(22.4), // 140% of 16px
-    letterSpacing: moderateScale(-0.16), // -1% of 16px
+    lineHeight: moderateScale(22.4),
+    letterSpacing: moderateScale(-0.16),
     textAlign: "center",
   },
   maybeTxt: {
@@ -737,30 +931,36 @@ const styles = StyleSheet.create({
     fontFamily: "Matter",
     fontSize: moderateScale(14),
     fontWeight: "400",
-    lineHeight: moderateScale(19.6), // 140% of 14px
-    letterSpacing: moderateScale(-0.14), // -1% of 14px
+    lineHeight: moderateScale(19.6),
+    letterSpacing: moderateScale(-0.14),
     textAlign: "center",
     marginBottom: verticalScale(10),
     marginTop: verticalScale(6),
+
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: verticalScale(20),
+    marginTop: verticalScale(10),
     marginBottom: verticalScale(18),
+
   },
   dot: {
     width: scale(10),
     height: scale(10),
+
     borderRadius: scale(5),
     backgroundColor: "rgba(255,255,255,0.28)",
     marginHorizontal: scale(6),
+
   },
   dotActive: {
     backgroundColor: "#fff",
     width: scale(20),
   },
+
+
 });
 
 export default DummySliderScreen;

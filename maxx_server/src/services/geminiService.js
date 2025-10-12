@@ -29,7 +29,9 @@ RULES:
 - No age/ethnicity changes, no face swaps, no body morphing.
 - Follow negative list strictly (avoid halos, HDR glow, porcelain skin, 
 over-whitened teeth).
-OUTPUT: 4:5 or 3:4 portrait, high-res. Crop minimally.`;
+- Generate images with exact 5:6 aspect ratio (335x400px equivalent).
+- No black spaces or cropping needed - exact container dimensions.
+OUTPUT: 5:6 portrait, high-res. Exact aspect ratio to fill container completely.`;
 
 // Transform prompt templates
 const TRANSFORM_PROMPT_TEMPLATE = `REFERENCE_IMAGE: <lm_front>
@@ -41,37 +43,39 @@ POSE: {POSE}
 ENVIRONMENT: {ENVIRONMENT}
 WARDROBE: Tasteful, well-fitting neutral outfit aligned with smart casual style
 LIGHTING: soft key, natural contrast; accurate skin tones
+COMPOSITION: For full body and side profile shots, make the body height exactly 10% of the total image height. The person should occupy only 10% of the vertical space with 45% space above and 45% space below for extreme zoom out. Ensure the entire body from head to feet is visible within the frame with extreme vertical spacing.
 NEGATIVE: over-smoothed/waxy skin, porcelain/fake texture, cartoon/anime/CGI, 
 extreme symmetry, warped anatomy, altered eye color, heavy makeup, fake 
 catchlights, over-whitened teeth, overly sharp beard edges, lens warping, 
-unreal bokeh, beauty-filter look, HDR glow, vignettes
+unreal bokeh, beauty-filter look, HDR glow, vignettes, cropped body parts
 
 OUTPUT: high-res, {OUTPUT_FORMAT}
 
 Maintain photorealism and identity. Avoid artifacts (waxy skin, HDR halos, 
-CG look).`;
+CG look). Ensure the generated image fills the entire container dimensions 
+without any black spaces or empty areas.`;
 
 // Specific transform configurations
 const TRANSFORM_CONFIGS = {
   SIDE_PROFILE: {
     VIEW: "SIDE_PROFILE",
-    POSE: "neutral expression, chin slightly forward, 90° profile",
-    ENVIRONMENT: "clean studio backdrop with soft gradient",
-    OUTPUT_FORMAT: "4:5 portrait format",
+    POSE: "neutral expression, chin slightly forward, 90° profile. Make the side profile height exactly 10% of the total image height - the person should occupy only 10% of the vertical space with 45% space above and 45% space below for extreme zoom out",
+    ENVIRONMENT: "clean studio backdrop with soft gradient - 45% space above subject, 45% space below subject",
+    OUTPUT_FORMAT: "5:6 portrait format (335x400px equivalent) - exact aspect ratio to fill container completely, side profile height exactly 10% of image height with 45% space above and 45% below, no black spaces or cropping needed",
   },
   FULL_BODY: {
     VIEW: "FULL_BODY",
-    POSE: "relaxed, shoulders back, balanced stance, hands relaxed",
-    ENVIRONMENT: "minimal interior or studio cyclorama",
-    OUTPUT_FORMAT: "3:4 or 9:16 full-body format",
+    POSE: "relaxed, shoulders back, balanced stance, hands relaxed. Make the full body height exactly 10% of the total image height - the person should occupy only 10% of the vertical space with 45% space above and 45% space below for extreme zoom out",
+    ENVIRONMENT: "clean studio backdrop with soft gradient - 45% space above subject, 45% space below subject",
+    OUTPUT_FORMAT: "5:6 full-body format (335x400px equivalent) - exact aspect ratio to fill container completely, full body height exactly 10% of image height with 45% space above and 45% below, no black spaces or cropping needed",
   },
   ACTION_FULL_BODY: {
     VIEW: "ACTION_FULL_BODY",
-    POSE: "walking in mid-step, natural arm swing",
+    POSE: "walking in mid-step, natural arm swing. Make the full body height exactly 10% of the total image height - the person should occupy only 10% of the vertical space with 45% space above and 45% space below for extreme zoom out",
     ENVIRONMENT:
-      "urban street at golden hour; shallow depth of field; slight " +
-      "background motion blur; subtle rim light on hair",
-    OUTPUT_FORMAT: "3:4 or 9:16 full-body format",
+      "clean studio backdrop with soft gradient; " +
+      "extreme vertical spacing - 45% space above subject, 45% space below subject",
+    OUTPUT_FORMAT: "5:6 full-body format (335x400px equivalent) - exact aspect ratio to fill container completely, full body height exactly 10% of image height with 45% space above and 45% below, no black spaces or cropping needed",
   },
 };
 
@@ -86,10 +90,16 @@ export const generateTransformPrompt = (transformType) => {
     throw new Error(`Unknown transform type: ${transformType}`);
   }
   
-  return TRANSFORM_PROMPT_TEMPLATE.replace("{VIEW}", config.VIEW)
+  const generatedPrompt = TRANSFORM_PROMPT_TEMPLATE.replace("{VIEW}", config.VIEW)
       .replace("{POSE}", config.POSE)
       .replace("{ENVIRONMENT}", config.ENVIRONMENT)
       .replace("{OUTPUT_FORMAT}", config.OUTPUT_FORMAT);
+  
+  console.log(`\n=== GENERATED TRANSFORM PROMPT (${transformType}) ===`);
+  console.log(generatedPrompt);
+  console.log(`=== END TRANSFORM PROMPT ===\n`);
+  
+  return generatedPrompt;
 };
 
 /**
@@ -100,6 +110,11 @@ export const generateTransformPrompt = (transformType) => {
  */
 export const analyzeLooksmaxxingImages = async (imageParts, userPrompt) => {
   try {
+    console.log(`\n=== GENERATED ANALYSIS PROMPT ===`);
+    console.log("System Instruction:", ANALYSIS_SYSTEM_PROMPT);
+    console.log("User Prompt:", userPrompt);
+    console.log(`=== END ANALYSIS PROMPT ===\n`);
+    
     const model = genAI.getGenerativeModel({
       model: config.gemini.model.pro,
       systemInstruction: ANALYSIS_SYSTEM_PROMPT,
@@ -134,6 +149,11 @@ export const analyzeLooksmaxxingImages = async (imageParts, userPrompt) => {
  */
 export const generateEnhancedImage = async (prompt, imageBase64) => {
   try {
+    console.log(`\n=== GENERATED ENHANCED IMAGE PROMPT ===`);
+    console.log("System Instruction:", EDITING_SYSTEM_PROMPT);
+    console.log("User Prompt:", prompt);
+    console.log(`=== END ENHANCED IMAGE PROMPT ===\n`);
+    
     const model = genAI.getGenerativeModel({
       model: config.gemini.model.flash,
       systemInstruction: EDITING_SYSTEM_PROMPT,
@@ -194,6 +214,11 @@ export const generateTransformedImage = async (transformType, imageBase64) => {
     });
 
     const transformPrompt = generateTransformPrompt(transformType);
+    
+    console.log(`\n=== SENDING TRANSFORM PROMPT TO GEMINI (${transformType}) ===`);
+    console.log("Transform Type:", transformType);
+    console.log("Full Prompt:", transformPrompt);
+    console.log(`=== END TRANSFORM PROMPT TO GEMINI ===\n`);
 
     const result = await model.generateContent([
       transformPrompt,

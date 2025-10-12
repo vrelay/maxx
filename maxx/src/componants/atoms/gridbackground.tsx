@@ -12,6 +12,7 @@ const GridBackgroundImg = ({top}: {top: boolean}) => {
         top ? { top: 0 } : { bottom: 0 }
       ]}
       imageStyle={styles.gridImageStyle}
+      
     />
   );
 };
@@ -24,6 +25,7 @@ const styles = StyleSheet.create({
     height: verticalScale(150),
     width: "100%",
     zIndex: 1,
+    pointerEvents:"none",
   },
   gridImageStyle: {
     resizeMode: "cover",

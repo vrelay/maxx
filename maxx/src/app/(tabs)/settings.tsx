@@ -1,6 +1,7 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
+import * as Notifications from "expo-notifications";
 import {
   ScrollView,
   StyleSheet,
@@ -54,6 +55,35 @@ const SettingsScreen: React.FC = () => {
       },
     ]);
   };
+  const registerForPushNotificationsAsync = async () => {
+    try {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+  
+      // If not granted, request permission
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+  
+      if (finalStatus !== "granted") {
+        Alert.alert("Permission required", "Enable notifications in settings.");
+        return null;
+      }
+  
+      // Get the push token
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("Expo Push Token:", token);
+  
+      // 👉 Send token to your backend to associate with the user
+      return token;
+    } catch (error) {
+      console.error("Error getting push token:", error);
+      return null;
+    }
+  };
+  
 
   const handleInviteFriends = async () => {
     console.log(" DEBUG: Invite friends pressed");
@@ -213,10 +243,16 @@ const SettingsScreen: React.FC = () => {
                     styles.toggle,
                     pushNotificationsEnabled && styles.toggleActive,
                   ]}
-                  onPress={() => {
-                    if (!pushNotificationsEnabled)
-                      setShowNotificationModal(true);
-                    setPushNotificationsEnabled(!pushNotificationsEnabled);
+                  onPress={async () => {
+                    const token = await registerForPushNotificationsAsync();
+                    if (token) {
+                      setPushNotificationsEnabled(true);
+                      // TODO: Save token to your backend for this user
+                    }
+                   else {
+                    setPushNotificationsEnabled(false);
+                    // TODO: Optionally tell backend to disable push for this user
+                  }
                   }}
                 >
                   <View

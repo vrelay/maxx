@@ -8,17 +8,27 @@
     "scheme": "maxx",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
+    "fonts": [
+      "maxx/src/assets/fonts/Plush-Trial-MediumItalic-BF654c40146661a.otf"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.look.maxx",
-      "associatedDomains": ["applinks:lookai.me", "applinks:www.lookai.me"],
+      "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:lookai.me",
+        "applinks:www.lookai.me"
+      ],
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         },
         "NSCameraUsageDescription": "This app needs access to camera to take photos for analysis",
         "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for analysis",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -47,7 +57,10 @@
               "scheme": "maxx"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "permissions": [
@@ -81,7 +94,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-apple-authentication",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

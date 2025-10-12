@@ -17,6 +17,7 @@ import {
   Animated,
   Dimensions,
   Modal,
+  ScrollView,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,7 +25,7 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
   const { leftImages, rightImages, refreshCustomerInfo } = useAuth();
-  const [showPaywall, setShowPaywall] = useState(false);
+  // const [showPaywall, setShowPaywall] = useState(false);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -37,55 +38,67 @@ const LockedDashboard: React.FC = () => {
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.container}>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Maxx.</Text>
-              <TouchableOpacity onPress={() => router.push("/(tabs)/settings")}>
-                <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.imageContainer}>
-              <View style={styles.imageWrapper}>
-                <ImageSlider
-                  beforeImage={{ uri: leftImages[0].uri }}
-                  afterImage={{ uri: rightImages[0].uri }}
-                  lefttext="Pose 1"
-                  righttext="+4 levels"
-                />
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.container}>
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>Maxx.</Text>
+                <TouchableOpacity onPress={() => router.push("/(tabs)/settings")}>
+                  <Text style={styles.settingsIcon}>{"\u{2699}"}</Text>
+                </TouchableOpacity>
               </View>
-            </View>
 
-            <MonthlyProgressBars currentDays={0} />
-
-            <View style={styles.navigationContainer}>
-              <View style={styles.navCard}>
-                <View style={styles.navCardIcon}>
-                  <FontAwesome name="lock" size={24} color="white" />
+              <View style={styles.imageContainer}>
+                <View style={styles.imageWrapper}>
+                  <ImageSlider
+                    beforeImage={{ uri: leftImages[0].uri }}
+                    afterImage={{ uri: rightImages[0].uri }}
+                    lefttext="Pose 1"
+                    righttext="+4 levels"
+                  />
                 </View>
-                <Text style={styles.navCardTitle}>Your Plan</Text>
-                <Text style={styles.navCardSubtitle}>View Daily Task</Text>
               </View>
 
-              <View style={styles.navCard}>
-                <View style={styles.navCardIcon}>
-                  <FontAwesome name="lock" size={24} color="white" />
+              <MonthlyProgressBars currentDays={0} />
+
+              <View style={styles.navigationContainer}>
+                <View style={styles.navCard}>
+                  <View style={styles.navCardIcon}>
+                    <FontAwesome name="lock" size={24} color="white" />
+                  </View>
+                  <Text style={styles.navCardTitle}>Your Plan</Text>
+                  <Text style={styles.navCardSubtitle}>View Daily Task</Text>
                 </View>
-                <Text style={styles.navCardTitle}>Analysis</Text>
-                <Text style={styles.navCardSubtitle}>See Breakdown</Text>
-              </View>
-            </View>
 
-            <ButtonStart
-              text="Unlock at $9.99/week"
-              handlepress={() => setShowPaywall(true)}
-            />
-          </View>
+                <View style={styles.navCard}>
+                  <View style={styles.navCardIcon}>
+                    <FontAwesome name="lock" size={24} color="white" />
+                  </View>
+                  <Text style={styles.navCardTitle}>Analysis</Text>
+                  <Text style={styles.navCardSubtitle}>See Breakdown</Text>
+                </View>
+              </View>
+
+              {/* <ButtonStart
+                text="Unlock at $9.99/week"
+                handlepress={() => setShowPaywall(true)}
+              /> */}
+              <ButtonStart
+                text="Unlock at $9.99/week"
+                handlepress={() => {
+                  router.push("/(tabs)/paymentSuccess");
+                }}
+              />
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </LinearGradient>
 
       {/* Paywall Modal */}
-      <Modal
+      {/* <Modal
         visible={showPaywall}
         animationType="slide"
         presentationStyle="fullScreen"
@@ -98,7 +111,7 @@ const LockedDashboard: React.FC = () => {
             router.push("/(tabs)/paymentSuccess");
           }}
         />
-      </Modal>
+      </Modal> */}
     </GestureHandlerRootView>
   );
 };
@@ -108,6 +121,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     zIndex: 2,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   container: {
     flex: 1,

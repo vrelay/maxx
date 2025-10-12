@@ -2,7 +2,7 @@ import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -24,6 +24,15 @@ const ReferralScreen = () => {
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
+  useEffect(() => {
+    // small timeout makes it robust across navigation transitions
+    const id = setTimeout(() => {
+      Keyboard.dismiss();
+    }, 50);
+
+    return () => clearTimeout(id);
+  }, []);
+
   const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1 && /^[0-9]*$/.test(value)) {
       const newCode = [...referralCode];
@@ -32,6 +41,9 @@ const ReferralScreen = () => {
 
       if (value && index < 3) {
         inputRefs.current[index + 1]?.focus();
+      } else if (index === 3) {
+        // optionally dismiss keyboard when last digit entered
+        Keyboard.dismiss();
       }
     }
   };
@@ -124,8 +136,19 @@ const ReferralScreen = () => {
                         value={digit}
                         textAlign="center"
                         selectionColor="#FFFFFF"
-                        autoFocus={index === 0}
+                        // autoFocus={index === 0}
                         editable={!loading}
+                        submitBehavior="blurAndSubmit"
+                        onSubmitEditing={() => {
+                          // when user presses "submit" on keyboard, move next or dismiss
+                          if (index < 3) {
+                            inputRefs.current[index + 1]?.focus();
+                          } else {
+                            Keyboard.dismiss();
+                          }
+                        }}
+                        // iOS specific: avoid keyboard auto-show from predictive/autofill behavior
+                        // (no built-in prop to disable, but ensuring no autoFocus helps)
                       />
                     ))}
                   </View>

@@ -5,13 +5,13 @@ import { useAuth } from "@/src/context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
-import { Image, StatusBar, StyleSheet, View } from "react-native";
+import { Image, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { scale, verticalScale } from "react-native-size-matters";
+import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const HomeScreen: React.FC = () => {
   const { setProcessImgsGenrationForNextStep } = useAuth();
-  
+
   const handlePaymentSuccess = () => {
     setProcessImgsGenrationForNextStep("next3");
     // Clear entire navigation stack and go to mainScreen
@@ -31,12 +31,24 @@ const HomeScreen: React.FC = () => {
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View></View>
-          <Image
-            source={img.payment_success}
-            style={styles.image}
-            resizeMode="contain"
-          />
+          <View style={styles.contentContainer}>
+            <View style={styles.iconContainer}>
+              <Image
+                source={img.payment_success}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={styles.textContainer}>
+              <Text style={styles.successTitle}>Payment Successful!</Text>
+
+              <Text style={styles.successDescription}>
+                Continue to view your Lookmaxing Plan and start your transformation journey.
+              </Text>
+            </View>
+          </View>
+
           <ButtonStart
             text="Begin My Scan"
             handlepress={handlePaymentSuccess}
@@ -55,13 +67,53 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: scale(24),
-    paddingBottom: verticalScale(10),
+    paddingBottom: verticalScale(20),
     fontFamily: "Plush-Trial",
     zIndex: 2,
   },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  iconContainer: {
+    marginBottom: verticalScale(30),
+  },
   image: {
-    width: scale(300),
-    marginBottom: verticalScale(40),
+    width: scale(200),
+    height: scale(200),
+  },
+  textContainer: {
+    alignItems: "center",
+    paddingHorizontal: scale(20),
+  },
+  successTitle: {
+    color: "#FFFFFF",
+    fontFamily: "Plush-Trial",
+    fontSize: moderateScale(32),
+    fontWeight: "600",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginBottom: verticalScale(16),
+    lineHeight: moderateScale(38),
+  },
+  successSubtitle: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontFamily: "Matter",
+    fontSize: moderateScale(18),
+    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: verticalScale(12),
+    lineHeight: moderateScale(24),
+  },
+  successDescription: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontFamily: "Matter",
+    fontSize: moderateScale(15),
+    fontWeight: "400",
+    textAlign: "center",
+    lineHeight: moderateScale(22),
   },
 });
 
