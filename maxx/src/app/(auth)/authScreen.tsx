@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -211,8 +212,15 @@ const AuthScreen = () => {
             <KeyboardAvoidingView
               behavior={Platform.OS === "ios" ? "padding" : "height"}
               style={styles.keyboardAvoidingView}
+              keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
             >
-              <View style={styles.formContainer}>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <View style={styles.formContainer}>
                 <Text style={styles.title}>
                   {isLoginMode ? "Welcome Back" : "Welcome to Maxx"}
                 </Text>
@@ -304,7 +312,8 @@ const AuthScreen = () => {
                     }
                   </Text>
                 </TouchableOpacity>
-              </View>
+                </View>
+              </ScrollView>
             </KeyboardAvoidingView>
           </SafeAreaView>
         </LinearGradient>
@@ -325,10 +334,20 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
+    paddingTop: verticalScale(50),
+    paddingBottom: verticalScale(50),
   },
   formContainer: {
     paddingHorizontal: scale(25),
+    minHeight: "100%",
+    justifyContent: "center",
   },
   title: {
     color: "#FFFFFF",

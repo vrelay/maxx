@@ -116,11 +116,11 @@ const Analysis: React.FC = () => {
 
   // Navigation functions for pose switching
   const onLeftNavigation = () => {
-    setCurrentPoseIndex((prev) => (prev === 0 ? 3 : prev - 1));
+    setCurrentPoseIndex((prev) => (prev === 0 ? leftImages.length - 1 : prev - 1));
   };
 
   const onRightNavigation = () => {
-    setCurrentPoseIndex((prev) => (prev === 3 ? 0 : prev + 1));
+    setCurrentPoseIndex((prev) => (prev === leftImages.length - 1 ? 0 : prev + 1));
   };
 
   const fetchLooksmaxxingData = async () => {
@@ -144,32 +144,43 @@ const Analysis: React.FC = () => {
     }
   }, [user?.uid]);
 
+  // Ensure currentPoseIndex is valid when images change
+  useEffect(() => {
+    if (leftImages.length > 0 && currentPoseIndex >= leftImages.length) {
+      setCurrentPoseIndex(0);
+    }
+  }, [leftImages, currentPoseIndex]);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "Month 1-2":
         return (
           <View>
-            <View style={styles.sliderContainer}>
-              <ImageSlider
-                beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
-                afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
-                lefttext="Pose 1"
-                righttext="+4 levels"
-                onleftnavigation={onLeftNavigation}
-                onrightnavigation={onRightNavigation}
-              />
-              <View style={styles.paginationDots}>
-                {[0, 1, 2, 3].map((_, idx) => (
-                  <View
-                    key={idx}
-                    style={[
-                      styles.dot,
-                      currentPoseIndex === idx ? styles.dotActive : null,
-                    ]}
-                  />
-                ))}
+            {leftImages.length > 0 && (
+              <View style={styles.sliderContainer}>
+                <ImageSlider
+                  beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
+                  afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
+                  lefttext="Pose 1"
+                  righttext="+4 levels"
+                  onleftnavigation={onLeftNavigation}
+                  onrightnavigation={onRightNavigation}
+                />
+                {leftImages.length > 1 && (
+                  <View style={styles.paginationDots}>
+                    {leftImages.map((_, idx) => (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.dot,
+                          currentPoseIndex === idx ? styles.dotActive : null,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
-            </View>
+            )}
 
             {loading ? (
               <View style={styles.loadingContainer}>

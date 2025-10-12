@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -98,22 +99,12 @@ const GenerateOtherThreeImgs: React.FC = () => {
       console.log("filteredleftImages", filteredleftImages);
       console.log("filteredrightImages", filteredrightImages);
 
-      const dummyImages = {
-        modificationTime: new Date(),
-        name: "",
-        path: "",
-        size: 0,
-        uri: "",
-      };
-      //push dummyimages and make total of four images so first count the length of filteredleftImages and then push the dummyimages to the array
-      const totalImages = filteredleftImages.length;
-      if (totalImages < 4) {
-        for (let i = 0; i < 4 - totalImages; i++) {
-          filteredleftImages.push(dummyImages);
-        }
-      }
-      setLeftImages(filteredleftImages);
-      setRightImages(filteredrightImages);
+      // Only use actual images, don't add dummy images
+      // Filter out any images with empty URIs
+      const validLeftImages = filteredleftImages.filter(image => image.uri && image.uri.trim() !== "");
+      const validRightImages = filteredrightImages.filter(image => image.uri && image.uri.trim() !== "");
+      setLeftImages(validLeftImages);
+      setRightImages(validRightImages);
       const looksmaxxingResults =
         await looksmaxxingService.getJsonFromFirestore(
           user?.uid as string,
@@ -129,6 +120,13 @@ const GenerateOtherThreeImgs: React.FC = () => {
       setEverythingDone(true);
     }
   }, [processImgsGenrationForNextStep]);
+
+  // Ensure currentPoseIndex is valid when images change
+  useEffect(() => {
+    if (leftImages.length > 0 && currentPoseIndex >= leftImages.length) {
+      setCurrentPoseIndex(0);
+    }
+  }, [leftImages, currentPoseIndex]);
 
   // TESTING useEffect - Uncomment this to test progress without real API calls
   // useEffect(() => {
@@ -213,11 +211,11 @@ const GenerateOtherThreeImgs: React.FC = () => {
   }, []);
 
   const onLeftNavigation = () => {
-    setCurrentPoseIndex((prev) => (prev === 0 ? 3 : prev - 1));
+    setCurrentPoseIndex((prev) => (prev === 0 ? leftImages.length - 1 : prev - 1));
   };
 
   const onRightNavigation = () => {
-    setCurrentPoseIndex((prev) => (prev === 3 ? 0 : prev + 1));
+    setCurrentPoseIndex((prev) => (prev === leftImages.length - 1 ? 0 : prev + 1));
   };
 
   return (
@@ -253,9 +251,15 @@ const GenerateOtherThreeImgs: React.FC = () => {
               }}
             />
 
-            <View style={styles.imageContainer}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              bounces={true}
+            >
+              <View style={styles.imageContainer}>
               <View style={styles.imageWrapper}>
-                {everythingDone && (
+                {leftImages.length > 0 && everythingDone && (
                   <ImageSlider
                     beforeImage={{ uri: leftImages[currentPoseIndex]?.uri }}
                     afterImage={{ uri: rightImages[currentPoseIndex]?.uri }}
@@ -265,7 +269,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
                     onrightnavigation={onRightNavigation}
                   />
                 )}
-                {!everythingDone && (
+                {leftImages.length > 0 && !everythingDone && (
                   <ImageSlider
                     beforeImage={{ uri: leftImages[0]?.uri }}
                     afterImage={{ uri: rightImages[0]?.uri }}
@@ -274,17 +278,19 @@ const GenerateOtherThreeImgs: React.FC = () => {
                   />
                 )}
 
-                <View style={styles.paginationDots}>
-                  {[0, 1, 2, 3].map((_, idx) => (
-                    <View
-                      key={idx}
-                      style={[
-                        styles.dot,
-                        currentPoseIndex === idx ? styles.dotActive : null,
-                      ]}
-                    />
-                  ))}
-                </View>
+                {leftImages.length > 1 && (
+                  <View style={styles.paginationDots}>
+                    {leftImages.map((_, idx) => (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.dot,
+                          currentPoseIndex === idx ? styles.dotActive : null,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
             </View>
 
@@ -317,6 +323,7 @@ const GenerateOtherThreeImgs: React.FC = () => {
                 <Text style={styles.navCardSubtitle}>See Breakdown</Text>
               </TouchableOpacity>
             </View>
+            </ScrollView>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -333,6 +340,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: scale(15),
+    paddingBottom: verticalScale(20),
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingBottom: verticalScale(20),
   },
   header: {

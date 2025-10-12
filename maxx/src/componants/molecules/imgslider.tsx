@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
     top: 0,
     height: "100%",
     overflow: "hidden", // This clips the image
+    backgroundColor: "#000000",
   },
   // After image container (right side)
   afterContainer: {
@@ -199,6 +200,7 @@ const styles = StyleSheet.create({
     top: 0,
     height: "100%",
     overflow: "hidden", // This clips the image
+    backgroundColor: "#000000",
   },
   image: {
     position: "absolute",

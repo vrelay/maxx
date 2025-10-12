@@ -153,8 +153,7 @@ REQUIREMENTS: natural skin texture, realistic hair strands, subtle symmetry
 only, tidy brows/facial hair, slight teeth brightening (no overwhite), jawline 
 definition without distortions. No CGI/illustration look.
 
-OUTPUT: High-res portrait (4:5 or 3:4). Minimal crop; keep original framing 
-if possible.`;
+OUTPUT: High-res portrait (5:6 aspect ratio, 335x400px equivalent). Exact aspect ratio to fill container completely, no black spaces or cropping needed. Keep original framing if possible.`;
 
     const generatedImageBase64 = await generateEnhancedImage(
       editingPrompt,
