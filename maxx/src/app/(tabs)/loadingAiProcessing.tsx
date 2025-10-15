@@ -4,7 +4,7 @@ import looksmaxxingService from "@/src/services/looksmaxxingService";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   Animated,
@@ -13,6 +13,8 @@ import {
   StyleSheet,
   Text,
   View,
+  AppState,
+  AppStateStatus,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
@@ -25,14 +27,96 @@ const STEP_TEXTS = [
 
 const LoadingScreen: React.FC = () => {
   const [step, setStep] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastError, setLastError] = useState<string | null>(null);
   const { frontPhoto, sidePhoto, fullBodyPhoto } = useLocalSearchParams();
   const { user, processImgsGenrationForNextStep } = useAuth();
+  
+  // Refs for managing processing state
+  const processingRef = useRef(false);
+  const appStateRef = useRef(AppState.currentState);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Enhanced error handling with retry logic
+  const handleError = (error: any, context: string) => {
+    console.error(`${context} error:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    setLastError(errorMessage);
+    
+    // Check if it's a session expiry error
+    const isSessionError = errorMessage.includes('expired') || 
+                          errorMessage.includes('unauthenticated') ||
+                          errorMessage.includes('invalid-argument');
+    
+    // Check if it's a network error
+    const isNetworkError = errorMessage.includes('Network') || 
+                          errorMessage.includes('timeout') ||
+                          errorMessage.includes('connection');
+    
+    if (retryCount < 3 && (isSessionError || isNetworkError)) {
+      // Auto-retry for session and network errors
+      setRetryCount(prev => prev + 1);
+      const delay = Math.min(2000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+      
+      retryTimeoutRef.current = setTimeout(() => {
+        console.log(`Retrying ${context} (attempt ${retryCount + 1}/3)...`);
+        callAllAPIs(frontPhoto as string, sidePhoto as string, (fullBodyPhoto as string) || undefined);
+      }, delay);
+    } else {
+      // Show error dialog with appropriate options
+      showErrorDialog(errorMessage, context);
+    }
+  };
+
+  const showErrorDialog = (errorMessage: string, context: string) => {
+    const isSessionError = errorMessage.includes('expired') || 
+                          errorMessage.includes('unauthenticated');
+    
+    const buttons = [
+      { 
+        text: "Retake Photos", 
+        onPress: () => router.replace("/(tabs)")
+      }
+    ];
+    
+    if (isSessionError) {
+      buttons.unshift({
+        text: "Sign In Again",
+        onPress: () => router.replace("/(auth)/authScreen")
+      });
+    } else if (retryCount < 3) {
+      buttons.unshift({
+        text: "Try Again",
+        onPress: () => {
+          setRetryCount(0);
+          setLastError(null);
+          callAllAPIs(frontPhoto as string, sidePhoto as string, (fullBodyPhoto as string) || undefined);
+        }
+      });
+    }
+    
+    Alert.alert(
+      "Processing Error",
+      `${context}: ${errorMessage}\n\n${retryCount >= 3 ? 'Maximum retry attempts reached.' : ''}`,
+      buttons
+    );
+  };
 
   const callAllAPIs = async (
     frontPhoto: string,
     sidePhoto: string,
     fullBodyPhoto?: string
   ) => {
+    if (processingRef.current) {
+      console.log("Processing already in progress, skipping duplicate call");
+      return;
+    }
+    
+    processingRef.current = true;
+    setIsProcessing(true);
+    setLastError(null);
+    
     try {
       // Test the connection first
       await looksmaxxingService.testConnection();
@@ -44,7 +128,8 @@ const LoadingScreen: React.FC = () => {
           fullBodyPhoto: fullBodyPhoto,
         }
       );
-      console.log("firesbase image upload result", uploadResult);
+      console.log("firebase image upload result", uploadResult);
+      
       if (uploadResult.success) {
         let result = null;
         if (processImgsGenrationForNextStep === "nextmonthsiteration") {
@@ -57,6 +142,7 @@ const LoadingScreen: React.FC = () => {
           );
           if (result.success) {
             router.replace("/(tabs)/mainScreen");
+            return;
           }
         } else {
           result = await looksmaxxingService.processLooksmaxxingBasic(
@@ -68,58 +154,56 @@ const LoadingScreen: React.FC = () => {
           );
           if (result.success) {
             router.replace("/(tabs)/aiResult");
+            return;
           }
         }
 
-        // "frontPhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_front_before.jpg?alt=media&token=37f2e635-25a8-4464-8850-8a49c62fb39b", "fullBodyPhotoUrl": undefined, "sidePhotoUrl": "https://firebasestorage.googleapis.com/v0/b/distribution-maxx.firebasestorage.app/o/user-photos%2Ffz8hHVaJURZYh2s8tfvm8oCfUK22_side_before.jpg?alt=media&token=da9a60a2-e948-4bf4-91cd-5d49df9c9a7a"
         if (!result.success) {
-          Alert.alert(
-            "Processing Error",
-            result.error || "Failed to process your photos. Please try taking new photos.",
-            [
-              { 
-                text: "Retake Photos", 
-                onPress: () => {
-                  // Navigate back to camera screen
-                  router.replace("/(tabs)");
-                }
-              }
-            ]
-          );
+          handleError(result.error || "Failed to process your photos", "Processing");
         }
       } else {
+        handleError(uploadResult.error || "Failed to upload images", "Upload");
+      }
+    } catch (error) {
+      handleError(error, "API Call");
+    } finally {
+      processingRef.current = false;
+      setIsProcessing(false);
+    }
+  };
+
+  // App state change handler
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    console.log("App state changed from", appStateRef.current, "to", nextAppState);
+    
+    if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+      // App came back to foreground
+      console.log("App returned to foreground");
+      
+      // If we were processing and there's an error, show retry option
+      if (processingRef.current && lastError) {
         Alert.alert(
-          "Upload Error",
-          uploadResult.error || "Failed to upload images. Please try taking new photos.",
+          "Processing Interrupted",
+          "The app was interrupted while processing. Would you like to continue?",
           [
+            { text: "Retake Photos", onPress: () => router.replace("/(tabs)") },
             { 
-              text: "Retake Photos", 
+              text: "Continue Processing", 
               onPress: () => {
-                // Navigate back to camera screen
-                router.replace("/(tabs)");
+                setRetryCount(0);
+                setLastError(null);
+                callAllAPIs(frontPhoto as string, sidePhoto as string, (fullBodyPhoto as string) || undefined);
               }
             }
           ]
         );
       }
-    } catch (error) {
-      console.error("API call error:", error);
-      Alert.alert(
-        "Processing Error",
-        "Something went wrong while processing your photos. Please try taking new photos.",
-        [
-          { 
-            text: "Retake Photos", 
-            onPress: () => {
-              // Navigate back to camera screen
-              router.replace("/(tabs)");
-            }
-          }
-        ]
-      );
     }
+    
+    appStateRef.current = nextAppState;
   };
 
+  // Initialize processing
   useEffect(() => {
     const call = async () =>
       await callAllAPIs(
@@ -131,6 +215,22 @@ const LoadingScreen: React.FC = () => {
       call();
     }
   }, [frontPhoto, sidePhoto, fullBodyPhoto]);
+
+  // App state listener
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [lastError]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      processingRef.current = false;
+    };
+  }, []);
 
   // Animate loading balls
   const ballAnim = [
@@ -247,9 +347,17 @@ const LoadingScreen: React.FC = () => {
             ))}
           </View>
           <Text style={styles.statusText}>
-            AI is generating your maximum potential based on{"\n"}
-            50k+ successful transformation
+            {lastError ? (
+              `Retrying... (${retryCount}/3)`
+            ) : (
+              `AI is generating your maximum potential based on${"\n"}50k+ successful transformation`
+            )}
           </Text>
+          {lastError && (
+            <Text style={styles.errorText}>
+              {lastError}
+            </Text>
+          )}
         </SafeAreaView>
       </LinearGradient>
     </View>
@@ -322,6 +430,15 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     fontWeight: "500",
     lineHeight: 19,
+  },
+  errorText: {
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+    fontSize: moderateScale(12),
+    fontWeight: "400",
+    lineHeight: 16,
+    marginTop: verticalScale(8),
+    paddingHorizontal: scale(20),
   },
 });
 

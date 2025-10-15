@@ -84,9 +84,9 @@ class LooksmaxxingService {
   private apiBaseUrl = API_BASE_URL;
 
   /**
-   * Get Firebase ID token for authentication
+   * Get Firebase ID token for authentication with automatic refresh
    */
-  private async getAuthToken(): Promise<string> {
+  private async getAuthToken(forceRefresh: boolean = false): Promise<string> {
     const user = auth.currentUser;
     console.log("Current user:", user ? user.uid : "No user");
 
@@ -95,22 +95,36 @@ class LooksmaxxingService {
     }
 
     try {
-      const token = await user.getIdToken();
+      const token = await user.getIdToken(forceRefresh);
       console.log("Firebase token obtained successfully");
       return token;
     } catch (error) {
       console.error("Failed to get Firebase token:", error);
-      throw new Error("Failed to get authentication token");
+      
+      // If token refresh failed, try to get a fresh token
+      if (!forceRefresh) {
+        console.log("Attempting to force refresh token...");
+        try {
+          const freshToken = await user.getIdToken(true);
+          console.log("Fresh Firebase token obtained successfully");
+          return freshToken;
+        } catch (refreshError) {
+          console.error("Failed to refresh Firebase token:", refreshError);
+        }
+      }
+      
+      throw new Error("Failed to get authentication token - session may have expired");
     }
   }
 
   /**
-   * Make authenticated HTTP request to the API
+   * Make authenticated HTTP request to the API with automatic token refresh on 401
    */
   private async makeApiRequest(
     endpoint: string,
     data: any,
-    timeout: number = 300000
+    timeout: number = 300000,
+    retryOnAuth: boolean = true
   ): Promise<any> {
     try {
       console.log(`Making API request to: ${this.apiBaseUrl}${endpoint}`);
@@ -140,6 +154,48 @@ class LooksmaxxingService {
 
       clearTimeout(timeoutId);
       console.log(`Response status: ${response.status}`);
+
+      // Handle 401 Unauthorized - try with fresh token
+      if (response.status === 401 && retryOnAuth) {
+        console.log("Received 401, attempting with fresh token...");
+        clearTimeout(timeoutId);
+        
+        const freshToken = await this.getAuthToken(true);
+        const retryController = new AbortController();
+        const retryTimeoutId = setTimeout(() => {
+          console.log("Retry request timeout triggered");
+          retryController.abort();
+        }, timeout);
+
+        const retryResponse = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${freshToken}`,
+          },
+          body: JSON.stringify(data),
+          signal: retryController.signal,
+        });
+
+        clearTimeout(retryTimeoutId);
+        console.log(`Retry response status: ${retryResponse.status}`);
+
+        if (!retryResponse.ok) {
+          let errorMessage = `HTTP error! status: ${retryResponse.status}`;
+          try {
+            const errorData = await retryResponse.json();
+            errorMessage = errorData.message || errorMessage;
+            console.error("API retry error response:", errorData);
+          } catch (parseError) {
+            console.error("Failed to parse retry error response");
+          }
+          throw new Error(errorMessage);
+        }
+
+        const result = await retryResponse.json();
+        console.log("API retry request successful");
+        return result;
+      }
 
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
