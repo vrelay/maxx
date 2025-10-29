@@ -12,6 +12,7 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import { SafeNavigation } from "../../utils/safeNavigation";
 
 const TermsOfServiceScreen: React.FC = () => {
   return (
@@ -27,7 +28,7 @@ const TermsOfServiceScreen: React.FC = () => {
           <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => SafeNavigation.goBack("/(tabs)/settings")}>
                 <Text style={styles.backButton}>{"\u2190"}</Text>
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Terms of Service</Text>

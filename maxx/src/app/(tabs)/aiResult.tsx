@@ -3,6 +3,7 @@
 import GridBackgroundImg from "@/src/componants/atoms/gridbackground";
 import ButtonStart from "@/src/componants/atoms/startbutton";
 import ImageSlider from "@/src/componants/molecules/imgslider";
+import Paywall from "@/src/componants/molecules/Paywall";
 import img from "@/src/constants/img";
 import { useAuth } from "@/src/context/AuthContext";
 import looksmaxxingService from "@/src/services/looksmaxxingService";
@@ -20,6 +21,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -463,6 +465,8 @@ const StartTransformationToday = ({
 
 const DummySliderScreen: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { refreshCustomerInfo, isPremium } = useAuth();
   const flatListRef = useRef<FlatList>(null);
   
   // Generate random scores only on first render
@@ -666,8 +670,16 @@ const DummySliderScreen: React.FC = () => {
             <View style={styles.footer}>
               <Text style={styles.price}>at $9.99/week</Text>
               <ButtonStart
-                text="See My Full Potential"
-                handlepress={() => router.push("/(tabs)/lockedDashboard")}
+                text={isPremium ? "View My Complete Analysis" : "See My Full Potential"}
+                handlepress={() => {
+                  if (isPremium) {
+                    // Premium user - show their complete analysis (should already be generated)
+                    router.push("/(tabs)/mainScreen");
+                  } else {
+                    // Non-premium user - show paywall
+                    router.push("/(tabs)/paywallScreen");
+                  }
+                }}
               />
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/lockedDashboard")}
@@ -678,6 +690,22 @@ const DummySliderScreen: React.FC = () => {
           </SafeAreaView>
         </LinearGradient>
       </View>
+
+      {/* Paywall Modal */}
+      <Modal
+        visible={showPaywall}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <Paywall
+          onPurchaseSuccess={() => {
+            setShowPaywall(false);
+            refreshCustomerInfo();
+            // Navigate to the unlocked dashboard with AI analysis
+            router.push("/(tabs)/mainScreen");
+          }}
+        />
+      </Modal>
     </GestureHandlerRootView>
   );
 };

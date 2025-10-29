@@ -200,18 +200,26 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
     launchImageLibrary(options, (response: ImagePickerResponse) => {
       if (response.assets && response.assets[0]) {
         setPhotoUri(response.assets[0].uri || null);
-        setStep("full-body-preview");
+        
+        // Navigate to appropriate preview step based on current step
+        if (step === "front-position") {
+          setStep("front-preview");
+        } else if (step === "side-position") {
+          setStep("side-preview");
+        } else if (step === "full-body-position") {
+          setStep("full-body-preview");
+        }
       }
     });
   };
 
   // Updated, more user-friendly instructions
   const instructions: Record<string, string> = {
-    "front-position": "Center Your Face in the Frame",
+    "front-position": "Center Your Face in the Frame\n(Tap Gallery to choose existing photo)",
     "front-preview": "Front photo captured",
-    "side-position": "Now, Turn for a Profile Photo",
+    "side-position": "Now, Turn for a Profile Photo\n(Tap Gallery to choose existing photo)",
     "side-preview": "Side photo captured",
-    "full-body-position": "Capture Your Full Body Photo",
+    "full-body-position": "Capture Your Full Body Photo\n(Tap Gallery to choose existing photo)",
     "full-body-preview": "Full-body photo captured",
   };
 
@@ -382,18 +390,14 @@ const GuidedCamera: React.FC<GuidedCameraProps> = ({
                 </View>
               )}
               <View style={styles.captureBar}>
-                {step === "full-body-position" && (
-                  <TouchableOpacity
-                    style={styles.galleryButton}
-                    onPress={handleGallerySelect}
-                  >
-                    <Feather name="image" size={24} color="#fff" />
-                  </TouchableOpacity>
-                )}
-
-                {step != "full-body-position" && (
-                  <View style={styles.placeholder} />
-                )}
+                {/* Gallery button - show for all photo steps */}
+                <TouchableOpacity
+                  style={styles.galleryButton}
+                  onPress={handleGallerySelect}
+                >
+                  <Feather name="image" size={24} color="#fff" />
+                  <Text style={styles.galleryButtonText}>Gallery</Text>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.captureButton}
@@ -524,6 +528,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  galleryButtonText: {
+    color: "#fff",
+    fontSize: moderateScale(12),
+    fontWeight: "500",
+    marginTop: 4,
   },
   placeholder: {
     width: 54,

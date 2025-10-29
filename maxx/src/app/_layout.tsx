@@ -6,6 +6,7 @@ import Toast from "react-native-toast-message";
 import { AuthProvider } from "../context/AuthContext";
 import revenueCatService from "../services/revenueCatService";
 import { ToastService } from "../services/ToastService";
+import ErrorBoundary from "../componants/atoms/ErrorBoundary";
 import "./index.css";
 
 export default function RootLayout() {
@@ -23,13 +24,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <ToastService />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-        </Stack>
-        <Toast />
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <ToastService />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+          </Stack>
+          <Toast />
+        </AuthProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }

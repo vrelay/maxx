@@ -323,6 +323,19 @@ const GenerateOtherThreeImgs: React.FC = () => {
                 <Text style={styles.navCardSubtitle}>See Breakdown</Text>
               </TouchableOpacity>
             </View>
+
+            <View style={styles.secondRowContainer}>
+              <TouchableOpacity
+                style={styles.navCard}
+                onPress={() => router.push("/(tabs)/managePlan" as any)}
+              >
+                <View style={styles.navCardIcon}>
+                  <FontAwesome name="credit-card" size={24} color="orange" />
+                </View>
+                <Text style={styles.navCardTitle}>Manage Plan</Text>
+                <Text style={styles.navCardSubtitle}>Subscription & Billing</Text>
+              </TouchableOpacity>
+            </View>
             </ScrollView>
           </View>
         </SafeAreaView>
@@ -393,6 +406,11 @@ const styles = StyleSheet.create({
   },
   navigationContainer: {
     marginTop: verticalScale(40),
+    flexDirection: "row",
+    gap: scale(15),
+  },
+  secondRowContainer: {
+    marginTop: verticalScale(15),
     flexDirection: "row",
     gap: scale(15),
   },

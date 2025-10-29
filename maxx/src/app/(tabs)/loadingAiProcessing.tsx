@@ -31,7 +31,7 @@ const LoadingScreen: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [lastError, setLastError] = useState<string | null>(null);
   const { frontPhoto, sidePhoto, fullBodyPhoto } = useLocalSearchParams();
-  const { user, processImgsGenrationForNextStep } = useAuth();
+  const { user, processImgsGenrationForNextStep, isPremium } = useAuth();
   
   // Refs for managing processing state
   const processingRef = useRef(false);
@@ -132,7 +132,15 @@ const LoadingScreen: React.FC = () => {
       
       if (uploadResult.success) {
         let result = null;
-        if (processImgsGenrationForNextStep === "nextmonthsiteration") {
+        
+        // Determine processing type based on user status
+        const shouldDoCompleteProcessing = 
+          processImgsGenrationForNextStep === "nextmonthsiteration" || 
+          isPremium;
+        
+        if (shouldDoCompleteProcessing) {
+          // Premium users or next iteration - do complete AI analysis
+          console.log("🧪 Premium user detected - doing complete AI analysis");
           result = await looksmaxxingService.processLooksmaxxingComplete(
             user?.uid as string,
             uploadResult.frontPhotoUrl,
@@ -145,6 +153,7 @@ const LoadingScreen: React.FC = () => {
             return;
           }
         } else {
+          // Non-premium users - do basic processing
           result = await looksmaxxingService.processLooksmaxxingBasic(
             user?.uid as string,
             uploadResult.frontPhotoUrl,

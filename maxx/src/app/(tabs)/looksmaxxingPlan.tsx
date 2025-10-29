@@ -18,6 +18,7 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import { SafeNavigation } from "../../utils/safeNavigation";
 
 interface Task {
   id: string;
@@ -76,11 +77,18 @@ const TaskCard = ({ item }: { item: Task }) => (
 );
 
 const LooksmaxxingPlanScreen: React.FC = () => {
-  const { user, subscriptionDays, looksmaxxingResults } = useAuth();
+  const { user, subscriptionDays, looksmaxxingResults, isPremium } = useAuth();
   const [activeTab, setActiveTab] = useState("Month 1-2");
   const [loading, setLoading] = useState<boolean>(true);
   const [planData, setPlanData] = useState<{ [key: string]: PlanType }>({});
   const tabs = ["Month 1-2", "Month 3-4", "Month 5-6"];
+
+  // Check premium status and redirect if not premium
+  useEffect(() => {
+    if (!isPremium) {
+      router.replace("/(tabs)/paywallScreen" as any);
+    }
+  }, [isPremium]);
 
   // Function to fetch looksmaxxing data and organize it
   const fetchAndOrganizeData = async () => {
@@ -166,7 +174,7 @@ const LooksmaxxingPlanScreen: React.FC = () => {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => SafeNavigation.goBack("/(tabs)/mainScreen")}>
                 <Text style={styles.backButton}>{"\u2190"}</Text>
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Your Looksmaxxing Plan</Text>

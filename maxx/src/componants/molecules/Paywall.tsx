@@ -192,6 +192,13 @@ const Paywall: React.FC<PaywallProps> = ({ onPurchaseSuccess }) => {
           <Text style={styles.restoreText}>Restore Purchases</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity 
+          style={styles.subscriptionInfoButton} 
+          onPress={() => router.push("/(tabs)/subscriptionInfo" as any)}
+        >
+          <Text style={styles.subscriptionInfoText}>Subscription Information</Text>
+        </TouchableOpacity>
+
         <Text style={styles.disclaimer}>
           Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.
         </Text>
@@ -340,6 +347,15 @@ const styles = StyleSheet.create({
   restoreText: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: moderateScale(16),
+    textDecorationLine: 'underline',
+  },
+  subscriptionInfoButton: {
+    alignItems: 'center',
+    paddingVertical: verticalScale(12),
+  },
+  subscriptionInfoText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: moderateScale(14),
     textDecorationLine: 'underline',
   },
   disclaimer: {

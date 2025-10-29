@@ -80,6 +80,13 @@ class RevenueCatService {
   }
 
   isPremiumUser(customerInfo: CustomerInfo | null): boolean {
+    // 🧪 TEST EMAIL: Always return true for test email
+    const currentUser = auth.currentUser;
+    if (currentUser?.email === 'demolookmaxx@gmail.com') {
+      console.log('🧪 Test email detected - returning premium status');
+      return true;
+    }
+    
     if (!customerInfo) return false;
     return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
   }
@@ -129,11 +136,22 @@ class RevenueCatService {
   // Add method to check combined premium access (subscription + referral rewards)
   async checkCombinedPremiumAccess(): Promise<{
     hasAccess: boolean;
-    source: 'subscription' | 'referral' | 'none';
+    source: 'subscription' | 'referral' | 'test' | 'none';
     expiresAt?: Date;
   }> {
     try {
       await this.initialize();
+      
+      // 🧪 TEST EMAIL: Give premium access to test email
+      const currentUser = auth.currentUser;
+      if (currentUser?.email === 'demolookmaxx@gmail.com') {
+        console.log('🧪 Test email detected - granting premium access');
+        return {
+          hasAccess: true,
+          source: 'test',
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+        };
+      }
       
       // Check RevenueCat subscription
       const customerInfo = await this.getCustomerInfo();
@@ -193,6 +211,14 @@ class RevenueCatService {
   async getPremiumPurchaseDate(): Promise<Date | null> {
     try {
       await this.initialize();
+      
+      // 🧪 TEST EMAIL: Return a fake purchase date for test email
+      const currentUser = auth.currentUser;
+      if (currentUser?.email === 'demolookmaxx@gmail.com') {
+        console.log('🧪 Test email detected - returning fake purchase date');
+        return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+      }
+      
       const customerInfo = await this.getCustomerInfo();
       
       if (!customerInfo) {

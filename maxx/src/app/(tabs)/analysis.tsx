@@ -19,6 +19,7 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import { SafeNavigation } from "../../utils/safeNavigation";
 import Svg, { Circle } from "react-native-svg";
 
 const CircularProgress = ({
@@ -249,7 +250,7 @@ const Analysis: React.FC = () => {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => SafeNavigation.goBack("/(tabs)/mainScreen")}>
                 <Text style={styles.backButton}>{"\u2190"}</Text>
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Your Results</Text>

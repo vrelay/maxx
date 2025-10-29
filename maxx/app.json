@@ -4,7 +4,7 @@
     "slug": "maxx",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "maxx/src/assets/images/370670f68e95b6403e3d21f5896df023~tplv-tiktokx-cropcenter_1080_1080.jpeg",
+    "icon": "./src/assets/images/appIconMaxx.png",
     "scheme": "maxx",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,

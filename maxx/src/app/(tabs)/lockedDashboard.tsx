@@ -25,7 +25,7 @@ import { moderateScale, scale, verticalScale } from "react-native-size-matters";
 
 const LockedDashboard: React.FC = () => {
   const { leftImages, rightImages, refreshCustomerInfo } = useAuth();
-  // const [showPaywall, setShowPaywall] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -82,15 +82,9 @@ const LockedDashboard: React.FC = () => {
                 </View>
               </View>
 
-              {/* <ButtonStart
-                text="Unlock at $9.99/week"
-                handlepress={() => setShowPaywall(true)}
-              /> */}
               <ButtonStart
                 text="Unlock at $9.99/week"
-                handlepress={() => {
-                  router.push("/(tabs)/paymentSuccess");
-                }}
+                handlepress={() => router.push("/(tabs)/paywallScreen")}
               />
             </View>
           </ScrollView>
@@ -98,7 +92,7 @@ const LockedDashboard: React.FC = () => {
       </LinearGradient>
 
       {/* Paywall Modal */}
-      {/* <Modal
+      <Modal
         visible={showPaywall}
         animationType="slide"
         presentationStyle="fullScreen"
@@ -107,11 +101,11 @@ const LockedDashboard: React.FC = () => {
           onPurchaseSuccess={() => {
             setShowPaywall(false);
             refreshCustomerInfo();
-            // Navigate to the unlocked dashboard or next screen
-            router.push("/(tabs)/paymentSuccess");
+            // Navigate to the unlocked dashboard with AI analysis
+            router.push("/(tabs)/mainScreen");
           }}
         />
-      </Modal> */}
+      </Modal>
     </GestureHandlerRootView>
   );
 };

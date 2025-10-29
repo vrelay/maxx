@@ -58,10 +58,10 @@ const index = () => {
         } else if (rightImageCount === 1) {
           // Has only one generated image
           if (isPremium) {
-            // User is premium - take to payment success
-            setRoutingDecision("/(tabs)/paymentSuccess");
+            // User is premium - show their AI analysis results
+            setRoutingDecision("/(tabs)/aiResult");
           } else {
-            // User not premium - take to aiResult page
+            // User not premium - take to aiResult page (shows paywall)
             setRoutingDecision("/(tabs)/aiResult");
           }
         } else {

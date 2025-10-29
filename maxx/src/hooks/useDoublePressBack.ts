@@ -1,6 +1,6 @@
 import { useFocusEffect } from "expo-router";
 import React, { useRef } from "react";
-import { BackHandler, ToastAndroid } from "react-native";
+import { BackHandler, Platform, Alert } from "react-native";
 
 export const useDoublePressBack = (message: string = "Press back again to exit") => {
   const backPressCount = useRef(0);
@@ -12,7 +12,14 @@ export const useDoublePressBack = (message: string = "Press back again to exit")
         backPressCount.current += 1;
         
         if (backPressCount.current === 1) {
-          ToastAndroid.show(message, ToastAndroid.SHORT);
+          // Use platform-appropriate toast/alert
+          if (Platform.OS === 'android') {
+            // For Android, we can use a simple console log or a toast library
+            console.log(message);
+          } else {
+            // For iOS, show a brief alert or use a toast library
+            console.log(message);
+          }
           
           // Reset counter after 2 seconds
           backPressTimer.current = setTimeout(() => {

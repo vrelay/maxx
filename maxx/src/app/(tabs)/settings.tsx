@@ -19,6 +19,7 @@ import referralService from "../../services/referralService";
 import NotificationModal from "../../componants/atoms/NotificationModal";
 import NPSModal from "../../componants/atoms/NPSModal";
 import InviteFriendsModal from "../../componants/atoms/InviteFriendsModal";
+import { SafeNavigation } from "../../utils/safeNavigation";
 
 
 const SettingsScreen: React.FC = () => {
@@ -163,8 +164,13 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handleManagePlan = () => {
-    // Dummy manage plan - nothing happens
-    console.log("Manage plan pressed");
+    try {
+      console.log("Manage Plan button pressed");
+      router.push("/(tabs)/managePlan" as any);
+    } catch (error) {
+      console.error("Error navigating to manage plan:", error);
+      Alert.alert("Error", "Unable to open manage plan. Please try again.");
+    }
   };
 
   const handleLegalItem = (item: string) => {
@@ -172,6 +178,8 @@ const SettingsScreen: React.FC = () => {
       router.push("/(tabs)/privacyPolicy");
     } else if (item === "Terms of Service") {
       router.push("/(tabs)/termsOfService");
+    } else if (item === "Help & Support") {
+      router.push("/(tabs)/support" as any);
     } else {
       // Dummy legal items - nothing happens for other items
       console.log(`${item} pressed`);
@@ -184,7 +192,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => SafeNavigation.goBack("/(tabs)/mainScreen")}>
               <Text style={styles.backButton}>{"\u2190"}</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Settings</Text>
@@ -271,6 +279,8 @@ const SettingsScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.listItem}
                 onPress={handleManagePlan}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Text style={styles.listItemText}>Manage Plan & Payments</Text>
                 <FontAwesome
